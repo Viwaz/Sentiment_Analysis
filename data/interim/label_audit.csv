@@ -1,0 +1,555 @@
+id,text,topic_label,sentiment_label,confidence,include,notes,source_file,sentiment_label_normalized,include_normalized,text_missing,text_length_chars,token_count_whitespace,is_short_comment,is_duplicate_text,exclude_reason
+85,Republic of dowa 💥,Economy,Negative,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,18,4,False,False,
+86,Under the dynamic of professor peter mnthalika 🔥🔥🔥,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,50,8,False,False,
+87,Andale are waiting for this to stop him....,Politics,Negative,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,43,8,False,False,
+88,A Malawian dangote,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,18,3,False,False,
+89,"We do call this "" Japan in Malawi 🇲🇼""😁🙌",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,39,9,False,False,
+90,Waiting for IPO ya nzeru za bambo .. awa nde ma stock ... Osati amavendor tikugulawa ...producers not consumer.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,111,19,False,False,
+91,Dowa siku Malawi 🙌,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,18,4,False,False,
+92,Politicians and 99 others feeling uncomfortable with a bombastic side eye.,Politics,Negative,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,74,11,False,False,
+93,Real meaning of Pangolin,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,24,4,False,False,
+94,Dollo kwambir ma small holder famers apindule,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,45,7,False,False,
+95,This is what we call idea 👌,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,27,7,False,False,
+96,Dowa have full wise people 💥💪🔥,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,30,6,False,False,
+97,"That's the kind of well to do citizens we want within ourselves,, uyuyu ndi real Gøàt",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,85,16,False,False,
+98,Mbambande 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,11,2,False,False,
+99,Pano Dowa ndidziko palokho 🌹♥️,Politics,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,30,5,False,False,
+100,"He only had a dream and now,implementation time!!",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,49,8,False,False,
+101,Goat,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,4,1,True,False,
+102,Ma set a clean,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,14,4,False,False,
+103,"Things gvt can't do, a person does🙌 
+ Fert uyu akufunika tax free 😅",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,67,13,False,False,
+105,Ur the 2ru Son of the soil...... Keep it up Mr zombe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,52,12,False,False,
+106,Mphatso Kaonga Remember what I told ya 'bout Napoleon? He's a real business man.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,80,14,False,False,
+107,The Aristotle,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,13,2,False,False,
+108,Dolo kahandede 🤝💯,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,17,3,False,False,
+109,Man of Calibre🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,15,3,False,False,
+110,Our own Traore,Politics,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,14,3,False,False,
+111,Dowa Getto tikungowonera ku ma comment ku,Politics,Negative,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,41,7,False,False,
+112,Company iyi yadza🔥🔥,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,19,3,False,False,
+113,Kulima kwamphweka🤩,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,18,2,False,False,
+114,Degree is just a paper 😎,Education,Negative,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,24,6,False,False,
+115,Napoleon doro ka 100 🔥🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,25,5,False,False,
+116,"The brilliant guy,,the way I 💕",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,30,6,False,False,
+117,"As a country we failed this,, Boom Dzombe has done it!!",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,55,11,False,False,
+118,Angotenga upule bas wawina no kampeni,Politics,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,37,6,False,False,
+119,Dowa ija osazaitola,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,19,3,False,False,
+120,Grow big or go home,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,19,5,False,False,
+121,Goat uyu 🔥🤝,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,11,3,False,False,
+122,Degree njachabe chabe kumalawi😅,Education,Negative,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,31,4,False,False,
+123,Politicians think it's AI😂😂,Politics,Negative,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,27,4,False,False,
+125,That's reall development 💐💐,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,27,4,False,False,
+126,Dolo kochuluka,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,14,2,False,False,
+127,"This move eill triple his weathy, long live dzombs",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,50,9,False,False,
+128,Pangolin 👌💪👏👏,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,13,2,False,False,
+129,News we like to hear,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,20,5,False,False,
+130,Bola zitheke basi,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,17,3,False,False,
+131,Dowa to the world 🔥🔥🔥,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,21,5,False,False,
+132,The news we lov to hear,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,23,6,False,False,
+133,Now that's what I call wealth,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,29,6,False,False,
+134,"Long live Elder, our Dangote.! ma Bra Bus angat awa 😂😂😂😂",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,56,11,False,False,
+135,Mzibambo 🙌,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,10,2,False,False,
+136,All the way from republic of DOWA aaaaa this man is genius ooh👏 🙌,Politics,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,65,14,False,False,
+137,This is the son of Malawian soil.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,33,7,False,False,
+138,"I'm proud of being Chewa. Sindale, I am just telling you, period",Politics,Negative,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,64,12,False,False,
+139,Dowa sigawa kamba ❤️,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,20,4,False,False,
+140,Kulima kwamohweka,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,17,2,False,False,
+141,DPP cadets think it's Al,Politics,Negative,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,24,5,False,False,
+142,The great great Man,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,19,4,False,False,
+143,Dowa ijayo osazayipweketsa guys😍,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,32,4,False,False,
+144,Shasha uyuu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,11,2,False,False,
+145,I'd buy shares in this project 💯,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,32,7,False,False,
+146,Dolo ... Born intelligent.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,26,4,False,False,
+147,We're rich already,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,18,3,False,False,
+148,Zikuchitikadi izizi 🤓,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,21,3,False,False,
+149,Warm Heart of Africa is blessed 🎉,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,33,7,False,False,
+150,People like him....,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,19,3,False,False,
+151,Live longer dada Dzonbe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,23,4,False,False,
+152,Mbambande🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,10,1,True,False,
+153,Malawi got talent indeed imagine set up fire using condoms 🤗🤗,Politics,Neutral,Medium,No,Off concept,Facebook_Comment_Annotation - Alfred.csv,neutral,no,False,61,11,False,False,include_not_yes
+154,Tili safe,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,9,2,False,False,
+156,Market gap ija amwene,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,21,4,False,False,
+157,My model nadzombe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,17,3,False,False,
+158,Amuna chisale pamakina,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,22,3,False,False,
+159,Work up malawiiiiii,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,neutral,yes,False,19,3,False,False,
+160,Big Brands and brains,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,21,4,False,False,
+161,Mbambande 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,11,2,False,True,duplicate_text
+162,His Excellency 🫡🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,17,3,False,False,
+163,A true definition of big machines🔥🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,37,6,False,False,
+164,We will defeat hunger forever 💪,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,31,6,False,False,
+165,"Napoleon the legend, men working ahead",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,38,6,False,False,
+166,If not Napoleon Dzombe then he would be Bushiri whom I really want to meet & have a talk,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,positive,yes,False,88,19,False,False,
+167,"No degree or diploma from school ,while others are still bizy studying to have papers to bring in their mind vision to bring development in country ,while napoleon village man wise, than educated people with their papers , Mr napoleon he has remind me story of Solomon son of David always he stand for wisdom not degree and diploma ,",Education,Negative,High,Yes,,Facebook_Comment_Annotation - Alfred.csv,negative,yes,False,333,60,False,False,
+418,"Opanda classmate tu uyu,odi mkamulimire kumunda mwina adzandilembe yogulitsa feterezayo",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,87,10,False,False,
+419,"This guy,atiphule pa moto",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,25,4,False,False,
+420,Good development,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,16,2,False,False,
+421,Nzeru zothandiza Malawi koma tidzawonaso 50kg bag of fertilizer iliso pa 200 pin 🤣🤣,Economy,Negative,Medium,Yes,,Facebook_Comment_Annotation - Fitina.csv,negative,yes,False,83,14,False,False,
+422,Dowa nd dziko palokha,Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,21,4,False,False,include_not_yes
+423,Malawian Dangote,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,16,2,False,False,
+424,Nzeru,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,5,1,True,False,
+425,"Ndiye wina kugula ma galimoto 84 onse for luxury,car hire or chani kklkkk
+ Dzombe kuchikweza",Economy,Negative,High,No,,Facebook_Comment_Annotation - Fitina.csv,negative,no,False,92,15,False,False,include_not_yes
+426,Ndakatundu omanga ndimawaya,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,27,3,False,False,
+427,"Aliyense akutulutsa zake 
+ 
+ Anthu achuma mmmmhu",Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Fitina.csv,neutral,yes,False,48,6,False,False,
+428,Congratulations 🎊,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,17,2,False,False,
+429,"In Malawi, there are a number of pipo who are doing zolozeka with good intensions, anthu osakonda ndalama koma okonda dziko lawo.....Simbi, Napolion, Bushiri, Namadingo, Mpinganjira, Temwa Chilenga, Mai Mbambande and Tusaiwe i respect you, ndinu madolo heavy. The rest dyera!!!!",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,278,41,False,False,
+430,Sukulu kuchedwetsa abale 🙌🙌🙌,Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,28,4,False,False,include_not_yes
+431,good news,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,9,2,False,False,
+432,Kukhala koma kumenekuu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,22,3,False,False,
+433,Umva tizikagulabe kuja,Economy,Negative,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,negative,yes,False,22,3,False,False,
+434,Good development,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,16,2,False,True,duplicate_text
+435,Uyu nde alemba hito ma galajuweti 🙌🫡🫡 but himself 😂😂 yomweyo galu iwe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,69,13,False,False,
+436,Nzeru za bambo,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,14,3,False,False,
+437,Zelu zabambo🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,13,2,False,False,
+438,ANDALE AKWIYA APAPA! kufuna kuba bas,Economy,Negative,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,negative,yes,False,36,6,False,False,
+439,Mphwache wa Dangote uyu...🤣🤣🤣🤣,Economy,Positive,High,No,,Facebook_Comment_Annotation - Fitina.csv,positive,no,False,30,4,False,False,include_not_yes
+440,Dowa ija si Malawi osazaitola anthu ake ndioganiza bho,Economy,Neutral,High,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,54,9,False,False,include_not_yes
+441,Nzeru koma izi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,14,3,False,False,
+442,Chonena ndilibe ndingoti God bless Malawi,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,41,6,False,False,
+443,Congratulations Bwana Napoleon Dzombe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,37,4,False,False,
+444,Dzombe is a country on his own 🔥🔥🔥🔥🔥,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Fitina.csv,positive,no,False,36,8,False,False,include_not_yes
+445,Apa ndikutha kuopa NAPOLEON akubwera pa one then mpingnjira,Economy,Positive,Medium,No,,Facebook_Comment_Annotation - Fitina.csv,positive,no,False,59,9,False,False,include_not_yes
+446,"Mangani anthu onse akudowa,DPP mukumva kodi",Economy,Negative,Low,No,,Facebook_Comment_Annotation - Fitina.csv,negative,no,False,43,6,False,False,include_not_yes
+447,Machine machine munthu wanzeru zake,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,35,5,False,False,
+448,Azibambo awa 🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,16,3,False,False,
+449,Nde chaka chamawa chafika kale kaya kumwerako😂😂😂,Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,48,7,False,False,include_not_yes
+451,Tufunika anthu ngat awa,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,23,4,False,False,
+452,Awawa ndi amene amafunika azilamulira dzikoli,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,45,6,False,False,
+453,I think uyu ngothandiza,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,23,4,False,False,
+454,Amfumu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,6,1,True,False,
+455,Iwe umati!,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,10,2,False,False,include_not_yes
+456,Katundu uyu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,11,2,False,False,
+457,Malawi 2063🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,12,2,False,False,
+458,Ndiye kumalemba 4 kumeneko kwawo Kwa ozotsata,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,45,7,False,False,include_not_yes
+459,Dzombe nd katundu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,17,3,False,False,
+460,uyuyu n shata 💥💪,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,16,4,False,False,
+461,"Can someone tell simbi phiri to do something also,we have rich people here akhoza kutukula dzikoli within 2 years koma ambiliwa ma investments kunja bas",Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,152,25,False,False,include_not_yes
+462,Welcome iwe napolo zombe😂💬,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,26,4,False,False,
+463,He's Real..... Louder speaks action than words,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,46,7,False,False,
+464,Our own Aliko Dangote,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,21,4,False,False,
+465,Thathatha ma % athu tachotsako ngat BOMA kenako tiva 🤣🤣🤣,Economy,Negative,Low,No,,Facebook_Comment_Annotation - Fitina.csv,negative,no,False,56,10,False,False,include_not_yes
+466,"Good development,",Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,17,2,False,False,
+467,Dowa family,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Fitina.csv,neutral,yes,False,11,2,False,False,
+468,Definition of a TRUE citizen longlive sir Napoleon,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,50,8,False,False,
+469,Nde kuli anjawa akutenga madzi kuchoka ku salima kupititsa ku fumbi😅,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,68,11,False,False,include_not_yes
+470,A good citizen,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,14,3,False,False,
+471,basitu capital city ija ndi dowa 😃,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,34,7,False,False,include_not_yes
+472,Dolo kwambir,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,12,2,False,False,
+473,Olemera kuposa dziko lake😂😂😂😂,Economy,Positive,Low,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,29,4,False,False,
+474,Vote yanga.....,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,15,2,False,False,include_not_yes
+475,Kumalawi kose kuno wandalama ndi dzombe zake zimaoneka ndimaso enawa mbuzi zaanthu kumaba kuno kupititsa maiko ena mbuli zophuzila,Economy,Negative,Low,No,,Facebook_Comment_Annotation - Fitina.csv,negative,no,False,130,19,False,False,include_not_yes
+476,"Anavaya Napoleon Dzombe
+ 
+ Ana amuna",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,36,5,False,False,
+477,Aja mumadana ndi ku Dowa aja pano ntchito mukfusila ku Dowa komko. Bolako iyi kusiyana ndikumakcheka matabwa ku Luwawa 😆. Mpatseni u professor uyu osati ma enawa ama private trip dola za boma,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,191,33,False,False,include_not_yes
+478,With things like this I can't stop smiling💞💪,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,44,8,False,False,
+479,Malawi is developing,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,20,3,False,False,
+480,Malawi is growing soon many will come in bravo Nepoleon Dzombe inu ndi Dada more life n blessings,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,97,18,False,False,
+481,Munthu uyuyu amaganiza mwakuya....may this dream come to pass,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,61,9,False,False,
+482,Mzelu Za Mutu wabanja,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Fitina.csv,neutral,no,False,21,4,False,False,include_not_yes
+483,Izi ndiye zofunika izi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,22,4,False,False,
+484,Pamenepa tikhoza kukharano safe than kudalira zandalez,Economy,Negative,Low,Yes,,Facebook_Comment_Annotation - Fitina.csv,negative,yes,False,54,7,False,False,
+485,Good kwa good Mr Napoleon,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,25,5,False,False,
+486,Zapamwamba🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,11,1,True,False,
+487,"This is beautiful 
+ 
+ Ambuye awa muzingowadalitsa ndipo apatseni moyo wautali",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,77,10,False,False,
+488,Munthu wankulu 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,16,3,False,False,
+489,Bwanamkubwa🤝🏾🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,14,1,True,False,
+490,Dolo ka million,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,15,3,False,False,
+491,Khani yabwino,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,13,2,False,False,
+492,Zeru za bamboo,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,neutral,yes,False,14,3,False,False,
+493,Anthu a Dowa amenewo,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Fitina.csv,neutral,yes,False,20,4,False,False,
+494,Asaaaaaaaa nzeru tu izi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,23,4,False,False,
+496,This is nice,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,12,3,False,False,
+497,Uku kupezeka ntchito osati Masewera,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,35,5,False,False,
+498,Bolani pamenepa,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,15,2,False,False,
+499,Zamphamvu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Fitina.csv,positive,yes,False,9,1,True,False,
+330,Good movie,Economy,Positive,Low,No,no topic,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,10,2,False,False,include_not_yes
+331,Salute,Economy,Positive,Low,No,too short,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,6,1,True,False,include_not_yes
+332,Zamphamvu kwambiri,Economy,positive,Medium,Yes,praise,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,18,2,False,False,
+333,The machine,Economy,Neutral,Low,No,unclear,Facebook_Comment_Annotation - Perpetual.csv,neutral,no,False,11,2,False,False,include_not_yes
+334,"Learning by doing approach, that's wonderful 🔥 🔥.",Economy,positive,High,Yes,teaching method,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,49,8,False,False,
+335,Code kampani ya maheu ija ili kut inu a mcp..,Economy,Neutral,medium,Yes,company,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,45,10,False,False,
+336,Something that the presidents failed to do!🔥,Economy,positive,High,Yes,leadership comparison,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,44,7,False,False,
+337,"Kma andale akanakhar amaganizaso ngat big man bwezi Malawi mavuto enawa kulibe ,kma aaaa tikangowavotera amangoganiza zokhutitsa mimba zao bas ulemu wanu big man 🙏",Economy,Neutral,Medium,Yes,governance comment,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,163,25,False,False,
+338,Keep it up mr🤗Home sweet home❤💫,Economy,positive,Low,No,praise,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,31,6,False,False,include_not_yes
+339,"Zikatero boma la DPP limukorekole, ma mafia amene amapindula ndi kugula fertelizer kunja,nzawo Chakwera anachivomera kale chinthuchi, musiyeni munthu amakonda Malawi.",Economy,negative,medium,Yes,criticism of government,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,166,21,False,False,
+340,Uyu mpaseni u president 🥳,Economy,positive,High,Yes,praise,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,25,5,False,False,
+341,"Pomwe ma politicians amakhala busy kudya misonkho ya a Malawi kenako kuzasaukaso...
+ This is the way to go as a country",Economy,positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,119,21,False,False,
+342,"Dear God, as far as Malawi is concerned. A Napoleon 5 ndiokwanira.",Economy,positive,Medium,Yes,leadership,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,66,12,False,False,
+343,Enafe ndiongepelekeza padzikoli,Economy,Neutral,Low,No,unclear context,Facebook_Comment_Annotation - Perpetual.csv,neutral,no,False,31,3,False,False,include_not_yes
+344,"Zomwe dzombe sangapange,boma la Malawi silingalote mkomwe kuziyamba, president wa world of dowa!!nzeru za bambo okonda kwawo,kuika ndalama Malo oyenera,palibe angati mademo tikaphwanye katundu wa mtalimanja, or wachipani atalodzedwa bwanji sangatase manja ake uku, nzeru za bambo indeed!!!",Economy,positive,High,Yes,comparison praise,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,289,38,False,False,
+345,President waku DOWA,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,19,3,False,False,
+346,Kudya kulipo ......:,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,neutral,no,False,20,3,False,False,include_not_yes
+347,What he needs is our support basi,Economy,positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,33,7,False,False,
+348,Am in love with the movement 🔥🔥,Economy,positive,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,31,7,False,False,
+349,Iyi nde Malawi government,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,25,4,False,False,
+350,2030 tikukapanga ma demo kunyumba kwawo avenge chinthuchi ayendese iwowo,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,72,10,False,False,
+351,"This is the kind of investiment we need as a nation. Napoleon Dzombe my role model, It is my hope that i will meet you one day to learn more from you.",Economy,positive,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,150,32,False,False,
+352,Osat kumangolubwa lubwa,Economy,negative,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,23,3,False,False,
+353,Intelligent man💪,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,16,2,False,False,
+354,That's great 👍🏾👍🏾,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,17,3,False,False,
+355,That's great,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,12,2,False,False,
+356,Mpulumutsi,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,10,1,True,False,include_not_yes
+357,"Wisdom is never taught, this is a good thing to Malawi",Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,54,11,False,False,
+358,Good development,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,16,2,False,True,duplicate_text
+359,Go ahead.,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,9,2,False,False,include_not_yes
+360,Dolo uyuyu,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,10,2,False,False,include_not_yes
+362,Athu kom ameneo osati anyani aj,Economy,negative,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,31,6,False,False,
+363,Katundu bambo napoleon zombe,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,28,4,False,False,
+364,So inspirational,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,16,2,False,False,
+365,Nzeru zobambo transport,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,23,3,False,False,include_not_yes
+366,Yet anthu 21 million kusonkherana izi zimakanika. Malawi eeeeh🤣🤣🤣🤣,Economy,negative,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,66,9,False,False,
+367,"May God bless you. 
+ Development it's helps
+ Muslims and Christians and other everyone out there. 
+ So let us depend on workhard while we're praising and fearing God. God says in several verses :
+ ""And do good; indeed, God loves the doers of good""
+ ""Man will not get anything unless he works hard""",Economy,Positive,Medium,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,297,52,False,False,
+368,Zokongola,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,9,1,True,False,include_not_yes
+369,Where is simbi and mpinganjira project bushiri has goshen Dzimba has this,Economy,negative,High,yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,73,12,False,False,
+370,Pomwe wina has been an MP for more than 15 years koma kumangowabera anthu 😭,Economy,negative,High,yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,75,15,False,False,
+372,"It's high time malawi give an opportunity to fellow malawian who are capable investing in their own country the likes of Napoleon, Simbi, Bushiri, Mpinganjira etc",Economy,Positive,High,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,162,26,False,False,
+373,Chomwe chimandwaza kumalawi anthu achumawa akaona wina wapanga chinthu chazeru. Winaso amazapanga China. Popano timuona bushiri akupanga company yopanga mafuta,Economy,negative,High,yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,159,20,False,False,
+375,Eeeeee uyu ni murara,Economy,Positive,Medium,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,20,4,False,False,
+376,Dzelu,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,5,1,True,False,include_not_yes
+378,Good development,Economy,Positive,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,16,2,False,True,duplicate_text
+379,Azanthu akumwera sakukunkhuzani mumawatukwana kwambiri anthu a ku Dowa nanu muzipanga zanu apo biii muzidya chitedze pakuti munazolowera kale,Economy,negative,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,141,19,False,False,
+380,Uyu akuposa Mr 6 billion kuganiza,Economy,Positive,Medium,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,33,6,False,False,
+381,Munthu wamkulu 🔥✌️,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,18,3,False,False,include_not_yes
+382,"Pepani akudowa timakulakwilani,, ponena kt ndinu mabulutu 🙌🏾🙌🏾🙌🏾😢",Economy,neutral,high,yes,apology,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,65,8,False,False,
+383,Malawi okongola,Economy,neutral,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,neutral,no,False,15,2,False,False,include_not_yes
+384,Chandale china chakwiyilatu hahahahahaha apa Dzombe wabudula mmemo wa Minister of Agricuture,Economy,negative,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,92,12,False,False,
+385,Wow great job🥳🥳,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,15,3,False,False,include_not_yes
+386,"Abwana wa amaona mwai mu zinthu zomwe ambili timadandaula, umeo
+ The guy sees an opportunity like a star in dark, for what most of us complain of. Love it 😍",Economy,Positive,high,yes,public criticism,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,156,30,False,False,
+387,This is beautiful...,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,20,3,False,False,include_not_yes
+389,Dowa dowa,Economy,neutral,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,neutral,no,False,9,2,False,False,include_not_yes
+390,This guy must be respected indeed,Economy,Positive,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,33,6,False,False,
+391,He's an answer than Malawi government,Economy,Positive,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,37,6,False,False,
+392,Shasha kwambili 🤝🔥,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,18,3,False,False,include_not_yes
+393,Katundu waboma Dzombe🔥,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,22,3,False,False,include_not_yes
+395,Wow! Finally. God bless you Mr Dzombe.,Economy,Positive,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,38,7,False,False,
+396,Nkhan iyi yandisuntha nsaname,Economy,neutral,high,yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,29,4,False,False,
+397,"Kumalawi kuno tiri ndi 
+ Bushiri
+ Napoleon Zombe
+ 
+ Machini athu athu awa.",Economy,Positive,low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,74,11,False,False,include_not_yes
+398,I hate politicians...mbava zomwe zikulowesa pansi dziko lino... whether MCP or DPP same old shit,Economy,Negative,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,negative,yes,False,96,15,False,False,
+399,God bless Malawi 🇲🇼,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,19,4,False,False,
+400,Dowa ndi dziko palokha,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,22,4,False,False,
+401,"Mwini Dowa .
+ under the Leadership of APM",Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,41,8,False,False,
+402,Km ngat nkotheka njala mayaz,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,28,5,False,False,include_not_yes
+403,Uyu dolo kwambir,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,16,3,False,False,include_not_yes
+404,Dolo kwambiri,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,13,2,False,False,include_not_yes
+405,Ameneuja ndi ziko paekha,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,neutral,yes,False,24,4,False,False,
+407,"Chimene chimandisangala nkuluyi ndichakuti always brought his development to his country this is wonderful people have money but they choose to invest it outside our country That's a very bad,mtima osakonda dziko lawo.",Economy,Positive,High,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,218,33,False,False,
+409,"Pomwe nduna ndi ma MP Ali bizzy kukambilana zokweza malipilo awo,,,,,
+ Munthu akumanga company yopanga fertilizer.kudziwa zosowa zathu amalawi.
+ 
+ Alemekezeke mulungu pomupatsa nzeru zakuya nkulu ameneyu",Economy,Positive,High,yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,203,26,False,False,
+410,Shaaa akatundu,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,14,2,False,False,include_not_yes
+411,Makani amwene!,Economy,Neutral,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,neutral,no,False,14,2,False,False,include_not_yes
+412,Mbambande,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,9,1,True,False,include_not_yes
+413,Nzeru🔥,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,6,1,True,False,include_not_yes
+414,Bambo koma ameneyi,Economy,Positive,Low,No,,Facebook_Comment_Annotation - Perpetual.csv,positive,no,False,18,3,False,False,include_not_yes
+415,Chiyamb chofuna kt Malawi atukuke nde ndichimenech,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,50,7,False,False,
+416,Interested for that awesome 👏,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,29,5,False,False,
+417,Boma loima palokha👍,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Perpetual.csv,positive,yes,False,19,3,False,False,
+249,Katswiri kwambiri! Ku Dowa ku ambiri ndife anthu odzichitira.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,61,9,False,False,
+250,This is great,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,13,3,False,False,
+251,Dzoombe the great thinker all the time esshii God bless cos u save lives of malawians at the end ....🌄,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,102,20,False,False,
+252,Napoleon pangolin,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,17,2,False,False,
+253,Napoleon woyee basi🎉🎉,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,21,3,False,False,
+254,"Bravo Napoleon.you are best like shepherd Bushiri,Simbi and etc.May the Lord Almighty give you prosperous and long lifespan",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,123,18,False,False,
+255,king Solomon in Malawi 🇲🇼,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,25,5,False,False,
+256,"Awa ndi anzeru ma innovators akuluakulu kupeza vuto solution pompopompo. Osati za theory ikutinamiza curriculum ya ku Malawiyi. Munthu woyamba kukoza Nyanja yake yake, anadzala chimachine chochotsa miyala ku mpunga cha over 20 billion ku Salima lero abwera ndi chimachine cha chopanga fertilizer. Big Dr Napoleon Dzombe",Economy,Positive,Medium,No,,Facebook_Comment_Annotation - Rahema.csv,positive,no,False,319,47,False,False,include_not_yes
+257,"He is brilliant guy, and l like him so much",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,43,10,False,False,
+258,Chiyambi chokutha njala ku Malawi andale womse kuduka kulupo,Economy,Positive,Medium,No,,Facebook_Comment_Annotation - Rahema.csv,positive,no,False,60,9,False,False,include_not_yes
+259,Massive,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,7,1,True,False,
+260,akatundu wawa,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,13,2,False,False,
+261,OUR MALAWIAN TRAOLE,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,19,3,False,False,
+262,Great,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,5,1,True,False,
+263,Napoleon,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,8,1,True,False,
+264,Chi goat amwene🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,18,3,False,False,
+265,Good development,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,16,2,False,True,duplicate_text
+266,Very good news,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,14,3,False,False,
+267,"Koma what I don’t understand is, the whole Malawi Government can’t do this koma munthu wamba ndithu? Zoona amwene izi? 
+ Politicians are not the answer, they are just there to enrich themselves 
+ Bravo Mr Dzombe apapa mwawachititsa manyazi 
+ Muona akubwela kuti azatsekulire ndi iwowo 🤣🤣🤣 cholinga aziilowetse ndale",Economy,Positive,Medium,No,,Facebook_Comment_Annotation - Rahema.csv,positive,no,False,315,48,False,False,include_not_yes
+268,Zapamwamba kwambiri tiyeni titukule #Malawi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,43,5,False,False,
+269,"We need such people in our country, people with vision",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,54,10,False,False,
+270,The greatest of all time 🙌,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,26,6,False,False,
+271,Bravo,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,5,1,True,False,
+272,Mzeru,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,5,1,True,False,
+273,Great minds..💯,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,14,2,False,False,
+274,President 2030 under DPP ndyemweu bas,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,37,6,False,False,
+275,Job creation 💯,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,14,3,False,False,
+276,Now as country tayambapo kuyenda ngati dziko sopano...one big problem solved ...tione sopano massive infrastructure which can supports agricultural produce aswel machines to turn agricultural produce to products locally,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,219,29,False,False,
+277,This is Good news,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,17,4,False,False,
+278,"And my prayer would always be God should extend Mr Napoleon Zombie's life, this man needs a certain level of high profile security because these politicians are like wild folks, they will see him as a competitor and they will plan to terminate his dreams...because ku feteleza kuja ena kuli mgodi wawo... 
+ 
+ This one is a Malawian asset pamene tikuzipemphelela tokha uyuso uyu tizimupemphelela uyu ambuye amusamalile uyu amutetezele kuthelatu...
+ 
+ We would rather loose a politician than loosing this man.
+ 
+ Another one is Bushiri uyuso uyu ndi pangolin wapadera uyu. Ine nkazakumanaye uyu azandilole nzamupaseko moni wapazanja. God should protect these gentlemen",Economy,Positive,Low,No,,Facebook_Comment_Annotation - Rahema.csv,positive,no,False,666,102,False,False,include_not_yes
+279,So akuluwa zogula Feteleza ku Butchery adāzitenga phesono eeh 🤔❓,Economy,Negative,Medium,No,,Facebook_Comment_Annotation - Rahema.csv,negative,no,False,64,10,False,False,include_not_yes
+280,Zimachedwa kut izii,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,19,3,False,False,
+281,Amuna eni eni👍,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,14,3,False,False,
+282,May he live longer,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,18,4,False,False,
+283,That's a nice story,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,19,4,False,False,
+284,Tate🙏🙏🙏🙏🙏,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,9,1,True,False,
+285,That's good news,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,16,3,False,False,
+286,Adorable,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,8,1,True,False,
+287,The winning team ♥️💪,,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,20,4,False,False,
+288,"I think we don't need Politicians in this country. Let them go and rot in hell. 
+ 
+ Ambuye mdalitseni Napoleon Dzombe. Mpatseni moyo wautali ndi wamphamvu. Mchotsereni zopsinja zina zilizonse pamoyo wake. 
+ 
+ Mpatseni chimwemwe kuti adzikondwa masiku onse Ali ndi moyo pansi pano.",Economy,Negative,Low,No,,Facebook_Comment_Annotation - Rahema.csv,negative,no,False,280,42,False,False,include_not_yes
+289,Kkkkkk koma yaaa panga zithu,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,neutral,yes,False,28,5,False,False,
+290,Ukali,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,5,1,True,False,
+291,The great one,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,13,3,False,False,
+292,The guy is very wise,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,20,5,False,False,
+293,"Wina comment yake angolimbana ndi DPP as if it's the first political party kulamula dziko lino. Chilichonse kulowesa ndale, chimidzi basi. Congratulations Napoleon Dzombe, True son of soil.",Economy,,,,,Facebook_Comment_Annotation - Rahema.csv,,no,False,189,28,False,False,invalid_label
+294,Great man! 🫡,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,12,3,False,False,
+295,When I grow up I want to be napoleon Dzombe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,43,10,False,False,
+296,Mzeru 🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,8,2,False,False,
+297,Uyuyu mkatundu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,14,2,False,False,
+298,"Ku Dowa kuli anthu oganiza bhoo heavy. 
+ Ife ngati aku Dowa tili okondwa kwambiri",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,81,14,False,False,
+299,Izi ndizomwe tinkadikilira,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,26,3,False,False,
+300,Dowa sigawa kamba 💥💥💥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,21,4,False,False,
+301,This guy is amazing kkkk,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,24,5,False,False,
+302,Wonderful,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,9,1,True,False,
+303,King dzombe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,11,2,False,False,
+304,Iyi ndenkhani kaya.....why hasn't it been in the limelight already hearing this first time...progressive thinking #salute,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,121,16,False,False,
+305,"Mr dzombe is doing the best mwina dzombe linakakhala boma ,boma nkukhala dzombe",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,79,13,False,False,
+306,The Power of the innovative minds 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,35,7,False,False,
+307,That's positive thinking finding solutions to problems crippling the country we need more of you than politicians in this country,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,129,20,False,False,
+308,Very impressive,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,15,2,False,False,
+309,Waivungira kwakuya mdalayu yhoo💪💪,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,33,4,False,False,
+310,The greatest progress in malawi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,31,5,False,False,
+311,Machine pawonkha,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,16,2,False,False,
+312,People we need in this country ali ngat inuyo. Big up .,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,55,12,False,False,
+313,Nzeru zokhazokha,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,16,2,False,False,
+314,Great Man With Great Vision 💯✊️,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,31,6,False,False,
+315,"Mechanical engineers
+ Industrial Engineers
+ Chemical Engineers
+ Accountants 
+ Journalists
+ 
+ And many more notable fields will be employed here by someone who never submitted an assignment.
+ 
+ Zeru zapa ndalama sizimafunika sukulu yapatali nkhan ndikumvetsa mene business ingayendele basi.
+ 
+ #Bravo our own home made billionaire 
+ Dowa osadzayitola even 200 metric tones yomwe APM akugula Zambia ija kulowa mu misika ya ku Dowa atha kukayipeza.",Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Rahema.csv,neutral,yes,False,445,61,False,False,
+317,Dolo kwambiri,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,13,2,False,True,duplicate_text
+318,Build Malawi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,12,2,False,False,
+319,Great movie,Economy,,,,,Facebook_Comment_Annotation - Rahema.csv,,no,False,11,2,False,False,invalid_label
+320,Bola mwina nkumazagurako 4k nkathu uja 🤣🤣🤣,Economy,Neutral,High,No,its not making sense,Facebook_Comment_Annotation - Rahema.csv,neutral,no,False,42,7,False,False,include_not_yes
+321,Congrats,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,8,1,True,False,
+322,Kasongo,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,7,1,True,False,
+323,Mzeru za abambo 👏🏾,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,18,4,False,False,
+324,One of Malawian greatest men brains,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,35,6,False,False,
+325,Apite ku LUANAR akakhare Lecturer 🔥✅,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,36,6,False,False,
+326,Ndipo titakhala nawo 5 anthu otelewa sitingakhaleso pa top 5 of poorest country in the world,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,92,16,False,False,
+327,Very true,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,9,2,False,False,
+328,Azibambo,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,8,1,True,False,
+329,Katundu 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Rahema.csv,positive,yes,False,9,2,False,False,
+168,true son of soil,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,16,4,False,False,
+169,Thus a way to go as country 💥,Economy,Positive,High,Yes,approval,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,29,8,False,False,
+170,There is a legend behind who is reading the comments without commenting 🥱🥱😆,Economy,Negative,High,No,unrelated,Facebook_Comment_Annotation - Thando.csv,negative,no,False,75,13,False,False,include_not_yes
+171,In my opinion he's second richest person in Malawi pa 1 pali Bushiri,Economy,Negative,High,No,out of line,Facebook_Comment_Annotation - Thando.csv,negative,no,False,68,13,False,False,include_not_yes
+172,This is what we needed.. Well done Mr...... Next tione simbi nd mpinganjila kut nawoso atana after bushir and nazombe,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,117,20,False,False,
+173,"Moreee grace 
+ More blessings 
+ More wisdom 
+ More money 
+ 
+ Mr Dzombe",Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,70,10,False,False,
+174,Namadingo and Napoleon,,Negative,Low,No,irrelevant,Facebook_Comment_Annotation - Thando.csv,negative,no,False,22,3,False,False,include_not_yes
+175,Siza ma degree a history wo😂,Economy,Negative,Low,No,,Facebook_Comment_Annotation - Thando.csv,negative,no,False,28,6,False,False,include_not_yes
+176,Mbambande 🔥🔥🙌,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,13,2,False,False,
+177,"Live from Gaborone 
+ Lazaro, We got this and Nick are silent partners",Economy,Negative,Medium,No,irrelevant,Facebook_Comment_Annotation - Thando.csv,negative,no,False,69,12,False,False,include_not_yes
+178,The people from dowa we safe,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,28,6,False,False,
+179,One man can change the world.,Politics,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,29,6,False,False,
+180,Best to do is more practical then theory,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,40,8,False,False,
+181,Super hero💪,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,11,2,False,False,
+182,My role model....form 1 bas kuzsyàa,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,35,6,False,False,
+183,Mchewa wamzeru 🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,18,3,False,False,
+184,Mbambande 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,11,2,False,True,duplicate_text
+185,Oh yes. ...truck driver naye ndi Muthu osamangokhalila ku bela sosobina azitisatila pa dowa pompa,Economy,Negative,Low,No,socially inappropriate,Facebook_Comment_Annotation - Thando.csv,negative,no,False,97,15,False,False,include_not_yes
+186,Business tycoon with Brilliant ideas,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,36,5,False,False,
+187,Osazamupwekesa pat,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,18,2,False,False,
+188,"People like you Prophet Shepherd Bushiri and Napoleon Dzombe need to be supported by the government in one one way or another.
+ 
+ Imagine, creating jobs for Malawians, saving forex for Malawi, paying tax to government, stabilising the fertiliser market, as benefits and plus many more. Don't these people deserve grants from government to further invest in malawi.
+ 
+ Even the president of Malawi should offer free access calls to these men to be discussing investment ideas with them. 
+ 
+ Non should block these men on their way to pursuing excellence for the benefit of malawi",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,578,93,False,False,
+189,Wadza Napoleon 👏👏👏,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,18,3,False,False,
+190,ku Dowa🔥🤣,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,9,2,False,False,
+191,At last we have someone igneous from Dowa,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,41,8,False,False,
+192,Dowa osadzaynyoza kuli zkazodalilika,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,36,4,False,False,
+193,Basi kudowa mdikumalawi,Politics,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,23,3,False,False,
+195,Mbambande 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,11,2,False,True,duplicate_text
+196,And he made it kwao konko,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,25,6,False,False,
+197,Napolion ndiboma palokha✌️,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,26,3,False,False,
+198,The true visionary leader. He brings solutions to problems. We are proud of you Dr. Dzombe. Malawi will never be the same with abundance of fertilizer. Hunger will no longer oppress Malawians in near future.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,207,35,False,False,
+199,Ochewa ozelu 🥰,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,14,3,False,False,
+200,Concept - Demand +Supply ✔️,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,27,5,False,False,
+201,Dowa to the world,Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,17,4,False,False,
+202,Mchonya💪✊🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,10,1,True,False,
+203,Long live Napoleon Dzombe 🥳🥳🥳🥳🥳,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,31,5,False,False,
+204,Dowa on map iwe 🔥🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,20,5,False,False,
+205,Dolo heavy,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,10,2,False,False,
+206,"Big brain never disappoint,,,,,,,, not izi am graduate from proper uni Aaaa magaye",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,82,13,False,False,
+207,"I'm interested,,,but what type of Grasshopper is? 😅😅😅",Economy,Negative,Low,No,off topic,Facebook_Comment_Annotation - Thando.csv,negative,no,False,53,8,False,False,include_not_yes
+208,Awa Ali zindalama,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,17,3,False,False,
+209,That's the spirit,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,17,3,False,False,
+210,Dowa ija kuno zamphavu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,22,4,False,False,
+211,Mikhula ng'ona ija 😂😂,Economy,Positive,High,No,,Facebook_Comment_Annotation - Thando.csv,positive,no,False,21,4,False,False,include_not_yes
+212,Public figure💪💪💥💥💥zelu za madala!!,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,34,4,False,False,
+213,Wodemaya ur father is doing history once again,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,46,8,False,False,
+214,"People with visions, development is in our DNA.",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,47,8,False,False,
+215,"Is he married,ask for my sister",Economy,Negative,Low,No,unnecessary comment,Facebook_Comment_Annotation - Thando.csv,negative,no,False,31,6,False,False,include_not_yes
+216,Yaza ase aaa inu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,16,4,False,False,
+217,Dowa to the world,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,17,4,False,True,duplicate_text
+218,Bravo napoleon,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,14,2,False,False,
+219,Thats away to go 🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,19,5,False,False,
+220,The bank of Mzeru,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,17,4,False,False,
+221,Thus why dowa is independent country in Malawi under president Dr. Laz Chakwera,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,79,13,False,False,
+222,Dolo heavy,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,10,2,False,True,duplicate_text
+223,Malawian Dagote 😀,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,17,3,False,False,
+224,Enafe tidzikotamba basi 😂,Economy,Negative,Low,No,not really what we are focusing .. off track,Facebook_Comment_Annotation - Thando.csv,negative,no,False,25,4,False,False,include_not_yes
+225,The Only person in Dowa,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,23,5,False,False,
+226,ADMARC nayoso must transition from a fertilizer distributor to a fertilizer manufacturer to protect against global price shocks and politically driven subsidy cycles. Boma n'chi machine chimakhala ndi capital yambiri,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,216,30,False,False,
+227,Kaya thesis yanga inandithandiza kaya....what was I defending 😃😃😃,Economy,Neutral,Medium,No,it's an opinion based on edu,Facebook_Comment_Annotation - Thando.csv,neutral,no,False,65,9,False,False,include_not_yes
+228,Yaza weni weni,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,14,3,False,False,
+229,𝘼𝙋𝙈 𝘼𝙆𝙃𝘼𝙇𝙄𝙏𝙎𝙀 🇲🇼✍️,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,18,3,False,False,
+230,Our tomorrow's Dangote 🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,24,4,False,False,
+231,Bola dpp isayikepo chiphazi,Economy,Neutral,Medium,No,not connected,Facebook_Comment_Annotation - Thando.csv,neutral,no,False,27,4,False,False,include_not_yes
+232,"Imagine a government made of Bushiri, Napoleon and mpinganjira",Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,62,9,False,False,
+233,Dowa ndiya madolo 🔥 musamaphweketse ma guy😂,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,43,7,False,False,
+234,Big brain with vinzeru,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,22,4,False,False,
+235,People who deserve much respect,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,31,5,False,False,
+236,Great thinker,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,13,2,False,False,
+237,Great initiative,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,16,2,False,False,
+238,🔥🔥great minds,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,13,2,False,False,
+239,God bless the man,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,17,4,False,False,
+240,Now I understand where people in dowa get their confidence,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Thando.csv,neutral,yes,False,58,10,False,False,
+241,Great thinkers.Salute,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,21,2,False,False,
+242,Congratulations to Nazombe for such a great project that can help Malawian to reduce food insecurity in our Country,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,115,19,False,False,
+243,The greatest human act is to inspire! Big up Dr Napoleon Dzombe,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,63,12,False,False,
+244,Great minds,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,11,2,False,False,
+245,"Machine, great job",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,18,3,False,False,
+246,King of malawi,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,14,3,False,False,
+247,"Better 
+ Congratulations",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,24,2,False,False,
+248,End God bless you,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Thando.csv,positive,yes,False,17,4,False,False,
+0,"This is a major breakthrough for Malawi. Local production of fertilizer means food security, reduced import costs, and economic empowerment for farmers. Well done to Mr. Dzombe for investing in solutions that benefit the whole nation.",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,234,36,False,False,
+1,Someone is working hard to get a degree so that he can be employed by Dzombe in his company while Dzombe has no a degree but is wise that's why Solomon requested wisdom from God not intelligence .God favours everyone .More blessings to Dzombe. Umatirira!!!!,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,257,45,False,False,
+2,That guy he will be our malawian Elon musk,Economy,Positive,High,Yes,A comparison to a big public figure of wealth,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,42,9,False,False,
+3,"Napoleon Grasshoppers, thinks like AI",Economy,Neutral,Medium,Yes,Doesnt make sense,Facebook_Comment_Annotation - Viwongo.csv,neutral,yes,False,37,5,False,False,
+4,"If Napoleon,Simbi,Mpinganjira and Bushiri were to be well used,Malawi would not be the same again.",Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,98,15,False,False,include_not_yes
+5,We want more Napoleon Dzombes than Politicians.,Economy,Positive,High,Yes,They are showing support by asking for more people like the man in the spotliight,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,47,7,False,False,
+6,When money meet vision,Economy,Positive,Medium,No,,Facebook_Comment_Annotation - Viwongo.csv,positive,no,False,22,4,False,False,include_not_yes
+7,Zeru zabambo,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,12,2,False,False,
+8,While others are competing for leadership 🤷,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,43,7,False,False,
+10,bwana mpinganjila atangomanga ena awiri we won't have to worry about fertiliser again and also unemployment rate would drop by 0.03% according to me... and This would replace 60% of imported fertilizer saving us about 144 million USD per year. This is also according to me,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,272,46,False,False,
+11,"Awawa man aaaaa I don't knw how to describe him ,so creative,so innovative,a true meaning of an entrepreneur how cn someone have all these qualities eeeee Dolo ka handede",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,170,29,False,False,
+12,Proud member of Dowa Nee Lumbadzi 🤣🤣,Economy,Neutral,Medium,Yes,,Facebook_Comment_Annotation - Viwongo.csv,neutral,yes,False,36,7,False,False,
+13,The leader who had no tittle✌️✌️,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,32,6,False,False,
+14,"Katundu mzito🥳🥳🥳Achalume,munthu mulala chomene🔥🔥🔥🔥🔥",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,51,4,False,False,
+15,"Apapa wainyamula Malawi since Malawi's economy is Agriculture-based. We expect increased GDP per capita, sustainable food security and why not increased employment rate? Bravo🔥",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,176,24,False,False,
+16,Uyuyu osazamutola,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,17,2,False,False,
+17,I think our politicians can learn a bog lesson this man!,Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,56,11,False,False,
+18,"Kkk by the end of the day umva boma layamba kumukankza forex to order inputs for making fertilizer we have to buy fertilizer outside 😂😂..
+ 
+  but this is nice we need this visionary",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,181,33,False,False,
+19,Now Warm Heart of Africa on the Map with Napo.. Dzombe!!!!,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,58,11,False,False,
+20,This one is a Malawian promax,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,29,6,False,False,
+21,Napoleon he's a big Man more than hangry,Economy,Neutral,Medium,No,its unclear,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,40,8,False,False,include_not_yes
+22,Abomawa zimawavuta Pati?,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,24,3,False,False,
+23,Our next president 🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,21,4,False,False,
+24,Dowa ija osazaiphwekesa🔥🔥,Economy,Positive,High,Yes,"even though it seems off point logically, we know what they mean when they mention their satet like this, it means they are in support",Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,25,3,False,False,
+25,Napoleon is an idea. A Concept ❤️,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,33,7,False,False,
+26,Entrepreneurs of the decade,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,27,4,False,False,
+27,The real definition of Breakthrough,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,35,5,False,False,
+28,Size ya Town,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,12,3,False,False,
+29,cutting the snake's head,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,24,4,False,False,
+31,"Sizachina mpinganjiraaa anuwooo, 🤣🤣🤣🤣 big up Mr man, so vigilant",Economy,,,,,Facebook_Comment_Annotation - Viwongo.csv,,no,False,64,10,False,False,invalid_label
+32,Chakwera ankatichedwesa ma guy 😌😌,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,33,5,False,False,
+33,Our own pangolin,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,16,3,False,False,
+34,"Ndava kale at 
+ 
+ Urea 49 pin
+ Npk 51
+ 
+ Ku dowa kuno president tamupeza",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,72,13,False,False,
+35,Justice Dzombe Jnr kod za uncle akowaa sumafotonza bwno bwanjii kapenaa umakana mzikupemphaa etiii ?? 😃😃😃,Economy,Neutral,Medium,No,"doenst seem to show any real sentiment towards the topic, even so it seems more of a personal thing than something you would find common in a comment",Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,105,16,False,False,include_not_yes
+36,"I do remember his words he said Engineer ndimwana wa school 😂😂😂,Big up Napoleon",Economy,Positive,Medium,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,79,14,False,False,
+37,Kumwer omuver fungo fertilizer amey achina chicken kkkkk,Economy,Neutral,Medium,No,unclear,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,56,8,False,False,include_not_yes
+38,Apapa aliyese Ali ndi Malo azilima basi,Economy,Neutral,Medium,No,specific to post,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,39,7,False,False,include_not_yes
+39,Basitu mlimi asangalale,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,23,3,False,False,
+40,Dolo ka 20..,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,12,3,False,False,
+41,Sakufuna kuima u president 2030? Asking on behalf of my village people 😁😁😁,Economy,Neutral,Medium,No,no expression of sentiment,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,74,13,False,False,include_not_yes
+42,Tawapangeni tag amweko Fanta pa bill yanga,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,42,7,False,False,
+43,Kwanthu kudowa mkokoma.,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,23,3,False,False,
+44,"When you give a great Man power, the consequences are wonderful",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,63,11,False,False,
+45,Am next upcoming billionaire from Dowa like this people from my Original District,Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,81,13,False,False,include_not_yes
+46,Dowayo kuti buuuuuu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,19,3,False,False,
+47,Eh Dowa osazamuphwekesa Guyz kuli mikhatheya 🤣🤣🤣💪💪💪💪 I appreciate my district,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,77,11,False,False,
+48,"Doing tingz in silent..
+ Routes of legends🙌✊",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,44,7,False,False,
+49,Napoli mpinga bushimatic,Economy,Neutral,Medium,No,unclear and uncommon,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,24,3,False,False,include_not_yes
+50,"Hope they will be opting in Organic manure production too..
+ We don't wanna Alkaline all our land now, do we??
+ Soil acidic can be more concerning than the affordability and availability of the Fertilizer.
+ Well done Mr Dzombe.",Economy,Neutral,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,neutral,yes,False,227,38,False,False,
+51,"This one, Bushiri, Simbi Phiri, Mpinganjira and few notable individuals are the only motivational speakers who can boldly advise me on finance, otherwise the rest should be football commentators or tobacco auction callers😂🤣😂😆",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,225,33,False,False,
+52,District Of Wise Africans (DOWA),Economy,Neutral,Medium,No,"no form of sentiment, and uncommon",Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,32,5,False,False,include_not_yes
+53,"There are three types of students in this world. Students A who become doctors/lawyers, Students B who work for Students C. I guess you understand the students C. Well, students C are people like Napoleon Dzombe and others we have witnessed through out academic journey with low academic passing grades but ending up doing big. Just know that the students C run the world.",Economy,Neutral,High,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,372,64,False,False,include_not_yes
+54,Politicians will think it's AI😂,Economy,Neutral,High,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,31,5,False,False,include_not_yes
+55,"That's what we expect from an entrepreneur. As a bonafide citizen of Malawi, he also heard the news that the govt in it's full capacity ladyesa ndrama Ku butchery",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,162,29,False,False,
+56,Dripping is culture 👌 ✨️,Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,24,5,False,False,include_not_yes
+57,Money if I catch you 😀,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,22,6,False,False,
+58,Public private partnership needs like these people. Graphite in Malingunde can be a raw material for this project. Kudos for that! Government should also collaborate with these people to develop mining industries on public private partnership in order to boost our forex and job scarcity.,Economy,Neutral,Low,No,a specific case,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,288,45,False,False,include_not_yes
+59,"Ena kumva choncho zimitima kuwawa cholinga a Malawi tizivutika. Fertilizer chachala chinthu chopangira huge profits pa a Malawi Komanso chopangira ndale. Weldone Mr Dzombe. Inuyo ndi munthu wa vision, unmatched for that matter",Economy,Neutral,Medium,No,taking it a bit personal,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,226,33,False,False,include_not_yes
+60,"Kaigoni...ask me in April, 2026 when I will be buying the first bag.",Economy,Neutral,Low,No,also a personal case,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,68,13,False,False,include_not_yes
+61,"Dowa mumayinyozayi, 🔥🔥🔥",Economy,Neutral,Low,No,off point,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,23,3,False,False,include_not_yes
+62,Republic of Dowa💪💪,Economy,Neutral,Medium,No,off point,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,18,3,False,False,include_not_yes
+63,Udolo kma umeneu,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,16,3,False,False,
+64,"Education is a key in America, who told you that we all use the same key??
+ 
+ Big up to Mr DZOMBE on behalf of Dowa County 🗝️🔑",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,126,27,False,False,
+65,Zeru za adada🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,15,3,False,False,
+66,Mzelu zabambo wawa,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,18,3,False,False,
+67,Wise Man from the east no PhD diploma certificate but full of wisdom,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,68,13,False,False,
+69,Governments have come and gone non thought of this investment 🙌,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,63,11,False,False,
+70,Napoleon is the one then mupinganjila,Economy,Neutral,Medium,No,no context really,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,37,6,False,False,include_not_yes
+71,Mzeru zaku Dowa ♥️,Economy,Neutral,Medium,No,off point,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,18,4,False,False,include_not_yes
+72,Kupos ama degree otolera 🤣🤣🤣,Economy,Neutral,Medium,No,a bit vague,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,28,5,False,False,include_not_yes
+74,Dolo ka handende🔥🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,19,3,False,False,
+75,Aimile u pule tinvotera,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,23,4,False,False,
+76,"For Malawians sake, this guy ought to be reincarnated. Asazafe👌",Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,63,10,False,False,
+77,Now we can qualify to be agro-based country,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,43,8,False,False,
+78,Shasha kwambir 🔥🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,17,3,False,False,
+79,I like how our billionaires are taking everything into their own hands slowly but surely👏🔥,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,90,15,False,False,
+80,Unja nd dolo,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,12,3,False,False,
+81,Tsotsi Prince dzombee 🤣🤣 Asante E Sâññîê,Economy,Positive,High,Yes,,Facebook_Comment_Annotation - Viwongo.csv,positive,yes,False,40,7,False,False,
+82,Apre akudowa,Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,12,2,False,False,include_not_yes
+83,"And the whole Luaner, been doing experiments for more than 20 years now to come up with such innovation 😂😂😂😂",Economy,Neutral,Medium,No,,Facebook_Comment_Annotation - Viwongo.csv,neutral,no,False,108,20,False,False,include_not_yes

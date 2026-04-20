@@ -5,6 +5,7 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+from sklearn.base import clone
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
@@ -39,7 +40,7 @@ def train_and_score_models(root: Path | None = None) -> dict:
         "logistic_regression": LogisticRegression(
             max_iter=2000,
             class_weight="balanced",
-            solver="liblinear",
+            solver="lbfgs",
         ),
         "linear_svm": LinearSVC(class_weight="balanced"),
     }
@@ -50,7 +51,8 @@ def train_and_score_models(root: Path | None = None) -> dict:
     best_result = None
 
     for bundle in feature_sets:
-        for model_name, estimator in model_specs.items():
+        for model_name, estimator_template in model_specs.items():
+            estimator = clone(estimator_template)
             estimator.fit(bundle.X_train, train_df["label"])
             val_pred = estimator.predict(bundle.X_val)
             val_metrics = compute_metrics(val_df["label"], val_pred, LABELS)
