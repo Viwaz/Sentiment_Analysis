@@ -1,0 +1,185 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from datasets import Dataset, DatasetDict
+from sklearn.utils.class_weight import compute_class_weight
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    DataCollatorWithPadding,
+    EarlyStoppingCallback,
+    Trainer,
+    TrainingArguments,
+)
+
+from .data_utils import build_paths, ensure_project_dirs
+from .evaluate import compute_metrics, save_confusion_matrix, save_metrics
+
+MODEL_NAME = "xlm-roberta-base"
+LABELS = ["negative", "neutral", "positive"]
+LABEL_TO_ID = {label: idx for idx, label in enumerate(LABELS)}
+ID_TO_LABEL = {idx: label for label, idx in LABEL_TO_ID.items()}
+
+
+class WeightedTrainer(Trainer):
+    def __init__(self, class_weights=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.class_weights = class_weights
+
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        import torch
+
+        labels = inputs.get("labels")
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weights.to(logits.device))
+        loss = loss_fct(logits.view(-1, model.config.num_labels), labels.view(-1))
+        return (loss, outputs) if return_outputs else loss
+
+
+def load_processed_splits(root: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    paths = build_paths(root)
+    return (
+        pd.read_csv(paths.processed_dir / "train.csv"),
+        pd.read_csv(paths.processed_dir / "val.csv"),
+        pd.read_csv(paths.processed_dir / "test.csv"),
+    )
+
+
+def encode_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    encoded = frame.copy()
+    encoded["labels"] = encoded["label"].map(LABEL_TO_ID)
+    return encoded
+
+
+def build_dataset_dict(train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame) -> DatasetDict:
+    return DatasetDict(
+        {
+            "train": Dataset.from_pandas(encode_frame(train_df), preserve_index=False),
+            "validation": Dataset.from_pandas(encode_frame(val_df), preserve_index=False),
+            "test": Dataset.from_pandas(encode_frame(test_df), preserve_index=False),
+        }
+    )
+
+
+def tokenize_dataset(dataset: DatasetDict, tokenizer):
+    def tokenize_batch(batch):
+        return tokenizer(batch["cleaned_text"], truncation=True, max_length=128)
+
+    return dataset.map(tokenize_batch, batched=True)
+
+
+def metric_fn(eval_prediction):
+    logits, labels = eval_prediction
+    preds = np.argmax(logits, axis=1)
+    y_true = [ID_TO_LABEL[int(label)] for label in labels]
+    y_pred = [ID_TO_LABEL[int(pred)] for pred in preds]
+    metrics = compute_metrics(y_true, y_pred, LABELS)
+    return {"accuracy": metrics["accuracy"], "macro_f1": metrics["macro_f1"]}
+
+
+def train_transformer(root: Path | None = None) -> dict:
+    paths = build_paths(root)
+    ensure_project_dirs(paths)
+    train_df, val_df, test_df = load_processed_splits(root)
+
+    dataset = build_dataset_dict(train_df, val_df, test_df)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenized = tokenize_dataset(dataset, tokenizer)
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME,
+        num_labels=len(LABELS),
+        id2label=ID_TO_LABEL,
+        label2id=LABEL_TO_ID,
+    )
+
+    import torch
+
+    class_weights = compute_class_weight(
+        class_weight="balanced",
+        classes=np.array(sorted(train_df["label"].map(LABEL_TO_ID).unique())),
+        y=train_df["label"].map(LABEL_TO_ID),
+    )
+    class_weights_tensor = torch.tensor(class_weights, dtype=torch.float)
+
+    output_dir = paths.models_dir / "transformer"
+    args = TrainingArguments(
+        output_dir=str(output_dir),
+        eval_strategy="epoch",
+        save_strategy="epoch",
+        learning_rate=2e-5,
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=8,
+        num_train_epochs=5,
+        weight_decay=0.01,
+        load_best_model_at_end=True,
+        metric_for_best_model="macro_f1",
+        greater_is_better=True,
+        logging_dir=str(paths.results_dir / "transformer_logs"),
+        save_total_limit=2,
+        report_to="none",
+        seed=42,
+    )
+
+    trainer = WeightedTrainer(
+        class_weights=class_weights_tensor,
+        model=model,
+        args=args,
+        train_dataset=tokenized["train"],
+        eval_dataset=tokenized["validation"],
+        tokenizer=tokenizer,
+        data_collator=DataCollatorWithPadding(tokenizer=tokenizer),
+        compute_metrics=metric_fn,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
+    )
+
+    trainer.train()
+    predictions = trainer.predict(tokenized["test"])
+    test_preds = np.argmax(predictions.predictions, axis=1)
+    y_true = test_df["label"].tolist()
+    y_pred = [ID_TO_LABEL[int(pred)] for pred in test_preds]
+    test_metrics = compute_metrics(y_true, y_pred, LABELS)
+
+    tokenizer.save_pretrained(output_dir / "best_tokenizer")
+    trainer.save_model(output_dir / "best_model")
+
+    summary = {
+        "model_name": MODEL_NAME,
+        "test_metrics": test_metrics,
+        "trainer_metrics": predictions.metrics,
+    }
+    save_metrics(summary, paths.results_dir / "transformer_metrics.json")
+    save_confusion_matrix(
+        y_true,
+        y_pred,
+        LABELS,
+        paths.figures_dir / "transformer_confusion_matrix.png",
+        "Transformer Confusion Matrix",
+    )
+    (paths.results_dir / "transformer_predictions.csv").write_text(
+        pd.DataFrame(
+            {
+                "text": test_df["text"],
+                "cleaned_text": test_df["cleaned_text"],
+                "true_label": y_true,
+                "predicted_label": y_pred,
+            }
+        ).to_csv(index=False),
+        encoding="utf-8",
+    )
+    return summary
+
+
+def main() -> None:
+    summary = train_transformer()
+    print("Transformer training complete.")
+    print(f"Test macro F1: {summary['test_metrics']['macro_f1']:.4f}")
+
+
+if __name__ == "__main__":
+    main()
