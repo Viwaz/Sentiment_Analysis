@@ -1,0 +1,72 @@
+{
+  "dataset_rows": 304,
+  "label_distribution": {
+    "positive": 183,
+    "neutral": 83,
+    "negative": 38
+  },
+  "metrics": {
+    "accuracy": 0.5921052631578947,
+    "macro_f1": 0.26411498708010334,
+    "per_class": {
+      "negative": {
+        "precision": 0.2,
+        "recall": 0.02631578947368421,
+        "f1": 0.046511627906976744,
+        "support": 38
+      },
+      "neutral": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 83
+      },
+      "positive": {
+        "precision": 0.6026936026936027,
+        "recall": 0.9781420765027322,
+        "f1": 0.7458333333333333,
+        "support": 183
+      }
+    },
+    "classification_report": {
+      "negative": {
+        "precision": 0.2,
+        "recall": 0.02631578947368421,
+        "f1-score": 0.046511627906976744,
+        "support": 38.0
+      },
+      "neutral": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 83.0
+      },
+      "positive": {
+        "precision": 0.6026936026936027,
+        "recall": 0.9781420765027322,
+        "f1-score": 0.7458333333333333,
+        "support": 183.0
+      },
+      "accuracy": 0.5921052631578947,
+      "macro avg": {
+        "precision": 0.2675645342312009,
+        "recall": 0.3348192886588055,
+        "f1-score": 0.26411498708010334,
+        "support": 304.0
+      },
+      "weighted avg": {
+        "precision": 0.3878056884635832,
+        "recall": 0.5921052631578947,
+        "f1-score": 0.45478599296205635,
+        "support": 304.0
+      }
+    }
+  },
+  "source_files": [
+    "facebook_label - fitina.csv",
+    "facebook_label - perpetual.csv",
+    "facebook_label - rahema.csv",
+    "facebook_label - thando.csv",
+    "facebook_label - viwongo.csv"
+  ]
+}

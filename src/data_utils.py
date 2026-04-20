@@ -69,6 +69,8 @@ def discover_raw_files(raw_dir: Path) -> list[Path]:
 
 def load_annotation_file(file_path: Path) -> pd.DataFrame:
     df = pd.read_csv(file_path)
+    if "id" not in df.columns and "Unnamed: 0" in df.columns:
+        df = df.rename(columns={"Unnamed: 0": "id"})
     missing = EXPECTED_COLUMNS - set(df.columns)
     if missing:
         missing_cols = ", ".join(sorted(missing))
@@ -89,6 +91,8 @@ def normalize_label(value: object) -> str | None:
     if pd.isna(value):
         return None
     normalized = str(value).strip().lower()
+    if normalized == "nuetral":
+        normalized = "neutral"
     return CANONICAL_LABELS.get(normalized)
 
 
