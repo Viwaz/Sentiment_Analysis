@@ -60,6 +60,22 @@ def prepare_clean_dataframe(audit_df: pd.DataFrame) -> pd.DataFrame:
     return filtered
 
 
+def prepare_external_test_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    external = df.copy()
+    external["sentiment_label_normalized"] = external["sentiment_label"].apply(normalize_label)
+    external["include_normalized"] = external["include"].apply(normalize_include)
+    external["text_missing"] = external["text"].isna() | external["text"].astype(str).str.strip().eq("")
+    external = external[external["include_normalized"] == "yes"]
+    external = external[~external["text_missing"]]
+    external = external[external["sentiment_label_normalized"].notna()]
+    external = external.copy()
+    external["label"] = external["sentiment_label_normalized"]
+    external["cleaned_text"] = external["text"].apply(clean_text)
+    external["tokens"] = external["cleaned_text"].apply(tokenize_text)
+    external["token_count_cleaned"] = external["tokens"].apply(len)
+    return external
+
+
 def split_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     train_df, temp_df = train_test_split(
         df,

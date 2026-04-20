@@ -22,6 +22,7 @@ CANONICAL_LABELS = {
 class DatasetPaths:
     root: Path
     raw_dir: Path
+    external_test_dir: Path
     interim_dir: Path
     processed_dir: Path
     models_dir: Path
@@ -35,6 +36,7 @@ def build_paths(root: Path | None = None) -> DatasetPaths:
     return DatasetPaths(
         root=root,
         raw_dir=root / "data" / "raw",
+        external_test_dir=root / "data" / "external_test",
         interim_dir=root / "data" / "interim",
         processed_dir=root / "data" / "processed",
         models_dir=root / "models",
@@ -47,6 +49,7 @@ def build_paths(root: Path | None = None) -> DatasetPaths:
 def ensure_project_dirs(paths: DatasetPaths) -> None:
     for directory in (
         paths.raw_dir,
+        paths.external_test_dir,
         paths.interim_dir,
         paths.processed_dir,
         paths.models_dir / "baseline",

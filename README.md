@@ -8,6 +8,7 @@ This project implements a notebook-first workflow for preprocessing and training
 project/
 ├─ data/
 │  ├─ raw/
+│  ├─ external_test/
 │  ├─ interim/
 │  └─ processed/
 ├─ notebooks/
@@ -36,7 +37,7 @@ project/
 
 ## Expected Raw Data Format
 
-Place all annotation CSV files inside `data/raw/`. Each file should contain at least:
+Place all training annotation CSV files inside `data/raw/`. Each file should contain at least:
 
 - `id`
 - `text`
@@ -44,6 +45,8 @@ Place all annotation CSV files inside `data/raw/`. Each file should contain at l
 - `include`
 
 Additional columns such as `topic_label`, `confidence`, or `notes` are preserved automatically.
+
+Place any separate evaluation-only dataset inside `data/external_test/`. It should use the same sentiment labels, or labels that can be mapped cleanly to `positive`, `negative`, and `neutral`.
 
 ## Recommended Workflow
 
@@ -66,7 +69,13 @@ python -m src.train_baseline
 python -m src.train_transformer
 ```
 
-5. Open the notebooks in `notebooks/` for audit, experiments, and reporting.
+5. Evaluate the trained baseline on an external dataset if available:
+
+```powershell
+python -m src.evaluate_external
+```
+
+6. Open the notebooks in `notebooks/` for audit, experiments, and reporting.
 
 ## What The Pipeline Does
 
@@ -84,6 +93,33 @@ python -m src.train_transformer
   - `data/processed/test.csv`
   - `data/processed/metadata.json`
 - Trains TF-IDF baseline models and stores metrics in `reports/results/`.
+- Supports separate external evaluation without mixing that dataset into training.
+
+## External Test Set Workflow
+
+Use a second dataset as an external test set only when:
+
+- it is not used in training or model selection
+- it follows the same sentiment task
+- its labels can be normalized to `positive`, `negative`, and `neutral`
+
+Recommended flow:
+
+1. Train and validate on the main dataset in `data/raw/`.
+2. Keep the second dataset in `data/external_test/`.
+3. Run:
+
+```powershell
+python -m src.evaluate_external
+```
+
+This produces:
+
+- `reports/results/external_baseline_metrics.json`
+- `reports/results/external_baseline_predictions.csv`
+- `reports/figures/external_baseline_confusion_matrix.png`
+
+This lets the team compare internal held-out performance against external generalization performance.
 
 ## Notes For Low-Resource, Code-Switched Text
 
