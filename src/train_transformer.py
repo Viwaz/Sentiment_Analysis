@@ -70,7 +70,16 @@ def tokenize_dataset(dataset: DatasetDict, tokenizer):
     def tokenize_batch(batch):
         return tokenizer(batch["cleaned_text"], truncation=True, max_length=128)
 
-    return dataset.map(tokenize_batch, batched=True)
+    tokenized = dataset.map(tokenize_batch, batched=True)
+    keep_columns = {"input_ids", "attention_mask", "labels"}
+    if "token_type_ids" in tokenized["train"].column_names:
+        keep_columns.add("token_type_ids")
+
+    cleaned_splits = {}
+    for split_name, split_dataset in tokenized.items():
+        remove_columns = [col for col in split_dataset.column_names if col not in keep_columns]
+        cleaned_splits[split_name] = split_dataset.remove_columns(remove_columns)
+    return DatasetDict(cleaned_splits)
 
 
 def metric_fn(eval_prediction):
@@ -132,7 +141,6 @@ def train_transformer(root: Path | None = None) -> dict:
         args=args,
         train_dataset=tokenized["train"],
         eval_dataset=tokenized["validation"],
-        tokenizer=tokenizer,
         data_collator=DataCollatorWithPadding(tokenizer=tokenizer),
         compute_metrics=metric_fn,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
