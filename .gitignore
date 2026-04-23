@@ -1,0 +1,21 @@
+# Python cache artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter cache artifacts
+.ipynb_checkpoints/
+
+# Local virtual environments
+.venv/
+venv/
+
+# Transformer training artifacts
+models/transformer/checkpoint-*/
+models/transformer/best_model/
+models/transformer/best_tokenizer/
+
+# Local temporary files
+*.tmp
+*.temp
