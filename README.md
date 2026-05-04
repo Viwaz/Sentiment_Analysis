@@ -1,6 +1,6 @@
 # Low-Resource Facebook Sentiment Classifier
 
-This project implements a notebook-first workflow for preprocessing and training a sentiment classifier on heavily code-switched Facebook comments in a low-resource language setting.
+This Prototype implements a notebook-first workflow for preprocessing and training a sentiment classifier on heavily code-switched Facebook comments in a low-resource language setting.
 
 ## Project Layout
 
