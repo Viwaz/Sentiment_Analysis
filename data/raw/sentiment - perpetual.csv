@@ -33,4 +33,8 @@ id,text,topic_label,sentiment_label,confidence,include,notes
 35,Zosayenda,economy,negative,high,low,
 36,Just say boma lakanika ili,economy,negative,medium,yes,
 37,Mavuto alipobe chakwera bapumani anthu sayamika,economy,neutral,high,yes,
+<<<<<<< HEAD
 38,ngati eni ntchitoyi a MERA ndi NOCMA akanika kulakhula dalaivala atiuza chani🤣🤣,economy,negative,low,yes,
+=======
+38,ngati eni ntchitoyi a MERA ndi NOCMA akanika kulakhula dalaivala atiuza chani🤣🤣,economy,negative,low,yes,
+>>>>>>> a336330 (Uploaded Perpetual dataset)
