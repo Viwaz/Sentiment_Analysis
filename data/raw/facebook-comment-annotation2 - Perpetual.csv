@@ -1,4 +1,4 @@
-id,text,Topic-label,Sentiment-label,Confidence,Include,Notes
+id,text,topic-label,sentiment-label,confidence,include,notes
 249,Mbali yakuno kulibe chithu cha 20kwacha ky kwanuko,Economy,Positive,High,Yes,
 250,Inu munapanga zokomera inu mwava vachaniso vimenevi teee ukaika muthumba mpaka kumakutsitsaxo trouser ngt watenga ndalama zambri mmm aaa gule abwere komwe wachoka,Economy,Negative,Low,No,
 251,Chakwela zose izi aaa,Economy,Neutral,Medium,No,

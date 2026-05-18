@@ -1,4 +1,4 @@
-,Text,Topic_label,Sentiment_label,Confidence,Include,Notes
+id,text,topic_label,sentiment_label,confidence,include,notes
 0,400 million dollars eeeh 🙌. That's like the total annual tobacco proceeds.,economy,negative,high,yes,
 1,Funny and sad in one sentence,economy,negative,medium,yes,
 2,Is he speaking on behalf of NOCMA?,economy,negative,high,yes,

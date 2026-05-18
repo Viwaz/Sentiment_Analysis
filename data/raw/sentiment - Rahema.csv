@@ -1,4 +1,4 @@
-,Text,Topic_label,Sentiment_label,Confidence,Include,Notes
+id,text,topic_label,sentiment_label,confidence,include,notes
 39,za ku mafuta zakukhudza bwanji a nocma amutuma iyeyu,economy,negative,high,yes,
 40,Mwalankhulira akuchimuna ndi kuchikazi komwe malinga  ndi m'vula yi,economy,negative,medium,yes,
 41,Iweyo ndi Boma?,economy,neutral,medium,yes,

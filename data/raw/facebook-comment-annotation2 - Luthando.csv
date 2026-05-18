@@ -1,4 +1,4 @@
-id,text,Topic-label,Sentiment-label,Confidence,Include,Notes
+id,text,topic-label,sentiment-label,confidence,include,notes
 168,Koma zikuchitikadi izizi?,Economy,Neutral,Medium,Yes,
 169,Aaaa inu ana athu ziwalo wa kukhosi,Economy,Negative,Low,No,
 170,Nde sisani mitengo yakatundu kaaaa nanga 20 kwacha tigula chan?,Economy,Positive,High,Yes,

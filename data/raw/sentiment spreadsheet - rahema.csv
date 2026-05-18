@@ -1,4 +1,4 @@
-,text,topic_label,positive,confidence,include,notes
+id,text,topic_label,sentiment_label,confidence,include,notes
 0,Deployment of police officers is useless just ensure the availability of fuel. ..🙄,economy,negative,high,yes,
 1,But do you think a Police Officer can manage to stop selling fuel in Jerricans?,economy,neutral,medium,yes,
 2,Check the list of corrupt offices in Malawi 🤣🤣,economy,negative,high,yes,

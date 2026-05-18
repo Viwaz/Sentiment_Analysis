@@ -1,4 +1,4 @@
-,Text,Topic_label,Sentiment_label,Confidence,Include,Notes
+id,text,topic_label,sentiment_label,confidence,include,notes
 189,Mukufa,economy,negative,high,yes,
 190,Zalowa chisawawa,economy,negative,high,yes,
 191,"Zili bwino abwere basi,tipumeko umoyo wina",economy,neutral,medium,yes,
