@@ -63,11 +63,23 @@ python -m src.preprocess
 python -m src.train_baseline
 ```
 
-4. Train the multilingual transformer:
+4. Train the multilingual transformer. The default is now AfriBERTa small, which is more practical on a CPU-only laptop:
 
 ```powershell
 python -m src.train_transformer
 ```
+
+To run a specific transformer variant, pass the Hugging Face model name and a short run name:
+
+```powershell
+python -m src.train_transformer --model_name castorini/afriberta_base --run_name afriberta_base
+```
+
+Transformer outputs are written with model-specific names, for example `reports/results/castorini_afriberta_small_metrics.json` and `models/transformer/castorini_afriberta_small/`.
+
+If Hugging Face downloads appear to hang, check that `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY` are not set to `http://127.0.0.1:9`. The training script clears that known broken proxy value automatically, but slow unauthenticated downloads can still take time.
+
+For GPU training on Google Colab, follow `COLAB_AFRIBERTA.md`.
 
 5. Evaluate the trained baseline on an external dataset if available:
 

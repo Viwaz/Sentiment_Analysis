@@ -1,7 +1,17 @@
 from __future__ import annotations
 
-import json
+import argparse
+import os
+import re
 from pathlib import Path
+
+BROKEN_PROXY_VALUE = "http://127.0.0.1:9"
+for proxy_var in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
+    if os.environ.get(proxy_var) == BROKEN_PROXY_VALUE:
+        os.environ.pop(proxy_var)
+
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 
 import numpy as np
 import pandas as pd
@@ -19,7 +29,7 @@ from transformers import (
 from .data_utils import build_paths, ensure_project_dirs
 from .evaluate import compute_metrics, save_confusion_matrix, save_metrics
 
-MODEL_NAME = "xlm-roberta-base"
+DEFAULT_MODEL_NAME = "castorini/afriberta_small"
 LABELS = ["negative", "neutral", "positive"]
 LABEL_TO_ID = {label: idx for idx, label in enumerate(LABELS)}
 ID_TO_LABEL = {idx: label for label, idx in LABEL_TO_ID.items()}
@@ -48,6 +58,12 @@ def load_processed_splits(root: Path | None = None) -> tuple[pd.DataFrame, pd.Da
         pd.read_csv(paths.processed_dir / "val.csv"),
         pd.read_csv(paths.processed_dir / "test.csv"),
     )
+
+
+def safe_run_name(model_name: str, run_name: str | None = None) -> str:
+    raw_name = run_name or model_name
+    safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", raw_name).strip("_").lower()
+    return safe_name or "transformer"
 
 
 def encode_frame(frame: pd.DataFrame) -> pd.DataFrame:
@@ -91,22 +107,34 @@ def metric_fn(eval_prediction):
     return {"accuracy": metrics["accuracy"], "macro_f1": metrics["macro_f1"]}
 
 
-def train_transformer(root: Path | None = None) -> dict:
+def train_transformer(
+    root: Path | None = None,
+    model_name: str = DEFAULT_MODEL_NAME,
+    run_name: str | None = None,
+) -> dict:
     paths = build_paths(root)
     ensure_project_dirs(paths)
+    run_id = safe_run_name(model_name, run_name)
     train_df, val_df, test_df = load_processed_splits(root)
 
     dataset = build_dataset_dict(train_df, val_df, test_df)
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    print(f"Loading tokenizer: {model_name}", flush=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer_max_length = getattr(tokenizer, "model_max_length", None)
+    if not isinstance(tokenizer_max_length, int) or tokenizer_max_length > 512:
+        tokenizer.model_max_length = 512
+    print("Tokenizing processed splits.", flush=True)
     tokenized = tokenize_dataset(dataset, tokenizer)
 
+    print(f"Loading model weights: {model_name}", flush=True)
     model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME,
+        model_name,
         num_labels=len(LABELS),
         id2label=ID_TO_LABEL,
         label2id=LABEL_TO_ID,
     )
 
+    print("Computing class weights.", flush=True)
     import torch
 
     class_weights = compute_class_weight(
@@ -116,7 +144,8 @@ def train_transformer(root: Path | None = None) -> dict:
     )
     class_weights_tensor = torch.tensor(class_weights, dtype=torch.float)
 
-    output_dir = paths.models_dir / "transformer"
+    print(f"Starting training run: {run_id}", flush=True)
+    output_dir = paths.models_dir / "transformer" / run_id
     args = TrainingArguments(
         output_dir=str(output_dir),
         eval_strategy="epoch",
@@ -129,7 +158,7 @@ def train_transformer(root: Path | None = None) -> dict:
         load_best_model_at_end=True,
         metric_for_best_model="macro_f1",
         greater_is_better=True,
-        logging_dir=str(paths.results_dir / "transformer_logs"),
+        logging_dir=str(paths.results_dir / f"{run_id}_logs"),
         save_total_limit=2,
         report_to="none",
         seed=42,
@@ -157,19 +186,20 @@ def train_transformer(root: Path | None = None) -> dict:
     trainer.save_model(output_dir / "best_model")
 
     summary = {
-        "model_name": MODEL_NAME,
+        "model_name": model_name,
+        "run_id": run_id,
         "test_metrics": test_metrics,
         "trainer_metrics": predictions.metrics,
     }
-    save_metrics(summary, paths.results_dir / "transformer_metrics.json")
+    save_metrics(summary, paths.results_dir / f"{run_id}_metrics.json")
     save_confusion_matrix(
         y_true,
         y_pred,
         LABELS,
-        paths.figures_dir / "transformer_confusion_matrix.png",
-        "Transformer Confusion Matrix",
+        paths.figures_dir / f"{run_id}_confusion_matrix.png",
+        f"{run_id} Confusion Matrix",
     )
-    (paths.results_dir / "transformer_predictions.csv").write_text(
+    (paths.results_dir / f"{run_id}_predictions.csv").write_text(
         pd.DataFrame(
             {
                 "text": test_df["text"],
@@ -184,8 +214,23 @@ def train_transformer(root: Path | None = None) -> dict:
 
 
 def main() -> None:
-    summary = train_transformer()
+    parser = argparse.ArgumentParser(description="Fine-tune a multilingual transformer for sentiment classification.")
+    parser.add_argument(
+        "--model_name",
+        default=DEFAULT_MODEL_NAME,
+        help="Hugging Face model ID or local model path. Default: castorini/afriberta_small.",
+    )
+    parser.add_argument(
+        "--run_name",
+        default=None,
+        help="Optional short name used for model and report output files.",
+    )
+    args = parser.parse_args()
+
+    summary = train_transformer(model_name=args.model_name, run_name=args.run_name)
     print("Transformer training complete.")
+    print(f"Model: {summary['model_name']}")
+    print(f"Run ID: {summary['run_id']}")
     print(f"Test macro F1: {summary['test_metrics']['macro_f1']:.4f}")
 
 

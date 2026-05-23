@@ -15,6 +15,9 @@ venv/
 models/transformer/checkpoint-*/
 models/transformer/best_model/
 models/transformer/best_tokenizer/
+models/transformer/*/checkpoint-*/
+models/transformer/*/best_model/
+models/transformer/*/best_tokenizer/
 
 # Local temporary files
 *.tmp
