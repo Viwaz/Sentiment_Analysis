@@ -121,6 +121,32 @@ This produces:
 
 This lets the team compare internal held-out performance against external generalization performance.
 
+## Active Learning Workflow
+
+To accelerate data annotation and address the dataset size limitation, use the active learning script to select the most uncertain comments from an unlabeled pool:
+
+1. Place a CSV file containing scraped, unlabeled Facebook comments (containing a `text` or `comment_text` column) in your workspace.
+2. Run the active learning query script:
+
+```powershell
+python -m src.active_learning --unlabeled_path data/scratch/mock_unlabeled.csv --output_path "data/raw/Facebook_Comment_Annotation - ActiveBatch1.csv" --n_samples 200 --strategy entropy
+```
+
+Available CLI arguments:
+* `--unlabeled_path`: Path to the CSV containing unlabeled comments (required).
+* `--output_path`: Path to save the query batch (default: `data/raw/Facebook_Comment_Annotation - ActiveBatch1.csv`).
+* `--n_samples`: Number of uncertain comments to select (default: `200`).
+* `--strategy`: Uncertainty metric to use (`entropy`, `margin`, or `lc` for Least Confidence).
+
+3. Open the output CSV file in Excel/Google Sheets, fill in the blank `sentiment_label` and `include` columns, and save it back into `data/raw/`.
+4. Re-run preprocessing and retraining to incorporate the new annotations into the next model version:
+   ```powershell
+   python -m src.preprocess
+   python -m src.train_baseline
+   ```
+
+To run active learning interactively and visualize candidate uncertainty distributions, open `notebooks/07_active_learning.ipynb`.
+
 ## Notes For Low-Resource, Code-Switched Text
 
 - Do not use generic English stopword removal by default.
