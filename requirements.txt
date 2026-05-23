@@ -10,3 +10,4 @@ datasets>=2.18
 torch>=2.2
 accelerate>=0.28
 safetensors>=0.4
+sentencepiece>=0.2

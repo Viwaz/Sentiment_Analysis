@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 EXPECTED_COLUMNS = {"id", "text", "sentiment_label", "include"}
 CANONICAL_LABELS = {
@@ -15,6 +18,8 @@ CANONICAL_LABELS = {
     "neg": "negative",
     "neutral": "neutral",
     "neu": "neutral",
+    "nuetral": "neutral",
+    "neatural": "neutral",
 }
 
 
@@ -69,8 +74,14 @@ def discover_raw_files(raw_dir: Path) -> list[Path]:
 
 def load_annotation_file(file_path: Path) -> pd.DataFrame:
     df = pd.read_csv(file_path)
-    if "id" not in df.columns and "Unnamed: 0" in df.columns:
-        df = df.rename(columns={"Unnamed: 0": "id"})
+    df = df.rename(
+        columns={
+            "Unnamed: 0": "id",
+            "topic-label": "topic_label",
+            "sentiment-label": "sentiment_label",
+            "Include": "include",
+        }
+    )
     missing = EXPECTED_COLUMNS - set(df.columns)
     if missing:
         missing_cols = ", ".join(sorted(missing))
@@ -81,9 +92,18 @@ def load_annotation_file(file_path: Path) -> pd.DataFrame:
 
 
 def merge_annotation_files(file_paths: Iterable[Path]) -> pd.DataFrame:
-    frames = [load_annotation_file(path) for path in file_paths]
+    frames = []
+    skipped_files = []
+    for path in file_paths:
+        try:
+            frames.append(load_annotation_file(path))
+        except ValueError as exc:
+            skipped_files.append(path.name)
+            logger.warning("Skipping %s: %s", path.name, exc)
     if not frames:
         raise FileNotFoundError("No annotation CSV files were found in data/raw/")
+    if skipped_files:
+        logger.warning("Skipped %d raw files without the required annotation schema.", len(skipped_files))
     return pd.concat(frames, ignore_index=True)
 
 
@@ -91,8 +111,6 @@ def normalize_label(value: object) -> str | None:
     if pd.isna(value):
         return None
     normalized = str(value).strip().lower()
-    if normalized == "nuetral":
-        normalized = "neutral"
     return CANONICAL_LABELS.get(normalized)
 
 
