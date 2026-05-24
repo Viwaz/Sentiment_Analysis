@@ -7,7 +7,7 @@ import joblib
 import pandas as pd
 from sklearn.base import clone
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+from sklearn.naive_bayes import ComplementNB, MultinomialNB
 from sklearn.svm import LinearSVC
 
 from .data_utils import build_paths, ensure_project_dirs
@@ -43,6 +43,8 @@ def train_and_score_models(root: Path | None = None) -> dict:
             solver="lbfgs",
         ),
         "linear_svm": LinearSVC(class_weight="balanced"),
+        "multinomial_nb": MultinomialNB(),
+        "complement_nb": ComplementNB(),
     }
 
     all_results = []

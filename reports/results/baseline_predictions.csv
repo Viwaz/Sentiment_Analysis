@@ -2,9 +2,9 @@ text,cleaned_text,true_label,predicted_label
 Uyu akuposa Mr 6 billion kuganiza,uyu akuposa mr <num> billion kuganiza,positive,negative
 He's an answer than Malawi government,he ' s an answer than malawi government,positive,neutral
 Corruption ili mwa wa police,corruption ili mwa wa police,negative,negative
-"Nonsense at all
-Mapolisawo nawo ndi anthu
-Nothing will change
+"Nonsense at all
+Mapolisawo nawo ndi anthu
+Nothing will change
 Ndipo zinthu zinkela kelabe kuvuta",nonsense at all mapolisawo nawo ndi anthu nothing will change ndipo zinthu zinkela kelabe kuvuta,negative,negative
 Bring back our fuel Period.,bring back our fuel period.,negative,negative
 Mmmm apolisi ake atiwo inu mmmm,mmmm apolisi ake atiwo inu mmmm,negative,negative
@@ -27,7 +27,7 @@ Koma zikuchitikadi izizi?,koma zikuchitikadi izizi?,neutral,negative
 Boma ilooo alekeni agalu kuuwa ndi kwao,boma ilooo alekeni agalu kuuwa ndi kwao,positive,negative
 A police aphula apa,a police aphula apa,neutral,negative
 Police officer ndiye wachinyengoyo,police officer ndiye wachinyengoyo,negative,negative
-"Chikufunika ndi mafuta za apolice muziwalipila ndinu? 
+"Chikufunika ndi mafuta za apolice muziwalipila ndinu? 
 Kasakeni mafuta ukoo",chikufunika ndi mafuta za apolice muziwalipila ndinu? kasakeni mafuta ukoo,negative,negative
 Kutha Kwa shasaha. Ngati 20 kwacha yapepala imaksnidwa mmashopumu. Nde ya coin iphupha???,kutha kwa shasaha. ngati <num> kwacha yapepala imaksnidwa mmashopumu. nde ya coin iphupha???,negative,negative
 Apolisi akungosekelera kuti apa basi tawoloka,apolisi akungosekelera kuti apa basi tawoloka,negative,negative
@@ -41,7 +41,7 @@ That's great 👍🏾👍🏾,that ' s great 👍🏾👍🏾,positive,positive
 Aaaaaa police basi busy zimenezo? U guy can do better than that.. Find the root of thee problem,aaaaaa police basi busy zimenezo? u guy can do better than that.. find the root of thee problem,neutral,positive
 Kutha ma plan tu uku Takasake forex iwe Takasake mafuta nyapala iwe tipitanso ku mseu tu,kutha ma plan tu uku takasake forex iwe takasake mafuta nyapala iwe tipitanso ku mseu tu,negative,negative
 Serious anthu atigedanazo eish,serious anthu atigedanazo eish,negative,negative
-"Kodi ndalama zimenezi tizigulira chani ndi mmene zinthu zililimu?
+"Kodi ndalama zimenezi tizigulira chani ndi mmene zinthu zililimu?
 Komanso dziko lino aahh😂😂😂",kodi ndalama zimenezi tizigulira chani ndi mmene zinthu zililimu? komanso dziko lino aahh😂😂😂,negative,negative
 Kkkkkkk money talks even men in uniform accept it,kkkkkkk money talks even men in uniform accept it,negative,negative
 Akumatolela ndalama kwa anyamata a zigubu mesa ndi a Police omwewo.,akumatolela ndalama kwa anyamata a zigubu mesa ndi a police omwewo.,negative,negative
@@ -59,8 +59,8 @@ Mesa kuyambira  mawa akhala akupezeka  filling station ⛽ iliyonse 🤣🤣🤣
 Mbali yakuno kulibe chithu cha 20kwacha ky kwanuko,mbali yakuno kulibe chithu cha 20kwacha ky kwanuko,positive,negative
 Khala chete naweso 100 ndizonyadiraso zimenezo 😂😂😂😂😂,khala chete naweso <num> ndizonyadiraso zimenezo 😂😂😂😂😂,negative,negative
 Aah nchimodz modzi kungosiya choncho 😂😂😂,aah nchimodz modzi kungosiya choncho 😂😂😂,negative,negative
-"Apolice ake ati? 😂😂
-Nawoso kunyumba asiya mavuto ka
+"Apolice ake ati? 😂😂
+Nawoso kunyumba asiya mavuto ka
 Nawoso akufuna ya nchere",apolice ake ati? 😂😂 nawoso kunyumba asiya mavuto ka nawoso akufuna ya nchere,negative,negative
 👀,👀,neutral,negative
 Aliyense wasanduka mneneri  wa boma tsopano . Where is the landlord?,aliyense wasanduka mneneri wa boma tsopano . where is the landlord?,negative,negative
@@ -68,7 +68,7 @@ Aaaaaa aziletsa zigubu,aaaaaa aziletsa zigubu,negative,negative
 Kunali k 10 ya chitsulo  lero ili kuti? Apa k 20 ndi k50 ikupita basi kwa ambuyache ....tiziyambira k100 kugula chithu,kunali k <num> ya chitsulo lero ili kuti? apa k <num> ndi k50 ikupita basi kwa ambuyache ....tiziyambira k100 kugula chithu,positive,negative
 Corruption number 1,corruption number <num>,negative,negative
 Mesa Men in uniform ndiomwe amayambisa kut gwira apaaa,mesa men in uniform ndiomwe amayambisa kut gwira apaaa,negative,negative
-"Police and fuel attendant, good connection,  
+"Police and fuel attendant, good connection,  
 Tikuthila malire 100 pin, mmm ikani full tank 10pin yo yanu,  poweluka ma share","police and fuel attendant , good connection , tikuthila malire <num> pin , mmm ikani full tank 10pin yo yanu , poweluka ma share",negative,negative
 Fodya eti🥴,fodya eti🥴,negative,negative
 Zonsezi ndi DPP and MCP,zonsezi ndi dpp and mcp,negative,negative
@@ -77,10 +77,10 @@ Kokalipira fees tizchta kupanga hire galmoto,kokalipira fees tizchta kupanga hir
 Intelligent man💪,intelligent man💪,positive,negative
 Wa police ndiye mbava yachikhalire 😂,wa police ndiye mbava yachikhalire 😂,negative,negative
 Ndipo masanje ake 🤣🤣🤣🤣 attendant ndi wa chinyengo kale nde apapanso mukuonjezela chinyengo china kkkkkk kulemeletsa apolisi azitichotsa a traffic apapa mpaka apolisi atitsatira ku filling station ..work on having alot of fuel ..get police azisaka mbava,ndipo masanje ake 🤣🤣🤣🤣 attendant ndi wa chinyengo kale nde apapanso mukuonjezela chinyengo china kkkkkk kulemeletsa apolisi azitichotsa a traffic apapa mpaka apolisi atitsatira ku filling station ..work on having alot of fuel ..get police azisaka mbava,negative,negative
-"Good move 
-Police officers athandiza just be vigilant on corruption.
-MAFUTA akafika pa filling onse akumatutidwa nkuikidwa pakhomo zigubu it's a business now.
-Suggestions.
+"Good move 
+Police officers athandiza just be vigilant on corruption.
+MAFUTA akafika pa filling onse akumatutidwa nkuikidwa pakhomo zigubu it's a business now.
+Suggestions.
 Pakhale njira ina yochita identify vehicle owners than kumagulitsa vendors instead of vehicle owners",good move police officers athandiza just be vigilant on corruption. mafuta akafika pa filling onse akumatutidwa nkuikidwa pakhomo zigubu it ' s a business now. suggestions. pakhale njira ina yochita identify vehicle owners than kumagulitsa vendors instead of vehicle owners,positive,negative
 The fall of Mkulukuta moyo,the fall of mkulukuta moyo,negative,negative
 Mpakana police eish,mpakana police eish,negative,negative
@@ -129,7 +129,7 @@ Wazigubu wakwiya kwambiri 🤣🤣🤣,wazigubu wakwiya kwambiri 🤣🤣🤣,ne
 Inu pausilu wanu mwanva,inu pausilu wanu mwanva,negative,negative
 Don't forget salary ya wa police siidalowebe eti,don ' t forget salary ya wa police siidalowebe eti,negative,negative
 A police ake osaka ma 2 pin wa?? Akatero nde kuti a nyenga kobasi mma bar mu,a police ake osaka ma <num> pin wa?? akatero nde kuti a nyenga kobasi mma bar mu,negative,negative
-"First paragraph - Question - WHAT DELIVERY? All tankers that bring fuel to the ports of Tanzania and Mozambique come from the Persian Gulf. NO tankers have left there since 28 February. Do your own research. So I ask again, where do you think the fuel is coming from? 
+"First paragraph - Question - WHAT DELIVERY? All tankers that bring fuel to the ports of Tanzania and Mozambique come from the Persian Gulf. NO tankers have left there since 28 February. Do your own research. So I ask again, where do you think the fuel is coming from? 
 It is time to stop deceiving the people.","first paragraph - question - what delivery? all tankers that bring fuel to the ports of tanzania and mozambique come from the persian gulf. no tankers have left there since <num> february. do your own research. so i ask again , where do you think the fuel is coming from? it is time to stop deceiving the people.",negative,positive
 Apolice anuwo akumalandiranso ndalama nawo ngati ma fuel attendant hahahaha ine ndi mboni,apolice anuwo akumalandiranso ndalama nawo ngati ma fuel attendant hahahaha ine ndi mboni,negative,negative
 Kutha kwa 50 kwacha uku,kutha kwa <num> kwacha uku,negative,negative
@@ -149,8 +149,8 @@ Kutha Kwa ndalama yakwacha tsopano kkkkkk ndalama yomvetsa chisoni,kutha kwa nda
 Mpak wa police 😂😂😂,mpak wa police 😂😂😂,neutral,negative
 Do we know  what we want as a country?,do we know what we want as a country?,positive,negative
 100 ndi amu Lilongwe mokha tsiku limodzi,<num> ndi amu lilongwe mokha tsiku limodzi,neutral,negative
-"Petroda is the worst casualty in managing crowds. Even in the presence of the police, there is always chaos in their filling stations
-
+"Petroda is the worst casualty in managing crowds. Even in the presence of the police, there is always chaos in their filling stations
+
 Petroda Filling Station can do better","petroda is the worst casualty in managing crowds. even in the presence of the police , there is always chaos in their filling stations petroda filling station can do better",neutral,negative
 "🤣🤣🤣 Malawi be  serious,, corruption it comes from 👮","🤣🤣🤣 malawi be serious , , corruption it comes from 👮",negative,negative
 A police ndie amapanga  facilitates zopoila  muma filling stations'mu,a police ndie amapanga facilitates zopoila muma filling stations ' mu,negative,negative
@@ -162,7 +162,7 @@ New look from Metal,new look from metal,positive,neutral
 Chomwe chinathetsa angoni nd kalingonda 🤣🤣,chomwe chinathetsa angoni nd kalingonda 🤣🤣,negative,negative
 Mavuto alipobe chakwera bapumani anthu sayamika,mavuto alipobe chakwera bapumani anthu sayamika,neutral,negative
 Kkkkkk ai aaaa zakuvutan Bola nsima basi,kkkkkk ai aaaa zakuvutan bola nsima basi,negative,negative
-"Mwini Dowa .
+"Mwini Dowa .
  under the Leadership of APM",mwini dowa . under the leadership of apm,neutral,negative
 "Wa police wake wakumalawi, ayi zikomo","wa police wake wakumalawi , ayi zikomo",negative,negative
 Pamenepo mwateteza kapena kulimbikitsa,pamenepo mwateteza kapena kulimbikitsa,negative,negative
@@ -218,8 +218,8 @@ Apolice nde achinyengowo,apolice nde achinyengowo,negative,negative
 These guys are easily to be bribed hence a Usesless development,these guys are easily to be bribed hence a usesless development,negative,negative
 "Za ziiiiii, apolisi wo nde omwe amaonelera za chinyengo zikuchitika.","za ziiiiii , apolisi wo nde omwe amaonelera za chinyengo zikuchitika.",negative,negative
 Zazii twenty kwacha ungagule chan,zazii twenty kwacha ungagule chan,negative,negative
-"Mukusowatu ma measures
-Mafuta akamapezeka, ma vender samagulaso ma bulk fuel 
+"Mukusowatu ma measures
+Mafuta akamapezeka, ma vender samagulaso ma bulk fuel 
 So ingopangani zoti mafuta azipezeka pa filling station","mukusowatu ma measures mafuta akamapezeka , ma vender samagulaso ma bulk fuel so ingopangani zoti mafuta azipezeka pa filling station",negative,negative
 Kma sweet yomwe inali pa 20 kwacha pano ili pa handede kwachatu,kma sweet yomwe inali pa <num> kwacha pano ili pa handede kwachatu,negative,negative
 Apa nde tamenyaso duzu ndi pota ija basi 😂🤣,apa nde tamenyaso duzu ndi pota ija basi 😂🤣,neutral,negative
@@ -233,7 +233,7 @@ Fuel akupezeka ndi anthu Oti alibe olo njinga yakapalasa,fuel akupezeka ndi anth
 Q for kwachema,q for kwachema,negative,neutral
 Izizi nde ainso Bola akanangoika 20t instead of K koma mphanvu yake ikhale ya k koma aaaah palibe chabwino apa,izizi nde ainso bola akanangoika 20t instead of k koma mphanvu yake ikhale ya k koma aaaah palibe chabwino apa,negative,negative
 Kutibwezelesa. Ku 1992,kutibwezelesa. ku <num>,neutral,negative
-"Abwana wa amaona mwai mu zinthu zomwe ambili timadandaula, umeo
+"Abwana wa amaona mwai mu zinthu zomwe ambili timadandaula, umeo
  The guy sees an opportunity like a star in dark, for what most of us complain of. Love it 😍","abwana wa amaona mwai mu zinthu zomwe ambili timadandaula , umeo the guy sees an opportunity like a star in dark , for what most of us complain of. love it 😍",positive,negative
 Alemeratu a police,alemeratu a police,positive,negative
 Bweretsani mafuta zinazo zisoveka zokha bas,bweretsani mafuta zinazo zisoveka zokha bas,neutral,negative

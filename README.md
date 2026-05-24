@@ -63,6 +63,8 @@ python -m src.preprocess
 python -m src.train_baseline
 ```
 
+This compares Logistic Regression, Linear SVM, Multinomial Naive Bayes, and Complement Naive Bayes across word, character, and combined TF-IDF feature sets.
+
 4. Train the multilingual transformer. The default is now AfriBERTa small, which is more practical on a CPU-only laptop:
 
 ```powershell
@@ -87,7 +89,21 @@ For GPU training on Google Colab, follow `COLAB_AFRIBERTA.md`.
 python -m src.evaluate_external
 ```
 
-6. Open the notebooks in `notebooks/` for audit, experiments, and reporting.
+To evaluate a trained transformer on the external dataset:
+
+```powershell
+python -m src.evaluate_external --model_type transformer --model_name castorini/afriberta_small --run_name afriberta_small
+```
+
+6. Build a model comparison table:
+
+```powershell
+python -m src.compare_models
+```
+
+This writes `reports/results/model_comparison.csv`.
+
+7. Open the notebooks in `notebooks/` for audit, experiments, and reporting.
 
 ## What The Pipeline Does
 
