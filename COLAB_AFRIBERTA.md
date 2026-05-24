@@ -123,7 +123,23 @@ from google.colab import files
 files.download("afriberta_small_model.zip")
 ```
 
-## 9. Compare Against Baseline
+## 9. External Transformer Evaluation
+
+Use this after the transformer model has trained successfully:
+
+```python
+!python -m src.evaluate_external --model_type transformer --model_name castorini/afriberta_small --run_name afriberta_small
+```
+
+Expected outputs:
+
+```text
+reports/results/external_afriberta_small_metrics.json
+reports/results/external_afriberta_small_predictions.csv
+reports/figures/external_afriberta_small_confusion_matrix.png
+```
+
+## 10. Compare Against Baselines
 
 Use macro F1 as the main comparison metric.
 
@@ -132,5 +148,17 @@ Compare:
 - `reports/results/baseline_metrics.json`
 - `reports/results/afriberta_small_metrics.json`
 - `reports/results/afriberta_base_metrics.json`, if base is also run
+
+To create one comparison table:
+
+```python
+!python -m src.compare_models
+```
+
+This writes:
+
+```text
+reports/results/model_comparison.csv
+```
 
 The transformer should not automatically replace the baseline. It should only be considered better if it improves macro F1 and gives better per-class behavior, especially for `neutral` and `positive`.
