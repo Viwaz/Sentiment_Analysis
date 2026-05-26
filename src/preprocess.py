@@ -4,6 +4,7 @@ import re
 import unicodedata
 from pathlib import Path
 
+import emoji
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -24,26 +25,62 @@ MENTION_PATTERN = re.compile(r"(?<!\w)@\w+")
 NUMBER_PATTERN = re.compile(r"\b\d+\b")
 WHITESPACE_PATTERN = re.compile(r"\s+")
 PUNCT_SPACING_PATTERN = re.compile(r"([,;:\(\)\[\]\{\}\"'])")
+EMOJI_ALIAS_NORMALIZE_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
 def normalize_unicode(text: str) -> str:
     return unicodedata.normalize("NFKC", text)
 
 
-def clean_text(text: object) -> str:
+def normalize_emoji_alias(alias: str) -> str:
+    normalized = EMOJI_ALIAS_NORMALIZE_PATTERN.sub("_", alias.lower()).strip("_")
+    return f"emoji_{normalized}" if normalized else ""
+
+
+def extract_emoji_aliases(text: object) -> list[str]:
+    if pd.isna(text):
+        return []
+    value = normalize_unicode(str(text)).lower().strip()
+    aliases = []
+    for emoji_match in emoji.emoji_list(value):
+        demojized = emoji.demojize(emoji_match["emoji"], language="en").strip(":")
+        alias = normalize_emoji_alias(demojized)
+        if alias:
+            aliases.append(alias)
+    return aliases
+
+
+def clean_text(text: object, emoji_aliases: list[str] | None = None) -> str:
     if pd.isna(text):
         return ""
     value = normalize_unicode(str(text)).lower().strip()
+    aliases = extract_emoji_aliases(value) if emoji_aliases is None else emoji_aliases
     value = URL_PATTERN.sub(" <url> ", value)
     value = MENTION_PATTERN.sub(" <user> ", value)
     value = NUMBER_PATTERN.sub(" <num> ", value)
     value = PUNCT_SPACING_PATTERN.sub(r" \1 ", value)
+    if aliases:
+        value = f"{value} {' '.join(aliases)}"
     value = WHITESPACE_PATTERN.sub(" ", value).strip()
     return value
 
 
 def tokenize_text(text: str) -> list[str]:
     return text.split()
+
+
+def add_clean_text_features(df: pd.DataFrame) -> pd.DataFrame:
+    enriched = df.copy()
+    emoji_alias_lists = enriched["text"].apply(extract_emoji_aliases)
+    enriched["emoji_aliases"] = emoji_alias_lists.apply(" ".join)
+    enriched["emoji_count"] = emoji_alias_lists.apply(len)
+    enriched["cleaned_text"] = [
+        clean_text(text, aliases)
+        for text, aliases in zip(enriched["text"], emoji_alias_lists)
+    ]
+    enriched["tokens"] = enriched["cleaned_text"].apply(tokenize_text)
+    enriched["token_count_cleaned"] = enriched["tokens"].apply(len)
+    return enriched
 
 
 def prepare_clean_dataframe(audit_df: pd.DataFrame) -> pd.DataFrame:
@@ -54,10 +91,7 @@ def prepare_clean_dataframe(audit_df: pd.DataFrame) -> pd.DataFrame:
     filtered = filtered[~filtered["is_duplicate_text"]]
     filtered = filtered.copy()
     filtered["label"] = filtered["sentiment_label_normalized"]
-    filtered["cleaned_text"] = filtered["text"].apply(clean_text)
-    filtered["tokens"] = filtered["cleaned_text"].apply(tokenize_text)
-    filtered["token_count_cleaned"] = filtered["tokens"].apply(len)
-    return filtered
+    return add_clean_text_features(filtered)
 
 
 def prepare_external_test_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -70,10 +104,7 @@ def prepare_external_test_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     external = external[external["sentiment_label_normalized"].notna()]
     external = external.copy()
     external["label"] = external["sentiment_label_normalized"]
-    external["cleaned_text"] = external["text"].apply(clean_text)
-    external["tokens"] = external["cleaned_text"].apply(tokenize_text)
-    external["token_count_cleaned"] = external["tokens"].apply(len)
-    return external
+    return add_clean_text_features(external)
 
 
 def split_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -114,6 +145,8 @@ def build_metadata(
             "test": int(len(test_df)),
         },
         "label_distribution": cleaned_df["label"].value_counts().to_dict(),
+        "emoji_rows": int((cleaned_df["emoji_count"] > 0).sum()),
+        "emoji_token_count": int(cleaned_df["emoji_count"].sum()),
         "raw_files": sorted(merged_df["source_file"].unique().tolist()),
         "split_indices": {
             "train": train_df.index.tolist(),

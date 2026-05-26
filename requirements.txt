@@ -11,3 +11,4 @@ torch>=2.2
 accelerate>=0.28
 safetensors>=0.4
 sentencepiece>=0.2
+emoji>=2.0

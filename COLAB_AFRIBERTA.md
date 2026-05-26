@@ -17,6 +17,8 @@ requirements.txt
 
 The raw files are not required if preprocessing has already been run locally. If the team wants Colab to rerun preprocessing too, upload `data/raw/` as well.
 
+The current preprocessing pipeline preserves emojis and appends readable emoji aliases to `cleaned_text`. If you change raw data or emoji rules locally, rerun preprocessing before uploading the processed files to Colab.
+
 Do not upload large local transformer checkpoints.
 
 ## 2. Open Colab With GPU

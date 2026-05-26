@@ -112,6 +112,7 @@ This writes `reports/results/model_comparison.csv`.
 - Filters out rows where `include` is not `Yes`.
 - Audits missing labels, missing text, excluded rows, duplicates, and short comments.
 - Applies light text normalization while preserving sentiment cues such as emojis, `!`, and `?`.
+- Appends readable emoji aliases to `cleaned_text`, for example `😂 emoji_face_with_tears_of_joy`, so TF-IDF models can learn from emoji meaning while transformers still see the original emoji.
 - Exports:
   - `data/interim/merged_comments.csv`
   - `data/interim/label_audit.csv`
@@ -180,6 +181,7 @@ To run active learning interactively and visualize candidate uncertainty distrib
 - Do not use generic English stopword removal by default.
 - Do not stem or lemmatize unless you have language-specific tools.
 - Preserve emojis, expressive punctuation, hashtags, and negations.
+- Keep emoji aliases in the cleaned text because emojis are common in the dataset and often carry sentiment or sarcasm.
 - Prefer character n-grams and subword-aware models over manually curated full vocabularies.
 
 ## Optional Lexicon Support
