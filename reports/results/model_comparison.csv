@@ -1,5 +1,6 @@
 model_family,model_name,feature_set,split,macro_f1,accuracy,weighted_f1,source_file
 classical_ml,baseline,,external_test,0.2602563123097174,0.2598684210526316,0.2508016279310961,external_baseline_metrics.json
+transformer,castorini/afriberta_small,subword_transformer,test,0.442156862745098,0.6205357142857143,0.6149816176470589,afriberta_small_metrics.json
 classical_ml,best_baseline:linear_svm,char_tfidf,test,0.3370765765062717,0.6160714285714286,0.5638342132165879,baseline_metrics.json
 transformer,xlm-roberta-base,subword_transformer,test,0.29941819213849863,0.543859649122807,0.5748470793842845,transformer_metrics.json
 classical_ml,linear_svm,char_tfidf,validation,0.48678876678876676,0.6591928251121076,0.6368481742472774,baseline_metrics.json
