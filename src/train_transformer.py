@@ -13,11 +13,13 @@ for proxy_var in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from datasets import Dataset, DatasetDict
 from sklearn.utils.class_weight import compute_class_weight
 from transformers import (
+    AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
     DataCollatorWithPadding,
@@ -107,6 +109,73 @@ def metric_fn(eval_prediction):
     return {"accuracy": metrics["accuracy"], "macro_f1": metrics["macro_f1"]}
 
 
+def _history_float(value: object) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _history_epoch(entry: dict) -> float | None:
+    epoch = _history_float(entry.get("epoch"))
+    return round(epoch, 4) if epoch is not None else None
+
+
+def save_learning_curves(history: list[dict], output_path: Path, run_id: str) -> None:
+    train_loss_by_epoch = {}
+    eval_loss_by_epoch = {}
+    eval_f1_by_epoch = {}
+
+    for entry in history:
+        epoch = _history_epoch(entry)
+        if epoch is None:
+            continue
+
+        loss = _history_float(entry.get("loss"))
+        eval_loss = _history_float(entry.get("eval_loss"))
+        eval_macro_f1 = _history_float(entry.get("eval_macro_f1"))
+
+        if loss is not None and "eval_loss" not in entry:
+            train_loss_by_epoch[epoch] = loss
+        if eval_loss is not None:
+            eval_loss_by_epoch[epoch] = eval_loss
+        if eval_macro_f1 is not None:
+            eval_f1_by_epoch[epoch] = eval_macro_f1
+
+    loss_epochs = sorted(set(train_loss_by_epoch) & set(eval_loss_by_epoch))
+    f1_epochs = sorted(eval_f1_by_epoch)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig.suptitle(f"{run_id} Learning Curves", fontsize=14)
+
+    if loss_epochs:
+        axes[0].plot(loss_epochs, [train_loss_by_epoch[epoch] for epoch in loss_epochs], marker="o", label="Training loss")
+        axes[0].plot(loss_epochs, [eval_loss_by_epoch[epoch] for epoch in loss_epochs], marker="o", label="Validation loss")
+    else:
+        axes[0].text(0.5, 0.5, "No matched loss logs found", ha="center", va="center")
+    axes[0].set_title("Training vs Validation Loss")
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Loss")
+    axes[0].grid(alpha=0.3)
+    if loss_epochs:
+        axes[0].legend()
+
+    if f1_epochs:
+        axes[1].plot(f1_epochs, [eval_f1_by_epoch[epoch] for epoch in f1_epochs], marker="o", color="#2f6f73")
+    else:
+        axes[1].text(0.5, 0.5, "No validation Macro F1 logs found", ha="center", va="center")
+    axes[1].set_title("Validation Macro F1")
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Macro F1")
+    axes[1].set_ylim(0, 1)
+    axes[1].grid(alpha=0.3)
+
+    plt.tight_layout(rect=(0, 0, 1, 0.95))
+    plt.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
 def train_transformer(
     root: Path | None = None,
     model_name: str = DEFAULT_MODEL_NAME,
@@ -127,11 +196,17 @@ def train_transformer(
     tokenized = tokenize_dataset(dataset, tokenizer)
 
     print(f"Loading model weights: {model_name}", flush=True)
-    model = AutoModelForSequenceClassification.from_pretrained(
+    config = AutoConfig.from_pretrained(
         model_name,
         num_labels=len(LABELS),
         id2label=ID_TO_LABEL,
         label2id=LABEL_TO_ID,
+    )
+    config.hidden_dropout_prob = 0.15
+    config.attention_probs_dropout_prob = 0.15
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_name,
+        config=config,
     )
 
     print("Computing class weights.", flush=True)
@@ -151,13 +226,15 @@ def train_transformer(
         eval_strategy="epoch",
         save_strategy="epoch",
         learning_rate=2e-5,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
         num_train_epochs=5,
+        warmup_steps=50,
         weight_decay=0.01,
         load_best_model_at_end=True,
         metric_for_best_model="macro_f1",
         greater_is_better=True,
+        logging_strategy="epoch",
         logging_dir=str(paths.results_dir / f"{run_id}_logs"),
         save_total_limit=2,
         report_to="none",
@@ -176,6 +253,11 @@ def train_transformer(
     )
 
     trainer.train()
+    save_learning_curves(
+        trainer.state.log_history,
+        paths.figures_dir / f"{run_id}_learning_curves.png",
+        run_id,
+    )
     predictions = trainer.predict(tokenized["test"])
     test_preds = np.argmax(predictions.predictions, axis=1)
     y_true = test_df["label"].tolist()
