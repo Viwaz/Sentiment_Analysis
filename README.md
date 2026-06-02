@@ -1,63 +1,110 @@
 # Low-Resource Facebook Sentiment Classifier
 
-This Prototype implements a notebook-first workflow for preprocessing and training a sentiment classifier on heavily code-switched Facebook comments in a low-resource language setting.
+This project builds and evaluates sentiment classifiers for code-switched Facebook comments in a low-resource language setting. The current prototype supports data preprocessing, baseline model training, transformer fine-tuning, external evaluation, active learning, and result reporting.
+
+## Current Status
+
+The latest processed dataset contains:
+
+- Raw rows loaded: `2393`
+- Rows after filtering: `1813`
+- Train/validation/test split: `1269 / 272 / 272`
+- Label distribution: `negative=1019`, `positive=410`, `neutral=384`
+- Rows containing emojis: `467`
+
+Latest internal test results from the current saved metric files:
+
+| Model | Feature/input | Test macro F1 | Test accuracy | Weighted F1 |
+|---|---|---:|---:|---:|
+| Logistic Regression | Character TF-IDF | `0.5463` | `0.6140` | `0.6124` |
+| AfriBERTa Small | Subword transformer | `0.4901` | `0.5368` | `0.5481` |
+| XLM-RoBERTa Base | Subword transformer | `0.2994` | `0.5439` | `0.5748` |
+| External baseline evaluation | Separate external dataset | `0.3572` | `0.3783` | `0.4254` |
+
+The current strongest saved internal test result is the Logistic Regression baseline with character TF-IDF. AfriBERTa Small remains important because it tests transfer learning on an African-language model, but the current evidence does not justify replacing the baseline automatically.
+
+The XLM-RoBERTa metric file is an older saved transformer run. It is useful historical evidence that the team tried a multilingual transformer, but it should be rerun on the current processed split before being treated as a strict apples-to-apples comparison.
 
 ## Project Layout
 
 ```text
 project/
-├─ data/
-│  ├─ raw/
-│  ├─ external_test/
-│  ├─ interim/
-│  └─ processed/
-├─ notebooks/
-│  ├─ 01_data_audit.ipynb
-│  ├─ 02_preprocessing.ipynb
-│  ├─ 03_baseline_models.ipynb
-│  ├─ 04_transformer_training.ipynb
-│  └─ 05_error_analysis.ipynb
-├─ src/
-│  ├─ __init__.py
-│  ├─ data_utils.py
-│  ├─ preprocess.py
-│  ├─ features.py
-│  ├─ evaluate.py
-│  ├─ train_baseline.py
-│  └─ train_transformer.py
-├─ models/
-│  ├─ baseline/
-│  └─ transformer/
-├─ reports/
-│  ├─ figures/
-│  └─ results/
-├─ requirements.txt
-└─ README.md
+|-- data/
+|   |-- raw/
+|   |-- external_test/
+|   |-- interim/
+|   `-- processed/
+|-- docs/
+|   |-- COLAB_AFRIBERTA.md
+|   |-- GROUP_4_DS_SRS_V7.pdf
+|   `-- TEAM_PROJECT_STRUCTURE_AND_WORKFLOW_DOCUMENT.md
+|-- models/
+|   |-- baseline/
+|   `-- transformer/
+|-- notebooks/
+|   |-- 01_data_audit.ipynb
+|   |-- 02_preprocessing.ipynb
+|   |-- 03_baseline_models.ipynb
+|   |-- 04_transformer_training.ipynb
+|   |-- 05_error_analysis.ipynb
+|   |-- 06_external_evaluation.ipynb
+|   `-- 07_active_learning.ipynb
+|-- reports/
+|   |-- figures/
+|   `-- results/
+|-- src/
+|   |-- active_learning.py
+|   |-- compare_models.py
+|   |-- data_utils.py
+|   |-- evaluate.py
+|   |-- evaluate_external.py
+|   |-- features.py
+|   |-- preprocess.py
+|   |-- train_baseline.py
+|   `-- train_transformer.py
+|-- requirements.txt
+`-- README.md
 ```
+
+## Folder Responsibilities
+
+- `data/raw/`: original annotation CSV files. These files are the source of truth for training data.
+- `data/external_test/`: separate evaluation-only CSV files. These are not used in training or model selection.
+- `data/interim/`: merged, audited, and cleaned intermediate files for inspection.
+- `data/processed/`: final train, validation, and test splits used by all models.
+- `src/`: reusable Python implementation of preprocessing, training, evaluation, comparison, and active learning.
+- `notebooks/`: human-facing audit, experiment, and reporting notebooks.
+- `models/`: saved model artifacts. Large transformer checkpoints should not be committed to Git.
+- `reports/results/`: metrics JSON/CSV files and prediction tables.
+- `reports/figures/`: confusion matrices, learning curves, and model comparison charts.
+- `docs/`: team-facing, Colab, SRS, and presentation-support documentation.
 
 ## Expected Raw Data Format
 
-Place all training annotation CSV files inside `data/raw/`. Each file should contain at least:
+Place training annotation CSV files inside `data/raw/`. Each file should contain at least:
 
 - `id`
 - `text`
 - `sentiment_label`
 - `include`
 
-Additional columns such as `topic_label`, `confidence`, or `notes` are preserved automatically.
+Additional columns such as `topic_label`, `confidence`, `notes`, or `source_file` are preserved when possible.
 
-Place any separate evaluation-only dataset inside `data/external_test/`. It should use the same sentiment labels, or labels that can be mapped cleanly to `positive`, `negative`, and `neutral`.
+Place any separate evaluation-only dataset inside `data/external_test/`. It should use labels that can be normalized to:
+
+- `negative`
+- `neutral`
+- `positive`
 
 ## Recommended Workflow
 
-1. Copy all annotator CSV files into `data/raw/`.
-2. Run preprocessing:
+Run preprocessing:
 
 ```powershell
 python -m src.preprocess
 ```
 
-3. Train baseline models:
+Train baseline models:
 
 ```powershell
 python -m src.train_baseline
@@ -65,125 +112,85 @@ python -m src.train_baseline
 
 This compares Logistic Regression, Linear SVM, Multinomial Naive Bayes, and Complement Naive Bayes across word, character, and combined TF-IDF feature sets.
 
-4. Train the multilingual transformer. The default is now AfriBERTa small, which is more practical on a CPU-only laptop:
+Train AfriBERTa Small:
 
 ```powershell
-python -m src.train_transformer
+python -m src.train_transformer --model_name castorini/afriberta_small --run_name afriberta_small
 ```
 
-To run a specific transformer variant, pass the Hugging Face model name and a short run name:
-
-```powershell
-python -m src.train_transformer --model_name castorini/afriberta_base --run_name afriberta_base
-```
-
-Transformer outputs are written with model-specific names, for example `reports/results/castorini_afriberta_small_metrics.json` and `models/transformer/castorini_afriberta_small/`.
-
-If Hugging Face downloads appear to hang, check that `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY` are not set to `http://127.0.0.1:9`. The training script clears that known broken proxy value automatically, but slow unauthenticated downloads can still take time.
-
-For GPU training on Google Colab, follow `COLAB_AFRIBERTA.md`.
-
-5. Evaluate the trained baseline on an external dataset if available:
+Evaluate the baseline on the external test dataset:
 
 ```powershell
 python -m src.evaluate_external
 ```
 
-To evaluate a trained transformer on the external dataset:
+Evaluate a trained transformer on the external test dataset:
 
 ```powershell
 python -m src.evaluate_external --model_type transformer --model_name castorini/afriberta_small --run_name afriberta_small
 ```
 
-6. Build a model comparison table:
+Rebuild the model comparison table:
 
 ```powershell
 python -m src.compare_models
 ```
 
-This writes `reports/results/model_comparison.csv`.
+For GPU-based Colab training, use `docs/COLAB_AFRIBERTA.md`.
 
-7. Open the notebooks in `notebooks/` for audit, experiments, and reporting.
+## Preprocessing Behavior
 
-## What The Pipeline Does
+The preprocessing pipeline:
 
-- Loads each raw CSV exactly once and adds `source_file` for traceability.
-- Normalizes labels to `positive`, `negative`, and `neutral`.
-- Filters out rows where `include` is not `Yes`.
-- Audits missing labels, missing text, excluded rows, duplicates, and short comments.
-- Applies light text normalization while preserving sentiment cues such as emojis, `!`, and `?`.
-- Appends readable emoji aliases to `cleaned_text`, for example `😂 emoji_face_with_tears_of_joy`, so TF-IDF models can learn from emoji meaning while transformers still see the original emoji.
-- Exports:
-  - `data/interim/merged_comments.csv`
-  - `data/interim/label_audit.csv`
-  - `data/interim/cleaned_comments.csv`
-  - `data/processed/train.csv`
-  - `data/processed/val.csv`
-  - `data/processed/test.csv`
-  - `data/processed/metadata.json`
-- Trains TF-IDF baseline models and stores metrics in `reports/results/`.
-- Supports separate external evaluation without mixing that dataset into training.
+- loads each raw CSV and records `source_file`
+- normalizes labels to `negative`, `neutral`, and `positive`
+- filters rows where `include` is not approved
+- audits missing labels, missing text, excluded rows, duplicates, and very short comments
+- applies light text normalization
+- preserves sentiment-bearing punctuation such as `!` and `?`
+- preserves emojis and appends readable emoji alias tokens to `cleaned_text`
+- exports fixed train/validation/test splits and metadata
 
-## External Test Set Workflow
+Generated preprocessing outputs:
 
-Use a second dataset as an external test set only when:
+- `data/interim/merged_comments.csv`
+- `data/interim/label_audit.csv`
+- `data/interim/cleaned_comments.csv`
+- `data/processed/train.csv`
+- `data/processed/val.csv`
+- `data/processed/test.csv`
+- `data/processed/metadata.json`
 
-- it is not used in training or model selection
-- it follows the same sentiment task
-- its labels can be normalized to `positive`, `negative`, and `neutral`
+## Reporting Outputs
 
-Recommended flow:
+The most useful files for presentation and review are:
 
-1. Train and validate on the main dataset in `data/raw/`.
-2. Keep the second dataset in `data/external_test/`.
-3. Run:
-
-```powershell
-python -m src.evaluate_external
-```
-
-This produces:
-
+- `reports/results/model_comparison.csv`
+- `reports/results/model_comparison_ppt_table.csv`
+- `reports/results/baseline_metrics.json`
+- `reports/results/afriberta_small_metrics.json`
 - `reports/results/external_baseline_metrics.json`
-- `reports/results/external_baseline_predictions.csv`
-- `reports/figures/external_baseline_confusion_matrix.png`
-
-This lets the team compare internal held-out performance against external generalization performance.
-
-## Active Learning Workflow
-
-To accelerate data annotation and address the dataset size limitation, use the active learning script to select the most uncertain comments from an unlabeled pool:
-
-1. Place a CSV file containing scraped, unlabeled Facebook comments (containing a `text` or `comment_text` column) in your workspace.
-2. Run the active learning query script:
-
-```powershell
-python -m src.active_learning --unlabeled_path data/scratch/mock_unlabeled.csv --output_path "data/raw/Facebook_Comment_Annotation - ActiveBatch1.csv" --n_samples 200 --strategy entropy
-```
-
-Available CLI arguments:
-* `--unlabeled_path`: Path to the CSV containing unlabeled comments (required).
-* `--output_path`: Path to save the query batch (default: `data/raw/Facebook_Comment_Annotation - ActiveBatch1.csv`).
-* `--n_samples`: Number of uncertain comments to select (default: `200`).
-* `--strategy`: Uncertainty metric to use (`entropy`, `margin`, or `lc` for Least Confidence).
-
-3. Open the output CSV file in Excel/Google Sheets, fill in the blank `sentiment_label` and `include` columns, and save it back into `data/raw/`.
-4. Re-run preprocessing and retraining to incorporate the new annotations into the next model version:
-   ```powershell
-   python -m src.preprocess
-   python -m src.train_baseline
-   ```
-
-To run active learning interactively and visualize candidate uncertainty distributions, open `notebooks/07_active_learning.ipynb`.
+- `reports/figures/model_comparison_macro_f1.png`
+- `reports/figures/baseline_confusion_matrix.png`
+- `reports/figures/afriberta_small_confusion_matrix.png`
+- `reports/figures/afriberta_small_learning_curves.png`
 
 ## Notes For Low-Resource, Code-Switched Text
 
-- Do not use generic English stopword removal by default.
-- Do not stem or lemmatize unless you have language-specific tools.
-- Preserve emojis, expressive punctuation, hashtags, and negations.
-- Keep emoji aliases in the cleaned text because emojis are common in the dataset and often carry sentiment or sarcasm.
-- Prefer character n-grams and subword-aware models over manually curated full vocabularies.
+- Avoid generic English stopword removal unless the team has evidence it helps.
+- Avoid English stemming or lemmatization for local-language text.
+- Preserve negations, hashtags, emojis, and expressive punctuation.
+- Prefer character n-grams and multilingual/subword transformer models over a manually fixed vocabulary.
+- Treat external evaluation as a generalization check, not as another training split.
 
-## Optional Lexicon Support
+## Documentation
 
-Use `data/raw/custom_lexicon_template.csv` as a starter for local slang, intensifiers, negations, and spelling variants. The current code does not force lexicon-based normalization, but the file is included so the team can expand it during error analysis.
+Team and submission-facing documentation is kept in `docs/`.
+
+Use:
+
+- `docs/TEAM_PROJECT_STRUCTURE_AND_WORKFLOW_DOCUMENT.md` for team alignment.
+- `docs/COLAB_AFRIBERTA.md` for remote GPU training.
+- `docs/GROUP_4_DS_SRS_V7.pdf` for the current SRS PDF copy.
+
+The original SRS PDF may still exist at the repository root on some machines if Windows or OneDrive blocks moving the file. The preferred documentation location is `docs/`.

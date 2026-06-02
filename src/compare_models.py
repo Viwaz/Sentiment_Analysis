@@ -78,6 +78,7 @@ def collect_baseline_rows(results_dir: Path) -> list[dict]:
 
 def collect_transformer_rows(results_dir: Path) -> list[dict]:
     rows = []
+    seen_model_names = set()
     excluded_names = {
         "baseline_metrics.json",
         "external_baseline_metrics.json",
@@ -89,6 +90,9 @@ def collect_transformer_rows(results_dir: Path) -> list[dict]:
         if not payload or "test_metrics" not in payload:
             continue
         model_name = payload.get("model_name", path.stem.replace("_metrics", ""))
+        if model_name in seen_model_names:
+            continue
+        seen_model_names.add(model_name)
         rows.append(
             metric_row(
                 model_family="transformer",

@@ -12,12 +12,21 @@ __pycache__/
 venv/
 
 # Transformer training artifacts
+models/transformer/*
+!models/transformer/.gitkeep
 models/transformer/checkpoint-*/
 models/transformer/best_model/
 models/transformer/best_tokenizer/
 models/transformer/*/checkpoint-*/
 models/transformer/*/best_model/
 models/transformer/*/best_tokenizer/
+
+# Generated training logs
+reports/results/*_train_stdout_*.log
+reports/results/*_train_stderr_*.log
+
+# Scratch/mock data
+data/scratch/
 
 # Local temporary files
 *.tmp
