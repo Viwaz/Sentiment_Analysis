@@ -19,171 +19,243 @@ from .data_utils import (
     save_json,
 )
 
+
+
 RANDOM_SEED = 42
+
+
+
 URL_PATTERN = re.compile(r"(https?://\S+|www\.\S+)")
 MENTION_PATTERN = re.compile(r"(?<!\w)@\w+")
 NUMBER_PATTERN = re.compile(r"\b\d+\b")
+
 WHITESPACE_PATTERN = re.compile(r"\s+")
-PUNCT_SPACING_PATTERN = re.compile(r"([,;:\(\)\[\]\{\}\"'])")
-EMOJI_ALIAS_NORMALIZE_PATTERN = re.compile(r"[^a-z0-9]+")
+
+PUNCT_SPACING_PATTERN = re.compile(
+    r"([,;:\(\)\[\]\{\}\"'])"
+)
+
+EMOJI_ALIAS_NORMALIZE_PATTERN = re.compile(
+    r"[^a-z0-9]+"
+)
+
+# Hashtags
+HASHTAG_PATTERN = re.compile(r"#(\w+)")
+
+# Laughter patterns
+LAUGHTER_K_PATTERN = re.compile(r"\b(k){3,}\b")
+LAUGHTER_HA_PATTERN = re.compile(r"\b(ha){2,}\b")
+LAUGHTER_HE_PATTERN = re.compile(r"\b(he){2,}\b")
+LAUGHTER_LOL_PATTERN = re.compile(r"\b(lo){2,}l\b")
+LAUGHTER_LMAO_PATTERN = re.compile(r"\blmao+\b")
+
+# Repeated characters
+REPEATED_CHAR_PATTERN = re.compile(r"([a-z])\1{2,}")
+
+# Repeated punctuation
+MULTI_EXCLAMATION_PATTERN = re.compile(r"!{3,}")
+MULTI_QUESTION_PATTERN = re.compile(r"\?{3,}")
+MULTI_PERIOD_PATTERN = re.compile(r"\.{3,}")
 
 
 def normalize_unicode(text: str) -> str:
+    """
+    Normalize unicode characters into a standard form.
+    """
     return unicodedata.normalize("NFKC", text)
 
 
+def process_hashtags(text: str) -> str:
+    """
+    Convert:
+        #Malawi -> Malawi
+        #FootballNews -> FootballNews
+    """
+    return HASHTAG_PATTERN.sub(r"\1", text)
+
+
+def normalize_laughter(text: str) -> str:
+    """
+    Normalize common social media laughter expressions.
+
+    Examples:
+        kkkkkkk     -> laugh
+        hahaha      -> laugh
+        hehehe      -> laugh
+        lololol     -> laugh
+        lmaoooo     -> laugh
+    """
+
+    text = LAUGHTER_K_PATTERN.sub(" laugh ", text)
+    text = LAUGHTER_HA_PATTERN.sub(" laugh ", text)
+    text = LAUGHTER_HE_PATTERN.sub(" laugh ", text)
+    text = LAUGHTER_LOL_PATTERN.sub(" laugh ", text)
+    text = LAUGHTER_LMAO_PATTERN.sub(" laugh ", text)
+
+    return text
+
+
+def normalize_repeated_chars(text: str) -> str:
+    """
+    Reduce long character repetitions to two characters.
+
+    Examples:
+        sooooo   -> soo
+        goooood  -> good
+        niiiice  -> niice
+    """
+
+    return REPEATED_CHAR_PATTERN.sub(r"\1\1", text)
+
+
+def normalize_punctuation(text: str) -> str:
+    """
+    Normalize excessive punctuation.
+
+    Examples:
+        !!!!!!!! -> !!
+        ???????  -> ??
+        ......   -> ..
+    """
+
+    text = MULTI_EXCLAMATION_PATTERN.sub("!!", text)
+    text = MULTI_QUESTION_PATTERN.sub("??", text)
+    text = MULTI_PERIOD_PATTERN.sub("..", text)
+
+    return text
+
+
+
+
 def normalize_emoji_alias(alias: str) -> str:
-    normalized = EMOJI_ALIAS_NORMALIZE_PATTERN.sub("_", alias.lower()).strip("_")
+    normalized = (
+        EMOJI_ALIAS_NORMALIZE_PATTERN
+        .sub("_", alias.lower())
+        .strip("_")
+    )
+
     return f"emoji_{normalized}" if normalized else ""
 
 
 def extract_emoji_aliases(text: object) -> list[str]:
+
     if pd.isna(text):
         return []
+
     value = normalize_unicode(str(text)).lower().strip()
+
     aliases = []
+
     for emoji_match in emoji.emoji_list(value):
-        demojized = emoji.demojize(emoji_match["emoji"], language="en").strip(":")
+
+        demojized = emoji.demojize(
+            emoji_match["emoji"],
+            language="en"
+        ).strip(":")
+
         alias = normalize_emoji_alias(demojized)
+
         if alias:
             aliases.append(alias)
+
     return aliases
 
 
-def clean_text(text: object, emoji_aliases: list[str] | None = None) -> str:
+
+
+def clean_text(
+    text: object,
+    emoji_aliases: list[str] | None = None
+) -> str:
+
     if pd.isna(text):
         return ""
-    value = normalize_unicode(str(text)).lower().strip()
-    aliases = extract_emoji_aliases(value) if emoji_aliases is None else emoji_aliases
+
+    value = normalize_unicode(str(text))
+    value = value.lower().strip()
+
+    aliases = (
+        extract_emoji_aliases(value)
+        if emoji_aliases is None
+        else emoji_aliases
+    )
+
+
+
+    value = process_hashtags(value)
+
     value = URL_PATTERN.sub(" <url> ", value)
+
     value = MENTION_PATTERN.sub(" <user> ", value)
+
     value = NUMBER_PATTERN.sub(" <num> ", value)
-    value = PUNCT_SPACING_PATTERN.sub(r" \1 ", value)
+
+    value = normalize_laughter(value)
+
+    value = normalize_repeated_chars(value)
+
+    value = normalize_punctuation(value)
+
+
+
+    value = PUNCT_SPACING_PATTERN.sub(
+        r" \1 ",
+        value
+    )
+
+
+
     if aliases:
         value = f"{value} {' '.join(aliases)}"
-    value = WHITESPACE_PATTERN.sub(" ", value).strip()
+
+
+
+    value = WHITESPACE_PATTERN.sub(
+        " ",
+        value
+    ).strip()
+
     return value
+
 
 
 def tokenize_text(text: str) -> list[str]:
     return text.split()
 
 
-def add_clean_text_features(df: pd.DataFrame) -> pd.DataFrame:
+def add_clean_text_features(
+    df: pd.DataFrame
+) -> pd.DataFrame:
+
     enriched = df.copy()
-    emoji_alias_lists = enriched["text"].apply(extract_emoji_aliases)
-    enriched["emoji_aliases"] = emoji_alias_lists.apply(" ".join)
-    enriched["emoji_count"] = emoji_alias_lists.apply(len)
+
+    emoji_alias_lists = (
+        enriched["text"]
+        .apply(extract_emoji_aliases)
+    )
+
+    enriched["emoji_aliases"] = (
+        emoji_alias_lists.apply(" ".join)
+    )
+
+    enriched["emoji_count"] = (
+        emoji_alias_lists.apply(len)
+    )
+
     enriched["cleaned_text"] = [
         clean_text(text, aliases)
-        for text, aliases in zip(enriched["text"], emoji_alias_lists)
+        for text, aliases
+        in zip(enriched["text"], emoji_alias_lists)
     ]
-    enriched["tokens"] = enriched["cleaned_text"].apply(tokenize_text)
-    enriched["token_count_cleaned"] = enriched["tokens"].apply(len)
+
+    enriched["tokens"] = (
+        enriched["cleaned_text"]
+        .apply(tokenize_text)
+    )
+
+    enriched["token_count_cleaned"] = (
+        enriched["tokens"]
+        .apply(len)
+    )
+
     return enriched
-
-
-def prepare_clean_dataframe(audit_df: pd.DataFrame) -> pd.DataFrame:
-    filtered = audit_df.copy()
-    filtered = filtered[filtered["include_normalized"] == "yes"]
-    filtered = filtered[~filtered["text_missing"]]
-    filtered = filtered[filtered["sentiment_label_normalized"].notna()]
-    filtered = filtered[~filtered["is_duplicate_text"]]
-    filtered = filtered.copy()
-    filtered["label"] = filtered["sentiment_label_normalized"]
-    return add_clean_text_features(filtered)
-
-
-def prepare_external_test_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    external = df.copy()
-    external["sentiment_label_normalized"] = external["sentiment_label"].apply(normalize_label)
-    external["include_normalized"] = external["include"].apply(normalize_include)
-    external["text_missing"] = external["text"].isna() | external["text"].astype(str).str.strip().eq("")
-    external = external[external["include_normalized"] == "yes"]
-    external = external[~external["text_missing"]]
-    external = external[external["sentiment_label_normalized"].notna()]
-    external = external.copy()
-    external["label"] = external["sentiment_label_normalized"]
-    return add_clean_text_features(external)
-
-
-def split_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    train_df, temp_df = train_test_split(
-        df,
-        test_size=0.30,
-        random_state=RANDOM_SEED,
-        stratify=df["label"],
-    )
-    val_df, test_df = train_test_split(
-        temp_df,
-        test_size=0.50,
-        random_state=RANDOM_SEED,
-        stratify=temp_df["label"],
-    )
-    return train_df, val_df, test_df
-
-
-def build_metadata(
-    merged_df: pd.DataFrame,
-    audit_df: pd.DataFrame,
-    cleaned_df: pd.DataFrame,
-    train_df: pd.DataFrame,
-    val_df: pd.DataFrame,
-    test_df: pd.DataFrame,
-) -> dict:
-    return {
-        "random_seed": RANDOM_SEED,
-        "raw_rows": int(len(merged_df)),
-        "rows_after_filtering": int(len(cleaned_df)),
-        "excluded_rows": int(len(merged_df) - len(cleaned_df)),
-        "duplicate_rows_dropped": int(audit_df["is_duplicate_text"].sum()),
-        "invalid_label_rows": int(audit_df["sentiment_label_normalized"].isna().sum()),
-        "missing_text_rows": int(audit_df["text_missing"].sum()),
-        "split_sizes": {
-            "train": int(len(train_df)),
-            "val": int(len(val_df)),
-            "test": int(len(test_df)),
-        },
-        "label_distribution": cleaned_df["label"].value_counts().to_dict(),
-        "emoji_rows": int((cleaned_df["emoji_count"] > 0).sum()),
-        "emoji_token_count": int(cleaned_df["emoji_count"].sum()),
-        "raw_files": sorted(merged_df["source_file"].unique().tolist()),
-        "split_indices": {
-            "train": train_df.index.tolist(),
-            "val": val_df.index.tolist(),
-            "test": test_df.index.tolist(),
-        },
-    }
-
-
-def run_preprocessing(root: Path | None = None) -> dict:
-    paths = build_paths(root)
-    ensure_project_dirs(paths)
-
-    raw_files = discover_raw_files(paths.raw_dir)
-    merged_df = merge_annotation_files(raw_files)
-    audit_df = build_label_audit(merged_df)
-    cleaned_df = prepare_clean_dataframe(audit_df)
-    train_df, val_df, test_df = split_dataset(cleaned_df)
-
-    merged_df.to_csv(paths.interim_dir / "merged_comments.csv", index=False)
-    audit_df.to_csv(paths.interim_dir / "label_audit.csv", index=False)
-    cleaned_df.to_csv(paths.interim_dir / "cleaned_comments.csv", index=False)
-    train_df.to_csv(paths.processed_dir / "train.csv", index=False)
-    val_df.to_csv(paths.processed_dir / "val.csv", index=False)
-    test_df.to_csv(paths.processed_dir / "test.csv", index=False)
-
-    metadata = build_metadata(merged_df, audit_df, cleaned_df, train_df, val_df, test_df)
-    save_json(metadata, paths.processed_dir / "metadata.json")
-    return metadata
-
-
-def main() -> None:
-    metadata = run_preprocessing()
-    print("Preprocessing complete.")
-    print(f"Rows after filtering: {metadata['rows_after_filtering']}")
-    print(f"Train/val/test: {metadata['split_sizes']}")
-
-
-if __name__ == "__main__":
-    main()
