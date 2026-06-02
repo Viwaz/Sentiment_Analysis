@@ -47,7 +47,7 @@ def save_metrics(metrics: dict, output_path: Path) -> None:
 def save_confusion_matrix(y_true, y_pred, labels: list[str], output_path: Path, title: str) -> None:
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     cm_df = pd.DataFrame(cm, index=labels, columns=labels)
-    plt.figure(figsize=(6, 5))
+    plt.figure(figsize=(8, 6))
     sns.heatmap(cm_df, annot=True, fmt="d", cmap="Blues")
     plt.title(title)
     plt.ylabel("True label")

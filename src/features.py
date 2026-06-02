@@ -4,7 +4,12 @@ from dataclasses import dataclass
 
 from scipy.sparse import csr_matrix, hstack
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+"""
+This module defines functions to build different feature sets for text classification.
+ - various TF-IDF vectorizers are used to create word-level and character-level features,
+   which are then combined into a single feature set. 
+ - Each feature set is encapsulated in a FeatureBundle dataclass for easy access and management.
+"""
 
 @dataclass
 class FeatureBundle:
@@ -18,8 +23,8 @@ class FeatureBundle:
 def build_word_tfidf(train_texts, val_texts, test_texts) -> FeatureBundle:
     vectorizer = TfidfVectorizer(
         analyzer="word",
-        ngram_range=(1, 2),
-        min_df=1,
+        ngram_range=(1, 3),
+        min_df=3,
         max_df=0.95,
         sublinear_tf=True,
     )
@@ -32,7 +37,7 @@ def build_word_tfidf(train_texts, val_texts, test_texts) -> FeatureBundle:
 def build_char_tfidf(train_texts, val_texts, test_texts) -> FeatureBundle:
     vectorizer = TfidfVectorizer(
         analyzer="char_wb",
-        ngram_range=(3, 5),
+        ngram_range=(2, 5),
         min_df=1,
         sublinear_tf=True,
     )
