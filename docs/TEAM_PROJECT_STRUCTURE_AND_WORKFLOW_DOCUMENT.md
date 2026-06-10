@@ -73,7 +73,8 @@ project/
 4. Classical baseline models are trained first using TF-IDF features.
 5. Transformer models such as AfriBERTa Small are trained on the same fixed splits.
 6. External evaluation is run separately using `data/external_test/`.
-7. Metrics, predictions, confusion matrices, learning curves, and comparison tables are saved under `reports/`.
+7. Batch inference can be run on new CSV input using `python -m src.predict`.
+8. Metrics, predictions, confusion matrices, learning curves, and comparison tables are saved under `reports/`.
 
 ## Why This Workflow Is Standard
 

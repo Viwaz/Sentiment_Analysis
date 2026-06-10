@@ -59,6 +59,7 @@ project/
 |   |-- evaluate.py
 |   |-- evaluate_external.py
 |   |-- features.py
+|   |-- predict.py
 |   |-- preprocess.py
 |   |-- train_baseline.py
 |   `-- train_transformer.py
@@ -136,6 +137,14 @@ Rebuild the model comparison table:
 python -m src.compare_models
 ```
 
+Run batch inference on a CSV of new comments:
+
+```powershell
+python -m src.predict --input_path path/to/new_comments.csv --output_path reports/results/batch_predictions.csv --reference_model baseline
+```
+
+Use `--reference_model afriberta_small` to score the same CSV with the transformer reference run.
+
 For GPU-based Colab training, use `docs/COLAB_AFRIBERTA.md`.
 
 ## Preprocessing Behavior
@@ -170,6 +179,8 @@ The most useful files for presentation and review are:
 - `reports/results/baseline_metrics.json`
 - `reports/results/afriberta_small_metrics.json`
 - `reports/results/external_baseline_metrics.json`
+- `models/baseline/model_metadata.json`
+- `models/transformer/afriberta_small/model_metadata.json`
 - `reports/figures/model_comparison_macro_f1.png`
 - `reports/figures/baseline_confusion_matrix.png`
 - `reports/figures/afriberta_small_confusion_matrix.png`

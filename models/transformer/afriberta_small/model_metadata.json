@@ -1,0 +1,19 @@
+{
+  "model_family": "transformer",
+  "model_name": "castorini/afriberta_small",
+  "run_id": "afriberta_small",
+  "label_mapping": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "artifact_paths": {
+    "model": "models/transformer/afriberta_small/best_model",
+    "tokenizer": "models/transformer/afriberta_small/best_tokenizer"
+  },
+  "preprocessing": {
+    "input_column": "cleaned_text",
+    "label_column": "label",
+    "preserve_emoji_aliases": true
+  }
+}

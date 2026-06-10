@@ -1,0 +1,26 @@
+{
+  "model_family": "classical_ml",
+  "reference_name": "baseline",
+  "best_validation_run": {
+    "feature_set": "char_tfidf",
+    "model_name": "logistic_regression",
+    "validation_metrics": {
+      "accuracy": 0.625,
+      "macro_f1": 0.5714075344542328
+    }
+  },
+  "label_mapping": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "artifact_paths": {
+    "model": "models/baseline/best_baseline_model.joblib",
+    "vectorizer": "models/baseline/best_baseline_vectorizer.joblib"
+  },
+  "preprocessing": {
+    "input_column": "cleaned_text",
+    "label_column": "label",
+    "preserve_emoji_aliases": true
+  }
+}

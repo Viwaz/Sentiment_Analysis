@@ -108,6 +108,12 @@ reports/results/model_comparison.csv
 
 Use macro F1 as the primary comparison metric.
 
+To score a new CSV after training, run the batch inference script:
+
+```python
+!python -m src.predict --input_path /content/project/new_comments.csv --output_path reports/results/batch_predictions.csv --reference_model afriberta_small
+```
+
 ## 8. Download Results
 
 Download reports first. Avoid downloading model folders unless they are explicitly needed.

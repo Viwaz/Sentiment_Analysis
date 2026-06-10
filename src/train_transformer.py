@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 from pathlib import Path
@@ -266,6 +267,28 @@ def train_transformer(
 
     tokenizer.save_pretrained(output_dir / "best_tokenizer")
     trainer.save_model(output_dir / "best_model")
+    (output_dir / "model_metadata.json").write_text(
+        json.dumps(
+            {
+                "model_family": "transformer",
+                "model_name": model_name,
+                "run_id": run_id,
+                "label_mapping": LABELS,
+                "artifact_paths": {
+                    "model": f"models/transformer/{run_id}/best_model",
+                    "tokenizer": f"models/transformer/{run_id}/best_tokenizer",
+                },
+                "preprocessing": {
+                    "input_column": "cleaned_text",
+                    "label_column": "label",
+                    "preserve_emoji_aliases": True,
+                },
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
 
     summary = {
         "model_name": model_name,

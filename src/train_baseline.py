@@ -86,6 +86,28 @@ def train_and_score_models(root: Path | None = None) -> dict:
 
     joblib.dump(best_model, model_dir / "best_baseline_model.joblib")
     joblib.dump(best_bundle.vectorizer, model_dir / "best_baseline_vectorizer.joblib")
+    (model_dir / "model_metadata.json").write_text(
+        json.dumps(
+            {
+                "model_family": "classical_ml",
+                "reference_name": "baseline",
+                "best_validation_run": best_result,
+                "label_mapping": LABELS,
+                "artifact_paths": {
+                    "model": "models/baseline/best_baseline_model.joblib",
+                    "vectorizer": "models/baseline/best_baseline_vectorizer.joblib",
+                },
+                "preprocessing": {
+                    "input_column": "cleaned_text",
+                    "label_column": "label",
+                    "preserve_emoji_aliases": True,
+                },
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     save_metrics(summary, result_dir / "baseline_metrics.json")
     save_confusion_matrix(
         test_df["label"],
