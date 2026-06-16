@@ -74,7 +74,9 @@ project/
 5. Transformer models such as AfriBERTa Small are trained on the same fixed splits.
 6. External evaluation is run separately using `data/external_test/`.
 7. Batch inference can be run on new CSV input using `python -m src.predict`.
-8. Metrics, predictions, confusion matrices, learning curves, and comparison tables are saved under `reports/`.
+8. Model loading and scoring are isolated in `src/model_service.py`, so the baseline or transformer can be swapped without changing preprocessing, storage, or dashboard code.
+9. The hosted model API is exposed through `src/model_api.py` using FastAPI. It accepts cleaned text, loads the selected model once at startup, and returns prediction responses for storage or dashboard modules.
+10. Metrics, predictions, confusion matrices, learning curves, and comparison tables are saved under `reports/`.
 
 ## Why This Workflow Is Standard
 

@@ -59,6 +59,7 @@ project/
 |   |-- evaluate.py
 |   |-- evaluate_external.py
 |   |-- features.py
+|   |-- model_service.py
 |   |-- predict.py
 |   |-- preprocess.py
 |   |-- train_baseline.py
@@ -144,6 +145,23 @@ python -m src.predict --input_path path/to/new_comments.csv --output_path report
 ```
 
 Use `--reference_model afriberta_small` to score the same CSV with the transformer reference run.
+
+The model loading and prediction contract lives in `src/model_service.py`. The CSV command in `src/predict.py` is only the file adapter: it reads comments, applies preprocessing, calls the selected model service, and writes prediction results. This keeps the model module replaceable without changing preprocessing, database writing, or dashboard code later.
+
+Run the hosted model service locally:
+
+```powershell
+uvicorn src.model_api:app --host 0.0.0.0 --port 8000
+```
+
+The hosted API loads the selected model once at startup. By default it loads `afriberta_small`; use `MODEL_REFERENCE=baseline` to run the lighter baseline service. Prediction requests must provide `cleaned_text`, because preprocessing is intentionally owned by a separate module.
+
+Hosted endpoints:
+
+- `GET /health`
+- `GET /model-info`
+- `POST /predict`
+- `POST /predict-batch`
 
 For GPU-based Colab training, use `docs/COLAB_AFRIBERTA.md`.
 
