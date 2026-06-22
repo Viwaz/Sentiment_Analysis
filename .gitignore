@@ -11,6 +11,10 @@ __pycache__/
 .venv/
 venv/
 
+# Local secrets
+.env
+secrets/
+
 # Transformer training artifacts
 models/transformer/*
 !models/transformer/.gitkeep
@@ -33,3 +37,4 @@ data/scratch/
 # Local temporary files
 *.tmp
 *.temp
+tmp_token_test.txt

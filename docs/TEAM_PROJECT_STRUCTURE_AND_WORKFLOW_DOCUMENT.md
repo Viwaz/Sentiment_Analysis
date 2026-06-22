@@ -47,6 +47,8 @@ project/
 
 `data/raw/` contains original annotation CSV files. It is kept separate so preprocessing can always be rerun from the original data source.
 
+`data/collected/` contains newly scraped, unlabeled comments from collection tools such as Apify. These records can be sent to the prediction pipeline immediately or prepared for annotation, but they should not be treated as training data until labels are added.
+
 `data/external_test/` contains a separate evaluation dataset. It must not be mixed into training or model selection because it measures generalization.
 
 `data/interim/` contains intermediate preprocessing outputs such as merged data, audit reports, and cleaned text. This allows the team to inspect how rows and labels were handled.
@@ -74,7 +76,9 @@ project/
 5. Transformer models such as AfriBERTa Small are trained on the same fixed splits.
 6. External evaluation is run separately using `data/external_test/`.
 7. Batch inference can be run on new CSV input using `python -m src.predict`.
-8. Metrics, predictions, confusion matrices, learning curves, and comparison tables are saved under `reports/`.
+8. Model loading and scoring are isolated in `src/model_service.py`, so the baseline or transformer can be swapped without changing preprocessing, storage, or dashboard code.
+9. The hosted model API is exposed through `src/model_api.py` using FastAPI. It accepts cleaned text, loads the selected model once at startup, and returns prediction responses for storage or dashboard modules.
+10. Metrics, predictions, confusion matrices, learning curves, and comparison tables are saved under `reports/`.
 
 ## Why This Workflow Is Standard
 

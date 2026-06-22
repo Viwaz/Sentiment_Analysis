@@ -1,0 +1,367 @@
+{
+  "collected_summary": {
+    "name": "collected",
+    "n_rows": 5,
+    "columns": [
+      "id",
+      "text",
+      "source_url",
+      "comment_id",
+      "created_at",
+      "collection_source",
+      "apify_dataset_id",
+      "apify_run_id",
+      "cleaned_text"
+    ],
+    "dtypes": {
+      "id": "object",
+      "text": "object",
+      "source_url": "object",
+      "comment_id": "object",
+      "created_at": "object",
+      "collection_source": "object",
+      "apify_dataset_id": "float64",
+      "apify_run_id": "float64",
+      "cleaned_text": "object"
+    },
+    "nulls": {
+      "id": 0,
+      "text": 0,
+      "source_url": 0,
+      "comment_id": 0,
+      "created_at": 0,
+      "collection_source": 0,
+      "apify_dataset_id": 5,
+      "apify_run_id": 5,
+      "cleaned_text": 0
+    },
+    "samples": {
+      "id": [
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzE3MjA5OTk5NDkwNTIzNDY=",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzEzMDk2NDEyNDgwMzgxOTA=",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzE3MTYzOTc2MDMxMTM0MDM=",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3Xzk5MTYyNjI3MDE2MDk1Ng==",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzEzNTM4MjExMzAwNDEwMDU="
+      ],
+      "text": [
+        "Before handing out the budget to the public to see, they were like \"damn will the public believe this break down\" and then someone said \"let's defeat them with English\" 😂😂",
+        "Buses can't go empty i already packed my belongings kaya zipolopolo ndidzikazinda konko\r\n\r\nNdinamvanso kuti mowa umantchipa wil be drinking daily just to walk zigzag to avoid bullets and ndikagwa ndidzikhala ndikudzinda bullet",
+        "K24 billion? Someone is definitely getting a new mansion out of this 'repatriation' budget.",
+        "3 and 4 is for the Pockets for big stomach guys",
+        "Family tracing, how? Anaiwala kwawo?"
+      ],
+      "source_url": [
+        "https://web.facebook.com/share/p/1UfxVy7FRx/",
+        "https://web.facebook.com/share/p/1UfxVy7FRx/",
+        "https://web.facebook.com/share/p/1UfxVy7FRx/",
+        "https://web.facebook.com/share/p/1UfxVy7FRx/",
+        "https://web.facebook.com/share/p/1UfxVy7FRx/"
+      ],
+      "comment_id": [
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzE3MjA5OTk5NDkwNTIzNDY=",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzEzMDk2NDEyNDgwMzgxOTA=",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzE3MTYzOTc2MDMxMTM0MDM=",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3Xzk5MTYyNjI3MDE2MDk1Ng==",
+        "Y29tbWVudDoxNDY3MTg5NDQ4Nzc4NTc3XzEzNTM4MjExMzAwNDEwMDU="
+      ],
+      "created_at": [
+        "2026-06-20T12:25:45.000Z",
+        "2026-06-20T12:15:38.000Z",
+        "2026-06-20T12:21:13.000Z",
+        "2026-06-20T12:16:54.000Z",
+        "2026-06-20T12:30:45.000Z"
+      ],
+      "collection_source": [
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper"
+      ],
+      "apify_dataset_id": [],
+      "apify_run_id": [],
+      "cleaned_text": [
+        "before handing out the budget to the public to see , they were like \" damn will the public believe this break down \" and then someone said \" let ' s defeat them with english \" 😂😂 emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
+        "buses can ' t go empty i already packed my belongings kaya zipolopolo ndidzikazinda konko ndinamvanso kuti mowa umantchipa wil be drinking daily just to walk zigzag to avoid bullets and ndikagwa ndidzikhala ndikudzinda bullet",
+        "k24 billion? someone is definitely getting a new mansion out of this ' repatriation ' budget.",
+        "<num> and <num> is for the pockets for big stomach guys",
+        "family tracing , how? anaiwala kwawo?"
+      ]
+    }
+  },
+  "processed_summary": {
+    "name": "processed",
+    "n_rows": 1269,
+    "columns": [
+      "id",
+      "text",
+      "topic_label",
+      "sentiment_label",
+      "confidence",
+      "include",
+      "notes",
+      "source_file",
+      "sentiment_label_normalized",
+      "include_normalized",
+      "text_missing",
+      "text_length_chars",
+      "token_count_whitespace",
+      "is_short_comment",
+      "is_duplicate_text",
+      "exclude_reason",
+      "label",
+      "emoji_aliases",
+      "emoji_count",
+      "cleaned_text",
+      "tokens",
+      "token_count_cleaned"
+    ],
+    "dtypes": {
+      "id": "float64",
+      "text": "object",
+      "topic_label": "object",
+      "sentiment_label": "object",
+      "confidence": "object",
+      "include": "object",
+      "notes": "object",
+      "source_file": "object",
+      "sentiment_label_normalized": "object",
+      "include_normalized": "object",
+      "text_missing": "bool",
+      "text_length_chars": "int64",
+      "token_count_whitespace": "int64",
+      "is_short_comment": "bool",
+      "is_duplicate_text": "bool",
+      "exclude_reason": "float64",
+      "label": "object",
+      "emoji_aliases": "object",
+      "emoji_count": "int64",
+      "cleaned_text": "object",
+      "tokens": "object",
+      "token_count_cleaned": "int64"
+    },
+    "nulls": {
+      "id": 0,
+      "text": 0,
+      "topic_label": 0,
+      "sentiment_label": 0,
+      "confidence": 0,
+      "include": 0,
+      "notes": 1240,
+      "source_file": 0,
+      "sentiment_label_normalized": 0,
+      "include_normalized": 0,
+      "text_missing": 0,
+      "text_length_chars": 0,
+      "token_count_whitespace": 0,
+      "is_short_comment": 0,
+      "is_duplicate_text": 0,
+      "exclude_reason": 1269,
+      "label": 0,
+      "emoji_aliases": 942,
+      "emoji_count": 0,
+      "cleaned_text": 0,
+      "tokens": 0,
+      "token_count_cleaned": 0
+    },
+    "samples": {
+      "id": [
+        "205.0",
+        "614.0",
+        "199.0",
+        "444.0",
+        "83.0"
+      ],
+      "text": [
+        "Mwayiwal kut a police ndabale anthu😂😂😂 5pin imawakwanila 😂😂😂😂",
+        "Koma mbuzi izi",
+        "Limbani mitima a Malawi. Ma truck 100 akunenawo ndi a tsiku limodzi tu basi.\r\n\r\nNdiye kuti uchoka lero mpaka nekesiti wiki tikhala opanda mafuta pheeeee\r\n\r\nKomanso onyamula mafuta wakhala liti mneneri wa NOCMA or Government? Wakabaza mpaka umachita masamu a zakudya za mnyumba mwaweni mmalo momakangonyamula zomwe watumidwazo?",
+        "Mmalo Moti apolice azikagwila okuba uko mukuwawunjika MMA filling station aaaaaa blue camp zinthu zikukuvutanitu",
+        "Malawi wanga"
+      ],
+      "topic_label": [
+        "economy",
+        "economy",
+        "economy",
+        "economy",
+        "Economy"
+      ],
+      "sentiment_label": [
+        "negative",
+        "negative",
+        "negative",
+        "negative",
+        "Neutral"
+      ],
+      "confidence": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "High"
+      ],
+      "include": [
+        "yes",
+        "yes",
+        "yes",
+        "yes",
+        "Yes"
+      ],
+      "notes": [
+        "sarcasm",
+        "sarcasm",
+        "sarcasm",
+        "sarcasm",
+        "They are showing support by asking for more people like the man in the spotliight"
+      ],
+      "source_file": [
+        "sentiment spreadsheet - fitina.csv",
+        "sentiment spreadsheet - perpetual.csv",
+        "sentiment - Alfred.csv",
+        "sentiment spreadsheet - viwongo.csv",
+        "Facebook_comments - phiti.csv"
+      ],
+      "sentiment_label_normalized": [
+        "negative",
+        "negative",
+        "negative",
+        "negative",
+        "neutral"
+      ],
+      "include_normalized": [
+        "yes",
+        "yes",
+        "yes",
+        "yes",
+        "yes"
+      ],
+      "text_missing": [
+        "False",
+        "False",
+        "False",
+        "False",
+        "False"
+      ],
+      "text_length_chars": [
+        "61",
+        "14",
+        "322",
+        "112",
+        "12"
+      ],
+      "token_count_whitespace": [
+        "9",
+        "3",
+        "48",
+        "15",
+        "2"
+      ],
+      "is_short_comment": [
+        "False",
+        "False",
+        "False",
+        "False",
+        "False"
+      ],
+      "is_duplicate_text": [
+        "False",
+        "False",
+        "False",
+        "False",
+        "False"
+      ],
+      "exclude_reason": [],
+      "label": [
+        "negative",
+        "negative",
+        "negative",
+        "negative",
+        "neutral"
+      ],
+      "emoji_aliases": [
+        "emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
+        "emoji_flexed_biceps emoji_raised_fist emoji_fire",
+        "emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
+        "emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
+        "emoji_face_with_tears_of_joy emoji_raising_hands"
+      ],
+      "emoji_count": [
+        "7",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "cleaned_text": [
+        "mwayiwal kut a police ndabale anthu😂😂😂 5pin imawakwanila 😂😂😂😂 emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
+        "koma mbuzi izi",
+        "limbani mitima a malawi. ma truck <num> akunenawo ndi a tsiku limodzi tu basi. ndiye kuti uchoka lero mpaka nekesiti wiki tikhala opanda mafuta pheeeee komanso onyamula mafuta wakhala liti mneneri wa nocma or government? wakabaza mpaka umachita masamu a zakudya za mnyumba mwaweni mmalo momakangonyamula zomwe watumidwazo?",
+        "mmalo moti apolice azikagwila okuba uko mukuwawunjika mma filling station aaaaaa blue camp zinthu zikukuvutanitu",
+        "malawi wanga"
+      ],
+      "tokens": [
+        "['mwayiwal', 'kut', 'a', 'police', 'ndabale', 'anthu😂😂😂', '5pin', 'imawakwanila', '😂😂😂😂', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy']",
+        "['koma', 'mbuzi', 'izi']",
+        "['limbani', 'mitima', 'a', 'malawi.', 'ma', 'truck', '<num>', 'akunenawo', 'ndi', 'a', 'tsiku', 'limodzi', 'tu', 'basi.', 'ndiye', 'kuti', 'uchoka', 'lero', 'mpaka', 'nekesiti', 'wiki', 'tikhala', 'opanda', 'mafuta', 'pheeeee', 'komanso', 'onyamula', 'mafuta', 'wakhala', 'liti', 'mneneri', 'wa', 'nocma', 'or', 'government?', 'wakabaza', 'mpaka', 'umachita', 'masamu', 'a', 'zakudya', 'za', 'mnyumba', 'mwaweni', 'mmalo', 'momakangonyamula', 'zomwe', 'watumidwazo?']",
+        "['mmalo', 'moti', 'apolice', 'azikagwila', 'okuba', 'uko', 'mukuwawunjika', 'mma', 'filling', 'station', 'aaaaaa', 'blue', 'camp', 'zinthu', 'zikukuvutanitu']",
+        "['malawi', 'wanga']"
+      ],
+      "token_count_cleaned": [
+        "16",
+        "3",
+        "48",
+        "15",
+        "2"
+      ]
+    }
+  },
+  "comparison": {
+    "only_in_collected": [
+      "apify_dataset_id",
+      "apify_run_id",
+      "collection_source",
+      "comment_id",
+      "created_at",
+      "source_url"
+    ],
+    "only_in_processed": [
+      "confidence",
+      "emoji_aliases",
+      "emoji_count",
+      "exclude_reason",
+      "include",
+      "include_normalized",
+      "is_duplicate_text",
+      "is_short_comment",
+      "label",
+      "notes",
+      "sentiment_label",
+      "sentiment_label_normalized",
+      "source_file",
+      "text_length_chars",
+      "text_missing",
+      "token_count_cleaned",
+      "token_count_whitespace",
+      "tokens",
+      "topic_label"
+    ],
+    "common_columns": [
+      "cleaned_text",
+      "id",
+      "text"
+    ],
+    "collected_rows": 5,
+    "processed_rows": 1269
+  },
+  "cleaned_text": {
+    "in_collected": true,
+    "in_processed": true
+  },
+  "processed_label_column": "topic_label",
+  "processed_label_distribution": {
+    "economy": 728,
+    "Economy": 524,
+    "Politics": 15,
+    "Education": 2
+  }
+}
