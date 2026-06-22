@@ -9,10 +9,10 @@ from typing import Mapping
 import joblib
 import numpy as np
 import pandas as pd
+from scipy.sparse import hstack
 from scipy.special import softmax
 
 from .data_utils import DatasetPaths, build_paths
-from .evaluate_external import transform_with_saved_vectorizer
 
 LABELS = ["negative", "neutral", "positive"]
 LABEL_TO_ID = {label: idx for idx, label in enumerate(LABELS)}
@@ -119,6 +119,17 @@ def _probabilities_from_estimator(model, features) -> np.ndarray:
             decisions = np.column_stack([-decisions, decisions])
         return _align_probabilities(softmax(decisions, axis=1), classes)
     raise AttributeError("Model does not expose predict_proba or decision_function.")
+
+
+def transform_with_saved_vectorizer(vectorizer, texts: pd.Series):
+    if isinstance(vectorizer, dict):
+        return hstack(
+            [
+                vectorizer["word"].transform(texts),
+                vectorizer["char"].transform(texts),
+            ]
+        ).tocsr()
+    return vectorizer.transform(texts)
 
 
 def _build_prediction_frame(

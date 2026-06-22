@@ -1,0 +1,105 @@
+
+-- Table: public.comments
+
+-- DROP TABLE IF EXISTS public.comments;
+
+CREATE TABLE IF NOT EXISTS public.comments
+(
+    comment_id integer NOT NULL DEFAULT nextval('comments_comment_id_seq'::regclass),
+    comment_text text COLLATE pg_catalog."default" NOT NULL,
+    cleaned_text text COLLATE pg_catalog."default",
+    date_collected timestamp without time zone NOT NULL,
+    CONSTRAINT comments_pkey PRIMARY KEY (comment_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.comments
+    OWNER to postgres;
+
+
+
+
+
+
+-- Table: public.predictions_table
+
+-- DROP TABLE IF EXISTS public.predictions_table;
+
+CREATE TABLE IF NOT EXISTS public.predictions_table
+(
+    id character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    text text COLLATE pg_catalog."default" NOT NULL,
+    cleaned_text text COLLATE pg_catalog."default",
+    predicted_label character varying(50) COLLATE pg_catalog."default",
+    predicted_confidence numeric(10,8),
+    score_negative numeric(10,8),
+    score_neutral numeric(10,8),
+    score_positive numeric(10,8),
+    model_name character varying(100) COLLATE pg_catalog."default",
+    model_version character varying(100) COLLATE pg_catalog."default",
+    model_family character varying(100) COLLATE pg_catalog."default",
+    predicted_at timestamp with time zone,
+    CONSTRAINT predictions_table_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.predictions_table
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.system_logs
+
+-- DROP TABLE IF EXISTS public.system_logs;
+
+CREATE TABLE IF NOT EXISTS public.system_logs
+(
+    log_id integer NOT NULL DEFAULT nextval('system_logs_log_id_seq'::regclass),
+    user_id integer,
+    activity text COLLATE pg_catalog."default" NOT NULL,
+    "timestamp" timestamp without time zone NOT NULL,
+    CONSTRAINT system_logs_pkey PRIMARY KEY (log_id),
+    CONSTRAINT system_logs_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.system_logs
+    OWNER to postgres;
+
+
+
+-- Table: public.users
+
+-- DROP TABLE IF EXISTS public.users;
+
+CREATE TABLE IF NOT EXISTS public.users
+(
+    user_id integer NOT NULL DEFAULT nextval('users_user_id_seq'::regclass),
+    username character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    password character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    email character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    role character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT users_pkey PRIMARY KEY (user_id),
+    CONSTRAINT users_email_key UNIQUE (email)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.users
+    OWNER to postgres;
+
+
+
+
+
+
+
+

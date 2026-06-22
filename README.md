@@ -30,6 +30,7 @@ The XLM-RoBERTa metric file is an older saved transformer run. It is useful hist
 ```text
 project/
 |-- data/
+|   |-- collected/
 |   |-- raw/
 |   |-- external_test/
 |   |-- interim/
@@ -54,6 +55,7 @@ project/
 |   `-- results/
 |-- src/
 |   |-- active_learning.py
+|   |-- collect_apify.py
 |   |-- compare_models.py
 |   |-- data_utils.py
 |   |-- evaluate.py
@@ -71,6 +73,7 @@ project/
 ## Folder Responsibilities
 
 - `data/raw/`: original annotation CSV files. These files are the source of truth for training data.
+- `data/collected/`: unlabeled comments collected from external sources such as Apify for prediction or annotation.
 - `data/external_test/`: separate evaluation-only CSV files. These are not used in training or model selection.
 - `data/interim/`: merged, audited, and cleaned intermediate files for inspection.
 - `data/processed/`: final train, validation, and test splits used by all models.
@@ -162,6 +165,20 @@ Hosted endpoints:
 - `GET /model-info`
 - `POST /predict`
 - `POST /predict-batch`
+
+Collect Facebook comments through Apify and feed them into the prediction pipeline:
+
+```powershell
+python -m src.collect_apify --token-file secrets/apify_token.txt --url "https://www.facebook.com/..." --limit 50 --output data/collected/apify_facebook_comments.csv --predict-output reports/results/apify_predictions.csv --reference-model afriberta_small
+```
+
+If the Apify actor has already run and you have the dataset ID, fetch that dataset directly without scraping again:
+
+```powershell
+python -m src.collect_apify --token-file secrets/apify_token.txt --dataset-id "YOUR_DATASET_ID" --output data/collected/apify_existing_dataset.csv --predict-output reports/results/apify_predictions.csv --reference-model afriberta_small
+```
+
+The default collection mode runs the Apify actor, fetches the actor dataset, normalizes comments into a `text` column, and then optionally calls the existing prediction pipeline. Put the Apify token in `secrets/apify_token.txt` or set `APIFY_API_TOKEN`; never commit the token. Use `--dataset-id` when the data already exists in Apify storage. Use `--mode sync` only for small demo runs where the Apify synchronous endpoint can finish before timing out.
 
 For GPU-based Colab training, use `docs/COLAB_AFRIBERTA.md`.
 

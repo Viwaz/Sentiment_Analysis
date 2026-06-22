@@ -47,6 +47,8 @@ project/
 
 `data/raw/` contains original annotation CSV files. It is kept separate so preprocessing can always be rerun from the original data source.
 
+`data/collected/` contains newly scraped, unlabeled comments from collection tools such as Apify. These records can be sent to the prediction pipeline immediately or prepared for annotation, but they should not be treated as training data until labels are added.
+
 `data/external_test/` contains a separate evaluation dataset. It must not be mixed into training or model selection because it measures generalization.
 
 `data/interim/` contains intermediate preprocessing outputs such as merged data, audit reports, and cleaned text. This allows the team to inspect how rows and labels were handled.
