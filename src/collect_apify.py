@@ -9,6 +9,8 @@ from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 import pandas as pd
+from .preprocess import add_clean_text_features
+import numpy as np
 
 from .data_utils import build_paths, ensure_project_dirs
 
@@ -159,9 +161,34 @@ def collect_facebook_comments(
     df = normalise_apify_items(items, source_urls)
     df["apify_dataset_id"] = dataset_id
     df["apify_run_id"] = run_id
+    # Save raw collected CSV
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False, encoding="utf-8")
-    return df
+
+    # Enrich collected data to match processed schema (no labels filled)
+    enriched = add_clean_text_features(df)
+
+    # Add or fill processed-style columns with sensible defaults/placeholders
+    enriched["topic_label"] = np.nan
+    enriched["sentiment_label"] = np.nan
+    enriched["confidence"] = np.nan
+    enriched["include"] = "yes"
+    enriched["notes"] = ""
+    enriched["source_file"] = "apify/facebook-comments-scraper"
+    enriched["sentiment_label_normalized"] = np.nan
+    enriched["include_normalized"] = "yes"
+    enriched["text_missing"] = enriched["text"].isna() | enriched["text"].astype(str).str.strip().eq("")
+    enriched["text_length_chars"] = enriched["cleaned_text"].astype(str).str.len().fillna(0).astype(int)
+    enriched["token_count_whitespace"] = enriched["text"].astype(str).apply(lambda t: len(str(t).split())).fillna(0).astype(int)
+    enriched["is_short_comment"] = enriched["token_count_cleaned"].fillna(0).astype(int) < 3
+    enriched["is_duplicate_text"] = False
+    enriched["exclude_reason"] = np.nan
+    enriched["label"] = np.nan
+
+    # Ensure output path for preprocessed file
+    preproc_path = output_path.parent / "apify_facebook_comments_preprocessed.csv"
+    enriched.to_csv(preproc_path, index=False, encoding="utf-8")
+    return enriched
 
 
 def main() -> None:
