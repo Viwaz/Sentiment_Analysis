@@ -4,14 +4,17 @@ CRUD helpers for the ``preprocessed_comments`` table.
 
 Schema expected:
     preprocessed_comments(
-        comment_id      VARCHAR(100) PRIMARY KEY REFERENCES comments(comment_id) ON DELETE CASCADE,
-        cleaned_text    TEXT NOT NULL,
-        preprocessed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        preprocessed_id  SERIAL PRIMARY KEY,
+        comment_id       VARCHAR(100) NOT NULL UNIQUE REFERENCES comments(comment_id) ON DELETE CASCADE,
+        cleaned_text     TEXT NOT NULL,
+        metadata         JSONB,
+        preprocessed_at  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
 """
 from __future__ import annotations
 
 from typing import Any
+import json
 
 from src.db.connection import get_connection
 
@@ -36,15 +39,29 @@ def insert_preprocessed(
     Returns:
         The ``comment_id`` of the inserted row.
     """
+    # Build metadata dictionary from optional parameters
+    metadata: dict[str, Any] = {}
+    if emoji_aliases is not None:
+        metadata["emoji_aliases"] = emoji_aliases
+    if emoji_count is not None:
+        metadata["emoji_count"] = int(emoji_count)
+    if token_count is not None:
+        metadata["token_count"] = int(token_count)
+
+    metadata_json = json.dumps(metadata) if metadata else None
+
     sql = """
-        INSERT INTO preprocessed_comments (comment_id, cleaned_text)
-        VALUES (%s, %s)
-        ON CONFLICT (comment_id) DO UPDATE SET cleaned_text = EXCLUDED.cleaned_text, preprocessed_at = CURRENT_TIMESTAMP
-        RETURNING comment_id
+        INSERT INTO preprocessed_comments (comment_id, cleaned_text, metadata)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (comment_id) DO UPDATE SET
+            cleaned_text = EXCLUDED.cleaned_text,
+            metadata = EXCLUDED.metadata,
+            preprocessed_at = CURRENT_TIMESTAMP
+        RETURNING preprocessed_id
     """
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (comment_id, cleaned_text))
+            cur.execute(sql, (comment_id, cleaned_text, metadata_json))
             row = cur.fetchone()
     return row[0]
 
@@ -57,7 +74,7 @@ def get_preprocessed(comment_id: str) -> dict[str, Any] | None:
         Dict with preprocessing columns, or ``None`` if no record exists.
     """
     sql = """
-        SELECT comment_id, cleaned_text, preprocessed_at
+        SELECT preprocessed_id, comment_id, cleaned_text, metadata, preprocessed_at
         FROM preprocessed_comments
         WHERE comment_id = %s
     """
@@ -68,12 +85,23 @@ def get_preprocessed(comment_id: str) -> dict[str, Any] | None:
 
     if row is None:
         return None
+
+    preprocessed_id, cid, cleaned_text, metadata_json, preprocessed_at = row
+
+    metadata: dict[str, Any] = {}
+    if metadata_json is not None:
+        try:
+            # metadata_json may be a string or already a dict depending on the adapter
+            metadata = json.loads(metadata_json) if isinstance(metadata_json, str) else metadata_json
+        except Exception:
+            metadata = {}
+
     return {
-        "id": 1,  # dummy integer id for backward compatibility
-        "comment_id": row[0],
-        "cleaned_text": row[1],
-        "preprocessed_at": row[2],
-        "emoji_aliases": None,  # compat
-        "emoji_count": None,  # compat
-        "token_count": None,  # compat
+        "id": int(preprocessed_id),
+        "comment_id": cid,
+        "cleaned_text": cleaned_text,
+        "preprocessed_at": preprocessed_at,
+        "emoji_aliases": metadata.get("emoji_aliases"),
+        "emoji_count": metadata.get("emoji_count"),
+        "token_count": metadata.get("token_count"),
     }

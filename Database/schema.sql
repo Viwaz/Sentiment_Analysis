@@ -26,9 +26,11 @@ CREATE TABLE IF NOT EXISTS public.comments (
 
 -- 3. Preprocessed Comments Table (Text Cache)
 CREATE TABLE IF NOT EXISTS public.preprocessed_comments (
-    comment_id      VARCHAR(100) PRIMARY KEY,
-    cleaned_text    TEXT NOT NULL,
-    preprocessed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    preprocessed_id  SERIAL PRIMARY KEY,
+    comment_id       VARCHAR(100) NOT NULL UNIQUE,
+    cleaned_text     TEXT NOT NULL,
+    metadata         JSONB,
+    preprocessed_at  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_preproc_comment FOREIGN KEY (comment_id)
         REFERENCES public.comments (comment_id) ON DELETE CASCADE
 );

@@ -261,7 +261,7 @@ class TestUsers:
         username = f"{TEST_PREFIX}auth_{uuid.uuid4().hex[:8]}"
         user = create_user(username=username, password="my_secret_pw")
         assert user["username"] == username
-        assert user["role"] == "user"
+        assert user["role"] == "general"
         assert "user_id" in user
 
         authed = authenticate_user(username=username, password="my_secret_pw")

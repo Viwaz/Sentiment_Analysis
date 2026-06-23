@@ -163,8 +163,33 @@ Hosted endpoints:
 
 - `GET /health`
 - `GET /model-info`
+- `POST /comments`
+- `GET /comments/{comment_id}`
 - `POST /predict`
 - `POST /predict-batch`
+- `POST /predict-pipeline`
+- `GET /dashboard/predictions`
+
+The database-backed API flow is:
+
+```text
+POST /predict-pipeline
+  raw comment -> comments
+  cleaned text -> preprocessed_comments
+  model output -> predictions
+  audit events -> activity_logs
+
+GET /dashboard/predictions
+  predictions joined with raw comment text and cleaned text
+```
+
+Run Postgres locally before using the DB-backed endpoints:
+
+```powershell
+docker compose up -d db
+```
+
+The container applies `Database/schema.sql` on first initialization. If an existing `db_data` volume was created from an older schema, apply the SQL migration under `Database/migrations/` or recreate the local development volume after backing up any data you need.
 
 Collect Facebook comments through Apify and feed them into the prediction pipeline:
 

@@ -15,6 +15,8 @@ import numpy as np
 from .data_utils import build_paths, ensure_project_dirs
 
 DEFAULT_ACTOR_ID = "apify/facebook-comments-scraper"
+DEFAULT_TOKEN_FILE = Path("secret/token.txt")
+DEFAULT_URL_FILE = Path("secret/url.txt")
 TEXT_FIELDS = ("text", "comment", "commentText", "message", "body")
 ID_FIELDS = ("id", "commentId", "comment_id")
 # AUTHOR_FIELDS = ("authorName", "author", "profileName", "userName")
@@ -45,6 +47,49 @@ def _normalise_start_urls(urls: list[str]) -> list[dict]:
     return [{"url": url} for url in urls]
 
 
+def read_urls_from_file(url_file: str | Path = DEFAULT_URL_FILE) -> list[str]:
+    """Read one or more Facebook URLs from a local text file."""
+    path = Path(url_file)
+    if not path.exists():
+        raise FileNotFoundError(f"URL file does not exist: {path}")
+
+    urls: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        urls.extend(part.strip() for part in stripped.split(",") if part.strip())
+    return urls
+
+
+def _db_value(value: object) -> object | None:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    return value
+
+
+def _db_text(value: object, default: str = "") -> str:
+    cleaned = _db_value(value)
+    return default if cleaned is None else str(cleaned)
+
+
+def _comment_id_from_row(row: pd.Series, index: int) -> str:
+    explicit_id = _db_value(row.get("comment_id"))
+    if explicit_id is not None:
+        return str(explicit_id)
+
+    source_id = _db_value(row.get("id"))
+    dataset_id = _db_text(row.get("apify_dataset_id"), "dataset")
+    run_id = _db_text(row.get("apify_run_id"), "run")
+    suffix = str(source_id) if source_id is not None else str(index + 1)
+    return f"apify_{dataset_id}_{run_id}_{suffix}"
+
+
 def run_facebook_comments_actor(
     urls: list[str],
     limit: int,
@@ -60,7 +105,9 @@ def run_facebook_comments_actor(
         "resultsLimit": limit,
     }
     run = client.actor(actor_id).call(run_input=run_input)
-    return run["defaultDatasetId"], run["id"]
+    if isinstance(run, dict):
+        return run["defaultDatasetId"], run["id"]
+    return run.default_dataset_id, run.id
 
 
 def fetch_apify_dataset_items(
@@ -191,27 +238,93 @@ def collect_facebook_comments(
     return enriched
 
 
+def persist_collected_comments_to_db(
+    collected: pd.DataFrame,
+    user_id: int | None = None,
+) -> dict[str, int]:
+    """Persist collected Apify rows to raw and preprocessed DB tables."""
+    from src.db.activity import log_action
+    from src.db.comments import insert_comment
+    from src.db.preprocess import insert_preprocessed
+
+    comments_written = 0
+    preprocessed_written = 0
+
+    for index, row in collected.reset_index(drop=True).iterrows():
+        comment_id = _comment_id_from_row(row, index)
+        text = _db_text(row.get("text"))
+        cleaned_text = _db_text(row.get("cleaned_text"))
+
+        if not text:
+            continue
+
+        insert_comment(
+            comment_id=comment_id,
+            comment_text=text,
+            source_url=_db_text(row.get("source_url")),
+            collection_source=_db_text(row.get("collection_source"), DEFAULT_ACTOR_ID),
+            created_at=_db_value(row.get("created_at")),
+            apify_dataset_id=_db_text(row.get("apify_dataset_id")) or None,
+            apify_run_id=_db_text(row.get("apify_run_id")) or None,
+        )
+        log_action(
+            user_id=user_id,
+            action_type="ingest",
+            comment_id=comment_id,
+            details={"source": "collect_apify"},
+        )
+        comments_written += 1
+
+        if cleaned_text:
+            insert_preprocessed(
+                comment_id=comment_id,
+                cleaned_text=cleaned_text,
+                emoji_aliases=_db_text(row.get("emoji_aliases")) or None,
+                emoji_count=_db_value(row.get("emoji_count")),
+                token_count=_db_value(row.get("token_count_cleaned")),
+            )
+            log_action(
+                user_id=user_id,
+                action_type="preprocess",
+                comment_id=comment_id,
+                details={"source": "collect_apify"},
+            )
+            preprocessed_written += 1
+
+    return {
+        "comments_written": comments_written,
+        "preprocessed_written": preprocessed_written,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Collect Facebook comments from Apify for prediction.")
     parser.add_argument("--url", action="append", default=[], help="Facebook post URL. Pass multiple times for multiple posts.")
+    parser.add_argument("--url-file", default=str(DEFAULT_URL_FILE), help="Text file containing Facebook post URLs.")
     parser.add_argument("--dataset-id", default=None, help="Fetch an existing Apify dataset without rerunning the actor.")
     parser.add_argument("--limit", type=int, default=50, help="Maximum comments to request from the actor.")
     parser.add_argument("--output", default=None, help="CSV path for collected comments.")
     parser.add_argument("--mode", choices=["actor", "sync"], default="actor", help="Actor mode fetches dataset after run; sync returns items directly.")
     parser.add_argument("--actor-id", default=DEFAULT_ACTOR_ID, help="Apify actor ID.")
     parser.add_argument("--token", default=None, help="Apify token. Prefer APIFY_API_TOKEN instead of this argument.")
-    parser.add_argument("--token-file", default=None, help="Path to a local file containing the Apify token.")
+    parser.add_argument("--token-file", default=str(DEFAULT_TOKEN_FILE), help="Path to a local file containing the Apify token.")
+    parser.add_argument("--persist-db", action="store_true", help="Persist collected raw and preprocessed comments to PostgreSQL.")
+    parser.add_argument("--user-id", type=int, default=None, help="Optional user_id for DB activity logs.")
     parser.add_argument("--predict-output", default=None, help="Optional CSV path for immediate prediction output.")
     parser.add_argument("--reference-model", default="afriberta_small", help="Reference model to use when --predict-output is set.")
     parser.add_argument("--run-name", default="afriberta_small", help="Transformer run name for prediction.")
     args = parser.parse_args()
 
-    if not args.dataset_id and not args.url:
-        parser.error("Pass --url to run the Apify actor or --dataset-id to fetch an existing dataset.")
+    urls = args.url
+    if not urls and not args.dataset_id:
+        urls = read_urls_from_file(args.url_file)
+
+    if not args.dataset_id and not urls:
+        parser.error("Pass --url, provide --url-file, or pass --dataset-id.")
 
     output_path = Path(args.output) if args.output else None
     collected = collect_facebook_comments(
-        urls=args.url,
+        urls=urls,
         limit=args.limit,
         output_path=output_path,
         mode=args.mode,
@@ -222,6 +335,13 @@ def main() -> None:
     )
     final_output_path = output_path or build_paths().collected_dir / "apify_facebook_comments.csv"
     print(f"Wrote {len(collected)} collected comments to {final_output_path}")
+
+    if args.persist_db:
+        result = persist_collected_comments_to_db(collected, user_id=args.user_id)
+        print(
+            "Persisted collected comments to DB: "
+            f"{result['comments_written']} raw, {result['preprocessed_written']} preprocessed"
+        )
 
     if args.predict_output:
         from .predict import run_batch_prediction

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Any
 
 import pandas as pd
@@ -51,9 +52,9 @@ class CommentRead(BaseModel):
     comment_text: str
     text: str  # backward compatibility
     source_url: str
-    created_at: str | None = None
-    date_collected: str
-    ingested_at: str  # backward compatibility
+    created_at: datetime | str | None = None
+    date_collected: datetime | str
+    ingested_at: datetime | str  # backward compatibility
     collection_source: str
     apify_dataset_id: str | None = None
     apify_run_id: str | None = None
@@ -266,6 +267,9 @@ def model_info() -> ModelInfoResponse:
 @app.post("/comments", response_model=CommentRead)
 def create_comment(comment: CommentCreate) -> CommentRead:
     """Insert a comment into the DB and return the stored record."""
+    if not (comment.comment_text or comment.text):
+        raise HTTPException(status_code=422, detail="comment_text or text field is required")
+
     inserted_id = insert_comment(
         comment_id=comment.comment_id,
         comment_text=comment.comment_text,

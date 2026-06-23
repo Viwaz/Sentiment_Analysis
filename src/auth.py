@@ -4,36 +4,42 @@ JWT-based authentication utilities and FastAPI dependency functions.
 
 Dependencies added to requirements.txt:
     python-jose[cryptography]>=3.3
-    passlib[bcrypt]>=1.7
+    bcrypt>=4.0
 """
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from .config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 
 # ---------------------------------------------------------------------------
 # Password hashing
 # ---------------------------------------------------------------------------
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 _bearer_scheme = HTTPBearer()
+
+
+def _password_bytes(plain_password: str) -> bytes:
+    """bcrypt accepts at most 72 bytes; truncate explicitly for backend compatibility."""
+    return plain_password.encode("utf-8")[:72]
 
 
 def hash_password(plain_password: str) -> str:
     """Return a bcrypt hash of the plaintext password."""
-    return _pwd_context.hash(plain_password)
+    return bcrypt.hashpw(_password_bytes(plain_password), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Return True if *plain_password* matches *hashed_password*."""
-    return _pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(_password_bytes(plain_password), hashed_password.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 # ---------------------------------------------------------------------------
