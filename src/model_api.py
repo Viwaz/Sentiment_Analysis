@@ -8,7 +8,22 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from .model_service import LABELS, SentimentModelService, load_model
+# DB helpers
+from src.db.comments import insert_comment, fetch_comment
+from src.db.preprocess import insert_preprocessed
+from src.db.predictions import insert_prediction, fetch_predictions_with_comments
+from src.db.activity import log_action
+
+# Processing
+from src.preprocess import clean_text
+
+# Model service (kept for predict endpoints)
+try:
+    from .model_service import LABELS, SentimentModelService, load_model
+except ImportError:
+    LABELS = []
+    SentimentModelService = None  # type: ignore
+    load_model = None  # type: ignore
 
 DEFAULT_MODEL_REFERENCE = "afriberta_small"
 DEFAULT_TRANSFORMER_RUN_NAME = "afriberta_small"
@@ -18,6 +33,73 @@ TRANSFORMER_RUN_NAME = os.getenv("TRANSFORMER_RUN_NAME", DEFAULT_TRANSFORMER_RUN
 
 _model_service: SentimentModelService | None = None
 _model_load_error: str | None = None
+
+
+class CommentCreate(BaseModel):
+    comment_id: str
+    comment_text: str | None = None
+    text: str | None = None  # backward compatibility
+    source_url: str | None = None
+    collection_source: str | None = None
+    created_at: str | None = None
+    apify_dataset_id: str | None = None
+    apify_run_id: str | None = None
+
+
+class CommentRead(BaseModel):
+    comment_id: str
+    comment_text: str
+    text: str  # backward compatibility
+    source_url: str
+    created_at: str | None = None
+    date_collected: str
+    ingested_at: str  # backward compatibility
+    collection_source: str
+    apify_dataset_id: str | None = None
+    apify_run_id: str | None = None
+
+
+class PipelineRequest(BaseModel):
+    comment_id: str
+    comment_text: str | None = None
+    text: str | None = None  # backward compatibility
+    source_url: str | None = None
+    collection_source: str | None = None
+    created_at: str | None = None
+    apify_dataset_id: str | None = None
+    apify_run_id: str | None = None
+    user_id: int | None = None
+
+
+class PipelineResponse(BaseModel):
+    comment_id: str
+    comment_text: str
+    cleaned_text: str
+    predicted_label: str
+    predicted_confidence: float
+    score_negative: float
+    score_neutral: float
+    score_positive: float
+    model_name: str
+    model_version: str
+    model_family: str
+    predicted_at: str
+
+
+class DashboardPrediction(BaseModel):
+    prediction_id: int
+    comment_id: str
+    comment_text: str
+    cleaned_text: str
+    predicted_label: str
+    predicted_confidence: float
+    score_negative: float
+    score_neutral: float
+    score_positive: float
+    model_name: str
+    model_version: str
+    model_family: str
+    predicted_at: str
 
 
 class PredictionRecord(BaseModel):
@@ -47,6 +129,18 @@ class PredictionResponse(BaseModel):
 
 class BatchPredictionResponse(BaseModel):
     predictions: list[PredictionResponse]
+
+
+class PredictResponseSingle(BaseModel):
+    predicted_label: str
+    predicted_confidence: float
+    score_negative: float
+    score_neutral: float
+    score_positive: float
+    model_name: str
+    model_version: str
+    model_family: str
+    predicted_at: str
 
 
 class HealthResponse(BaseModel):
@@ -169,15 +263,135 @@ def model_info() -> ModelInfoResponse:
     )
 
 
-@app.post("/predict", response_model=PredictionResponse)
-def predict(record: PredictionRecord) -> PredictionResponse:
+@app.post("/comments", response_model=CommentRead)
+def create_comment(comment: CommentCreate) -> CommentRead:
+    """Insert a comment into the DB and return the stored record."""
+    inserted_id = insert_comment(
+        comment_id=comment.comment_id,
+        comment_text=comment.comment_text,
+        text=comment.text,
+        source_url=comment.source_url,
+        collection_source=comment.collection_source,
+        created_at=comment.created_at,
+        apify_dataset_id=comment.apify_dataset_id,
+        apify_run_id=comment.apify_run_id,
+    )
+    # fetch the full row to return
+    row = fetch_comment(inserted_id)
+    return CommentRead(**row)
+
+
+@app.get("/comments/{comment_id}", response_model=CommentRead)
+def read_comment(comment_id: str) -> CommentRead:
+    """Retrieve a comment by its comment_id."""
+    row = fetch_comment(comment_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    return CommentRead(**row)
+
+
+@app.post("/predict-pipeline", response_model=PipelineResponse)
+def predict_pipeline(req: PipelineRequest) -> PipelineResponse:
+    """
+    Unified endpoint to ingest raw comment, preprocess it, generate predictions,
+    store everything in the database, log activities, and return predictions.
+    """
+    actual_text = req.comment_text or req.text
+    if not actual_text:
+        raise HTTPException(status_code=422, detail="comment_text or text field is required")
+
+    # 1. Ingest comment
+    insert_comment(
+        comment_id=req.comment_id,
+        comment_text=actual_text,
+        source_url=req.source_url,
+        collection_source=req.collection_source,
+        created_at=req.created_at,
+        apify_dataset_id=req.apify_dataset_id,
+        apify_run_id=req.apify_run_id,
+    )
+    log_action(user_id=req.user_id, action_type="ingest", comment_id=req.comment_id)
+
+    # 2. Preprocess text
+    cleaned = clean_text(actual_text)
+    insert_preprocessed(comment_id=req.comment_id, cleaned_text=cleaned)
+    log_action(user_id=req.user_id, action_type="preprocess", comment_id=req.comment_id)
+
+    # 3. Predict sentiment
     service = _get_service()
-    frame = service.predict_batch(_records_to_frame([record]))
-    return _prediction_frame_to_responses(frame)[0]
+    pred_dict = service.predict_one({
+        "cleaned_text": cleaned,
+        "id": req.comment_id,
+        "text": actual_text,
+    })
+
+    # 4. Save prediction
+    prediction_id = insert_prediction(
+        comment_id=req.comment_id,
+        predicted_label=pred_dict["predicted_label"],
+        predicted_confidence=float(pred_dict["predicted_confidence"]),
+        score_negative=float(pred_dict["score_negative"]),
+        score_neutral=float(pred_dict["score_neutral"]),
+        score_positive=float(pred_dict["score_positive"]),
+        model_name=pred_dict["model_name"],
+        model_version=pred_dict["model_version"],
+        model_family=pred_dict["model_family"],
+    )
+    log_action(
+        user_id=req.user_id,
+        action_type="predict",
+        comment_id=req.comment_id,
+        details={"prediction_id": prediction_id, "model_name": pred_dict["model_name"]},
+    )
+
+    return PipelineResponse(
+        comment_id=req.comment_id,
+        comment_text=actual_text,
+        cleaned_text=cleaned,
+        predicted_label=pred_dict["predicted_label"],
+        predicted_confidence=float(pred_dict["predicted_confidence"]),
+        score_negative=float(pred_dict["score_negative"]),
+        score_neutral=float(pred_dict["score_neutral"]),
+        score_positive=float(pred_dict["score_positive"]),
+        model_name=pred_dict["model_name"],
+        model_version=pred_dict["model_version"],
+        model_family=pred_dict["model_family"],
+        predicted_at=str(pred_dict["predicted_at"]),
+    )
+
+
+@app.get("/dashboard/predictions", response_model=list[DashboardPrediction])
+def get_dashboard_predictions() -> list[DashboardPrediction]:
+    """Retrieve all predictions with comment text and preprocessed text for dashboard access."""
+    rows = fetch_predictions_with_comments()
+    return [DashboardPrediction(**row) for row in rows]
+
+
+@app.post("/predict", response_model=PredictResponseSingle)
+def predict_single(record: PredictionRecord) -> PredictResponseSingle:
+    """Predict sentiment of a single preprocessed comment record."""
+    service = _get_service()
+    row = _record_to_dict(record)
+    pred = service.predict_one(row)
+    return PredictResponseSingle(
+        predicted_label=pred["predicted_label"],
+        predicted_confidence=pred["predicted_confidence"],
+        score_negative=pred["score_negative"],
+        score_neutral=pred["score_neutral"],
+        score_positive=pred["score_positive"],
+        model_name=pred["model_name"],
+        model_version=pred["model_version"],
+        model_family=pred["model_family"],
+        predicted_at=str(pred["predicted_at"]),
+    )
 
 
 @app.post("/predict-batch", response_model=BatchPredictionResponse)
-def predict_batch(payload: BatchPredictionRequest) -> BatchPredictionResponse:
+def predict_batch_endpoint(request: BatchPredictionRequest) -> BatchPredictionResponse:
+    """Predict sentiment of a batch of preprocessed comment records."""
     service = _get_service()
-    frame = service.predict_batch(_records_to_frame(payload.records))
-    return BatchPredictionResponse(predictions=_prediction_frame_to_responses(frame))
+    frame = _records_to_frame(request.records)
+    pred_frame = service.predict_batch(frame)
+    responses = _prediction_frame_to_responses(pred_frame)
+    return BatchPredictionResponse(predictions=responses)
+

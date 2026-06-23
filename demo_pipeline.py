@@ -47,19 +47,19 @@ def run_demo():
 
     # Step 1: Scraping and Retrieval
     print("\n[Step 1] Scraping Comments from Apify...")
-    print("  Running Apify actor 'apify/facebook-comments-scraper' in sync mode...")
+    print("  Running Apify actor 'apify/facebook-comments-scraper' in sync mode (limit: 100)...")
     try:
-        # We will use mode='sync' to run synchronously and limit to 5 comments for a quick demo
+        # We will use mode='sync' to run synchronously and limit to 100 comments
         collected_df = collect_facebook_comments(
             urls=[url],
-            limit=5,
+            limit=100,
             output_path=collected_csv,
             mode="sync",
             token_file=token_file,
             root=project_root
         )
-        print("  Scraping completed successfully!")
-        print(f"  Data saved to: {collected_csv}")
+        print("  Scraping and enrichment completed successfully!")
+        print(f"  Enriched/Preprocessed Data saved to: {preprocessed_csv}")
         print(f"  Scraped DataFrame shape: {collected_df.shape}")
         print("  Columns returned:", list(collected_df.columns))
         print("  Sample comments collected:")
@@ -70,29 +70,22 @@ def run_demo():
         traceback.print_exc()
         return
 
-    # Step 2: Preprocessing
-    print("\n[Step 2] Preprocessing Collected Data...")
+    # Step 2: Verification of Preprocessed Data
+    print("\n[Step 2] Verifying Preprocessed Data...")
     try:
-        if not collected_csv.exists():
-            raise FileNotFoundError(f"Collected CSV not found: {collected_csv}")
+        if not preprocessed_csv.exists():
+            raise FileNotFoundError(f"Preprocessed CSV not found: {preprocessed_csv}")
 
-        df = pd.read_csv(collected_csv)
-        print(f"  Loaded {len(df)} rows from {collected_csv}")
-
-        # Apply preprocessing
-        print("  Cleaning text using src.preprocess.clean_text...")
-        df["cleaned_text"] = df["text"].apply(clean_text)
-        
-        # Save preprocessed output
-        df.to_csv(preprocessed_csv, index=False, encoding="utf-8")
-        print("  Preprocessing completed successfully!")
-        print(f"  Preprocessed data saved to: {preprocessed_csv}")
+        df = pd.read_csv(preprocessed_csv)
+        print(f"  Loaded {len(df)} rows from {preprocessed_csv}")
+        print(f"  Preprocessed DataFrame shape: {df.shape}")
+        print("  Columns in preprocessed data:", list(df.columns))
         print("  Preprocessed Sample:")
         for idx, row in df.head(3).iterrows():
             print(f"    - Original: {str(row['text'])[:50]}...")
             print(f"      Cleaned:  {str(row['cleaned_text'])[:50]}...")
     except Exception as e:
-        print(f"❌ Error during Preprocessing stage: {e}")
+        print(f"❌ Error during Preprocessing verification stage: {e}")
         traceback.print_exc()
         return
 

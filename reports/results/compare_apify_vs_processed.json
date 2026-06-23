@@ -1,7 +1,7 @@
 {
   "collected_summary": {
     "name": "collected",
-    "n_rows": 5,
+    "n_rows": 100,
     "columns": [
       "id",
       "text",
@@ -11,7 +11,26 @@
       "collection_source",
       "apify_dataset_id",
       "apify_run_id",
-      "cleaned_text"
+      "emoji_aliases",
+      "emoji_count",
+      "cleaned_text",
+      "tokens",
+      "token_count_cleaned",
+      "topic_label",
+      "sentiment_label",
+      "confidence",
+      "include",
+      "notes",
+      "source_file",
+      "sentiment_label_normalized",
+      "include_normalized",
+      "text_missing",
+      "text_length_chars",
+      "token_count_whitespace",
+      "is_short_comment",
+      "is_duplicate_text",
+      "exclude_reason",
+      "label"
     ],
     "dtypes": {
       "id": "object",
@@ -22,7 +41,26 @@
       "collection_source": "object",
       "apify_dataset_id": "float64",
       "apify_run_id": "float64",
-      "cleaned_text": "object"
+      "emoji_aliases": "object",
+      "emoji_count": "int64",
+      "cleaned_text": "object",
+      "tokens": "object",
+      "token_count_cleaned": "int64",
+      "topic_label": "float64",
+      "sentiment_label": "float64",
+      "confidence": "float64",
+      "include": "object",
+      "notes": "float64",
+      "source_file": "object",
+      "sentiment_label_normalized": "float64",
+      "include_normalized": "object",
+      "text_missing": "bool",
+      "text_length_chars": "int64",
+      "token_count_whitespace": "int64",
+      "is_short_comment": "bool",
+      "is_duplicate_text": "bool",
+      "exclude_reason": "float64",
+      "label": "float64"
     },
     "nulls": {
       "id": 0,
@@ -31,9 +69,28 @@
       "comment_id": 0,
       "created_at": 0,
       "collection_source": 0,
-      "apify_dataset_id": 5,
-      "apify_run_id": 5,
-      "cleaned_text": 0
+      "apify_dataset_id": 100,
+      "apify_run_id": 100,
+      "emoji_aliases": 57,
+      "emoji_count": 0,
+      "cleaned_text": 0,
+      "tokens": 0,
+      "token_count_cleaned": 0,
+      "topic_label": 100,
+      "sentiment_label": 100,
+      "confidence": 100,
+      "include": 0,
+      "notes": 100,
+      "source_file": 0,
+      "sentiment_label_normalized": 100,
+      "include_normalized": 0,
+      "text_missing": 0,
+      "text_length_chars": 0,
+      "token_count_whitespace": 0,
+      "is_short_comment": 0,
+      "is_duplicate_text": 0,
+      "exclude_reason": 100,
+      "label": 100
     },
     "samples": {
       "id": [
@@ -45,7 +102,7 @@
       ],
       "text": [
         "Before handing out the budget to the public to see, they were like \"damn will the public believe this break down\" and then someone said \"let's defeat them with English\" 😂😂",
-        "Buses can't go empty i already packed my belongings kaya zipolopolo ndidzikazinda konko\r\n\r\nNdinamvanso kuti mowa umantchipa wil be drinking daily just to walk zigzag to avoid bullets and ndikagwa ndidzikhala ndikudzinda bullet",
+        "Buses can't go empty i already packed my belongings kaya zipolopolo ndidzikazinda konko\n\nNdinamvanso kuti mowa umantchipa wil be drinking daily just to walk zigzag to avoid bullets and ndikagwa ndidzikhala ndikudzinda bullet",
         "K24 billion? Someone is definitely getting a new mansion out of this 'repatriation' budget.",
         "3 and 4 is for the Pockets for big stomach guys",
         "Family tracing, how? Anaiwala kwawo?"
@@ -80,13 +137,104 @@
       ],
       "apify_dataset_id": [],
       "apify_run_id": [],
+      "emoji_aliases": [
+        "emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
+        "emoji_grinning_face_with_sweat",
+        "emoji_smiling_face_with_tear",
+        "emoji_grinning_face_with_sweat",
+        "emoji_malawi"
+      ],
+      "emoji_count": [
+        "2",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
       "cleaned_text": [
         "before handing out the budget to the public to see , they were like \" damn will the public believe this break down \" and then someone said \" let ' s defeat them with english \" 😂😂 emoji_face_with_tears_of_joy emoji_face_with_tears_of_joy",
         "buses can ' t go empty i already packed my belongings kaya zipolopolo ndidzikazinda konko ndinamvanso kuti mowa umantchipa wil be drinking daily just to walk zigzag to avoid bullets and ndikagwa ndidzikhala ndikudzinda bullet",
         "k24 billion? someone is definitely getting a new mansion out of this ' repatriation ' budget.",
         "<num> and <num> is for the pockets for big stomach guys",
         "family tracing , how? anaiwala kwawo?"
-      ]
+      ],
+      "tokens": [
+        "['before', 'handing', 'out', 'the', 'budget', 'to', 'the', 'public', 'to', 'see', ',', 'they', 'were', 'like', '\"', 'damn', 'will', 'the', 'public', 'believe', 'this', 'break', 'down', '\"', 'and', 'then', 'someone', 'said', '\"', 'let', \"'\", 's', 'defeat', 'them', 'with', 'english', '\"', '😂😂', 'emoji_face_with_tears_of_joy', 'emoji_face_with_tears_of_joy']",
+        "['buses', 'can', \"'\", 't', 'go', 'empty', 'i', 'already', 'packed', 'my', 'belongings', 'kaya', 'zipolopolo', 'ndidzikazinda', 'konko', 'ndinamvanso', 'kuti', 'mowa', 'umantchipa', 'wil', 'be', 'drinking', 'daily', 'just', 'to', 'walk', 'zigzag', 'to', 'avoid', 'bullets', 'and', 'ndikagwa', 'ndidzikhala', 'ndikudzinda', 'bullet']",
+        "['k24', 'billion?', 'someone', 'is', 'definitely', 'getting', 'a', 'new', 'mansion', 'out', 'of', 'this', \"'\", 'repatriation', \"'\", 'budget.']",
+        "['<num>', 'and', '<num>', 'is', 'for', 'the', 'pockets', 'for', 'big', 'stomach', 'guys']",
+        "['family', 'tracing', ',', 'how?', 'anaiwala', 'kwawo?']"
+      ],
+      "token_count_cleaned": [
+        "40",
+        "35",
+        "16",
+        "11",
+        "6"
+      ],
+      "topic_label": [],
+      "sentiment_label": [],
+      "confidence": [],
+      "include": [
+        "yes",
+        "yes",
+        "yes",
+        "yes",
+        "yes"
+      ],
+      "notes": [],
+      "source_file": [
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper",
+        "apify/facebook-comments-scraper"
+      ],
+      "sentiment_label_normalized": [],
+      "include_normalized": [
+        "yes",
+        "yes",
+        "yes",
+        "yes",
+        "yes"
+      ],
+      "text_missing": [
+        "False",
+        "False",
+        "False",
+        "False",
+        "False"
+      ],
+      "text_length_chars": [
+        "236",
+        "225",
+        "93",
+        "55",
+        "37"
+      ],
+      "token_count_whitespace": [
+        "31",
+        "33",
+        "14",
+        "11",
+        "5"
+      ],
+      "is_short_comment": [
+        "False",
+        "False",
+        "False",
+        "False",
+        "False"
+      ],
+      "is_duplicate_text": [
+        "False",
+        "False",
+        "False",
+        "False",
+        "False"
+      ],
+      "exclude_reason": [],
+      "label": []
     }
   },
   "processed_summary": {
@@ -175,7 +323,7 @@
       "text": [
         "Mwayiwal kut a police ndabale anthu😂😂😂 5pin imawakwanila 😂😂😂😂",
         "Koma mbuzi izi",
-        "Limbani mitima a Malawi. Ma truck 100 akunenawo ndi a tsiku limodzi tu basi.\r\n\r\nNdiye kuti uchoka lero mpaka nekesiti wiki tikhala opanda mafuta pheeeee\r\n\r\nKomanso onyamula mafuta wakhala liti mneneri wa NOCMA or Government? Wakabaza mpaka umachita masamu a zakudya za mnyumba mwaweni mmalo momakangonyamula zomwe watumidwazo?",
+        "Limbani mitima a Malawi. Ma truck 100 akunenawo ndi a tsiku limodzi tu basi.\n\nNdiye kuti uchoka lero mpaka nekesiti wiki tikhala opanda mafuta pheeeee\n\nKomanso onyamula mafuta wakhala liti mneneri wa NOCMA or Government? Wakabaza mpaka umachita masamu a zakudya za mnyumba mwaweni mmalo momakangonyamula zomwe watumidwazo?",
         "Mmalo Moti apolice azikagwila okuba uko mukuwawunjika MMA filling station aaaaaa blue camp zinthu zikukuvutanitu",
         "Malawi wanga"
       ],
@@ -324,11 +472,14 @@
       "created_at",
       "source_url"
     ],
-    "only_in_processed": [
+    "only_in_processed": [],
+    "common_columns": [
+      "cleaned_text",
       "confidence",
       "emoji_aliases",
       "emoji_count",
       "exclude_reason",
+      "id",
       "include",
       "include_normalized",
       "is_duplicate_text",
@@ -338,6 +489,7 @@
       "sentiment_label",
       "sentiment_label_normalized",
       "source_file",
+      "text",
       "text_length_chars",
       "text_missing",
       "token_count_cleaned",
@@ -345,12 +497,7 @@
       "tokens",
       "topic_label"
     ],
-    "common_columns": [
-      "cleaned_text",
-      "id",
-      "text"
-    ],
-    "collected_rows": 5,
+    "collected_rows": 100,
     "processed_rows": 1269
   },
   "cleaned_text": {
