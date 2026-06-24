@@ -1,0 +1,72 @@
+{
+  "dataset_rows": 304,
+  "label_distribution": {
+    "positive": 183,
+    "neutral": 83,
+    "negative": 38
+  },
+  "metrics": {
+    "accuracy": 0.3782894736842105,
+    "macro_f1": 0.3572261072261072,
+    "per_class": {
+      "negative": {
+        "precision": 0.14583333333333334,
+        "recall": 0.5526315789473685,
+        "f1": 0.23076923076923078,
+        "support": 38
+      },
+      "neutral": {
+        "precision": 0.34177215189873417,
+        "recall": 0.3253012048192771,
+        "f1": 0.3333333333333333,
+        "support": 83
+      },
+      "positive": {
+        "precision": 0.8271604938271605,
+        "recall": 0.366120218579235,
+        "f1": 0.5075757575757576,
+        "support": 183
+      }
+    },
+    "classification_report": {
+      "negative": {
+        "precision": 0.14583333333333334,
+        "recall": 0.5526315789473685,
+        "f1-score": 0.23076923076923078,
+        "support": 38.0
+      },
+      "neutral": {
+        "precision": 0.34177215189873417,
+        "recall": 0.3253012048192771,
+        "f1-score": 0.3333333333333333,
+        "support": 83.0
+      },
+      "positive": {
+        "precision": 0.8271604938271605,
+        "recall": 0.366120218579235,
+        "f1-score": 0.5075757575757576,
+        "support": 183.0
+      },
+      "accuracy": 0.3782894736842105,
+      "macro avg": {
+        "precision": 0.43825532635307596,
+        "recall": 0.4146843341152935,
+        "f1-score": 0.3572261072261072,
+        "support": 304.0
+      },
+      "weighted avg": {
+        "precision": 0.6094708080415526,
+        "recall": 0.3782894736842105,
+        "f1-score": 0.4254021745798062,
+        "support": 304.0
+      }
+    }
+  },
+  "source_files": [
+    "facebook_label - fitina.csv",
+    "facebook_label - perpetual.csv",
+    "facebook_label - rahema.csv",
+    "facebook_label - thando.csv",
+    "facebook_label - viwongo.csv"
+  ]
+}

@@ -1,0 +1,41 @@
+# Python cache artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter cache artifacts
+.ipynb_checkpoints/
+
+# Local virtual environments
+.venv/
+venv/
+
+# Local secrets
+.env
+secrets/
+secret/token.txt
+
+# Transformer training artifacts
+models/transformer/*
+!models/transformer/.gitkeep
+!models/transformer/*/
+!models/transformer/*/model_metadata.json
+models/transformer/checkpoint-*/
+models/transformer/best_model/
+models/transformer/best_tokenizer/
+models/transformer/*/checkpoint-*/
+models/transformer/*/best_model/
+models/transformer/*/best_tokenizer/
+
+# Generated training logs
+reports/results/*_train_stdout_*.log
+reports/results/*_train_stderr_*.log
+
+# Scratch/mock data
+data/scratch/
+
+# Local temporary files
+*.tmp
+*.temp
+tmp_token_test.txt
