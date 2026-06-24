@@ -729,7 +729,11 @@ if not is_developer:
 
     user_url_path = Path("secret/url.txt")
     default_user_url = user_url_path.read_text(encoding="utf-8").strip() if user_url_path.exists() else ""
-    user_scrape_url = st.text_input("Facebook Post URL", value=default_user_url, placeholder="https://www.facebook.com/...", key="user_scrape_url")
+    if default_user_url:
+        st.info(f"🔗 Target URL loaded from configuration: `{default_user_url}`")
+        user_scrape_url = default_user_url
+    else:
+        user_scrape_url = st.text_input("Facebook Post URL", placeholder="https://www.facebook.com/...", key="user_scrape_url")
 
     u_col1, u_col2 = st.columns(2)
     with u_col1:
@@ -738,14 +742,17 @@ if not is_developer:
         user_token_path = Path("secret/token.txt")
         default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
         user_has_token = bool(default_user_token)
-        user_scrape_token = st.text_input(
-            "Apify API Token",
-            value=default_user_token,
-            type="password",
-            placeholder="Required if not pre-configured",
-            help="Enter your Apify API token to enable scraping.",
-            key="user_apify_token"
-        )
+        if user_has_token:
+            st.success("✅ Apify API Token loaded from configuration.")
+            user_scrape_token = default_user_token
+        else:
+            user_scrape_token = st.text_input(
+                "Apify API Token",
+                type="password",
+                placeholder="Required if not pre-configured",
+                help="Enter your Apify API token to enable scraping.",
+                key="user_apify_token"
+            )
 
     if st.button("🚀 Scrape & Analyse", type="primary", disabled=not user_scrape_url, key="user_scrape_btn"):
         if not user_scrape_token and not user_has_token:
@@ -1000,7 +1007,11 @@ with tab_scrape:
     # Check if URL exists in file
     url_path = Path("secret/url.txt")
     default_url = url_path.read_text(encoding="utf-8").strip() if url_path.exists() else ""
-    scrape_url = st.text_input("Facebook Post URL", value=default_url, placeholder="https://www.facebook.com/...", key="scrape_url")
+    if default_url:
+        st.info(f"🔗 Target URL loaded from configuration: `{default_url}`")
+        scrape_url = default_url
+    else:
+        scrape_url = st.text_input("Facebook Post URL", placeholder="https://www.facebook.com/...", key="scrape_url")
     
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
@@ -1010,7 +1021,11 @@ with tab_scrape:
         token_path = Path("secret/token.txt")
         default_token = token_path.read_text(encoding="utf-8").strip() if token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
         has_token_file = bool(default_token)
-        scrape_token = st.text_input("Apify API Token", value=default_token, type="password", placeholder="Required if not set in environment", help="Enter your Apify token if not configured in the system.")
+        if has_token_file:
+            st.success("✅ Apify API Token loaded from configuration.")
+            scrape_token = default_token
+        else:
+            scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not set in environment", help="Enter your Apify token if not configured in the system.")
     with col_s3:
         available_options = []
         if baseline_model is not None:
