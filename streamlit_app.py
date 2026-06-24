@@ -729,11 +729,7 @@ if not is_developer:
 
     user_url_path = Path("secret/url.txt")
     default_user_url = user_url_path.read_text(encoding="utf-8").strip() if user_url_path.exists() else ""
-    if default_user_url:
-        st.info(f"🔗 Target URL loaded from configuration: `{default_user_url}`")
-        user_scrape_url = default_user_url
-    else:
-        user_scrape_url = st.text_input("Facebook Post URL", placeholder="https://www.facebook.com/...", key="user_scrape_url")
+    user_scrape_url = st.text_input("Facebook Post URL", value=default_user_url, placeholder="https://www.facebook.com/...", key="user_scrape_url")
 
     u_col1, u_col2 = st.columns(2)
     with u_col1:
@@ -1007,11 +1003,7 @@ with tab_scrape:
     # Check if URL exists in file
     url_path = Path("secret/url.txt")
     default_url = url_path.read_text(encoding="utf-8").strip() if url_path.exists() else ""
-    if default_url:
-        st.info(f"🔗 Target URL loaded from configuration: `{default_url}`")
-        scrape_url = default_url
-    else:
-        scrape_url = st.text_input("Facebook Post URL", placeholder="https://www.facebook.com/...", key="scrape_url")
+    scrape_url = st.text_input("Facebook Post URL", value=default_url, placeholder="https://www.facebook.com/...", key="scrape_url")
     
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
