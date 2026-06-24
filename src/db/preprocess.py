@@ -105,3 +105,40 @@ def get_preprocessed(comment_id: str) -> dict[str, Any] | None:
         "emoji_count": metadata.get("emoji_count"),
         "token_count": metadata.get("token_count"),
     }
+
+
+def fetch_preprocessed_missing_predictions(
+    model_name: str,
+    model_version: str,
+    model_family: str,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    """Return preprocessed rows without a prediction for the given model identity."""
+    sql = """
+        SELECT pc.comment_id, c.comment_text, pc.cleaned_text
+        FROM preprocessed_comments pc
+        JOIN comments c ON pc.comment_id = c.comment_id
+        LEFT JOIN predictions p
+            ON p.comment_id = pc.comment_id
+            AND p.model_name = %s
+            AND p.model_version = %s
+            AND p.model_family = %s
+        WHERE p.prediction_id IS NULL
+        ORDER BY pc.preprocessed_at ASC, pc.comment_id ASC
+        LIMIT %s
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (model_name, model_version, model_family, limit))
+            rows = cur.fetchall()
+
+    return [
+        {
+            "comment_id": row[0],
+            "id": row[0],
+            "comment_text": row[1],
+            "text": row[1],
+            "cleaned_text": row[2],
+        }
+        for row in rows
+    ]

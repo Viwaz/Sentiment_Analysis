@@ -10,8 +10,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 # DB helpers
-from src.db.comments import insert_comment, fetch_comment
-from src.db.preprocess import insert_preprocessed
+from src.db.comments import insert_comment, fetch_comment, fetch_comments_missing_preprocessing
+from src.db.preprocess import insert_preprocessed, fetch_preprocessed_missing_predictions
 from src.db.predictions import insert_prediction, fetch_predictions_with_comments
 from src.db.activity import log_action
 
@@ -87,6 +87,22 @@ class PipelineResponse(BaseModel):
     predicted_at: str
 
 
+class PreprocessDbBatchRequest(BaseModel):
+    limit: int = Field(default=100, ge=1, le=1000)
+    user_id: int | None = None
+    overwrite: bool = False
+
+
+class PreprocessDbBatchResponse(BaseModel):
+    processed_count: int
+    comment_ids: list[str]
+
+
+class PredictDbBatchRequest(BaseModel):
+    limit: int = Field(default=100, ge=1, le=1000)
+    user_id: int | None = None
+
+
 class DashboardPrediction(BaseModel):
     prediction_id: int
     comment_id: str
@@ -129,6 +145,11 @@ class PredictionResponse(BaseModel):
 
 
 class BatchPredictionResponse(BaseModel):
+    predictions: list[PredictionResponse]
+
+
+class PredictDbBatchResponse(BaseModel):
+    prediction_count: int
     predictions: list[PredictionResponse]
 
 
@@ -362,6 +383,79 @@ def predict_pipeline(req: PipelineRequest) -> PipelineResponse:
         model_family=pred_dict["model_family"],
         predicted_at=str(pred_dict["predicted_at"]),
     )
+
+
+@app.post("/preprocess-db-batch", response_model=PreprocessDbBatchResponse)
+def preprocess_db_batch(req: PreprocessDbBatchRequest) -> PreprocessDbBatchResponse:
+    """Preprocess raw DB comments into preprocessed_comments."""
+    rows = fetch_comments_missing_preprocessing(limit=req.limit, overwrite=req.overwrite)
+    processed_ids: list[str] = []
+    for row in rows:
+        comment_id = str(row["comment_id"])
+        cleaned = clean_text(row["comment_text"])
+        if not cleaned:
+            continue
+
+        insert_preprocessed(comment_id=comment_id, cleaned_text=cleaned)
+        log_action(
+            user_id=req.user_id,
+            action_type="preprocess",
+            comment_id=comment_id,
+            details={"source": "preprocess_db_batch"},
+        )
+        processed_ids.append(comment_id)
+
+    return PreprocessDbBatchResponse(processed_count=len(processed_ids), comment_ids=processed_ids)
+
+
+@app.post("/predict-db-batch", response_model=PredictDbBatchResponse)
+def predict_db_batch(req: PredictDbBatchRequest) -> PredictDbBatchResponse:
+    """Predict sentiment for existing DB preprocessed rows and store predictions."""
+    service = _get_service()
+    rows = fetch_preprocessed_missing_predictions(
+        model_name=service.info.model_name,
+        model_version=service.info.model_version,
+        model_family=service.info.model_family,
+        limit=req.limit,
+    )
+    if not rows:
+        return PredictDbBatchResponse(prediction_count=0, predictions=[])
+
+    frame = pd.DataFrame(
+        [
+            {
+                "id": row["comment_id"],
+                "text": row["comment_text"],
+                "cleaned_text": row["cleaned_text"],
+            }
+            for row in rows
+        ]
+    )
+    pred_frame = service.predict_batch(frame)
+    predictions: list[PredictionResponse] = []
+
+    for pred in pred_frame.to_dict(orient="records"):
+        comment_id = str(pred["id"])
+        prediction_id = insert_prediction(
+            comment_id=comment_id,
+            predicted_label=str(pred["predicted_label"]),
+            predicted_confidence=float(pred["predicted_confidence"]),
+            score_negative=float(pred["score_negative"]),
+            score_neutral=float(pred["score_neutral"]),
+            score_positive=float(pred["score_positive"]),
+            model_name=str(pred["model_name"]),
+            model_version=str(pred["model_version"]),
+            model_family=str(pred["model_family"]),
+        )
+        log_action(
+            user_id=req.user_id,
+            action_type="predict",
+            comment_id=comment_id,
+            details={"source": "predict_db_batch", "prediction_id": prediction_id},
+        )
+        predictions.append(PredictionResponse(**_normalise_prediction_row(pred)))
+
+    return PredictDbBatchResponse(prediction_count=len(predictions), predictions=predictions)
 
 
 @app.get("/dashboard/predictions", response_model=list[DashboardPrediction])

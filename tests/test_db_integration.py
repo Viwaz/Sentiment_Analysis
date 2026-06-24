@@ -201,6 +201,40 @@ class TestPredictions:
         rows = fetch_predictions("nonexistent_comment_xyz")
         assert rows == []
 
+    def test_fetch_preprocessed_missing_predictions(self, inserted_comment: str):
+        from src.db.preprocess import insert_preprocessed, fetch_preprocessed_missing_predictions
+        from src.db.predictions import insert_prediction
+
+        insert_preprocessed(comment_id=inserted_comment, cleaned_text="needs prediction")
+
+        rows = fetch_preprocessed_missing_predictions(
+            model_name="db_helper_model",
+            model_version="1.0",
+            model_family="test",
+            limit=1000,
+        )
+        assert any(row["comment_id"] == inserted_comment for row in rows)
+
+        insert_prediction(
+            comment_id=inserted_comment,
+            predicted_label="positive",
+            predicted_confidence=0.8,
+            score_negative=0.1,
+            score_neutral=0.1,
+            score_positive=0.8,
+            model_name="db_helper_model",
+            model_version="1.0",
+            model_family="test",
+        )
+
+        rows_after_prediction = fetch_preprocessed_missing_predictions(
+            model_name="db_helper_model",
+            model_version="1.0",
+            model_family="test",
+            limit=1000,
+        )
+        assert all(row["comment_id"] != inserted_comment for row in rows_after_prediction)
+
 
 # ===========================================================================
 # Direct DB: preprocessed_comments
@@ -247,6 +281,25 @@ class TestPreprocessed:
         assert record is not None
         assert record["emoji_aliases"] is None
         assert record["emoji_count"] is None
+
+    def test_fetch_comments_missing_preprocessing(self):
+        from src.db.comments import insert_comment, fetch_comments_missing_preprocessing
+        from src.db.preprocess import insert_preprocessed
+
+        raw_only_id = f"{TEST_PREFIX}raw_only_{uuid.uuid4().hex[:12]}"
+        preprocessed_id = f"{TEST_PREFIX}already_pp_{uuid.uuid4().hex[:12]}"
+
+        insert_comment(comment_id=raw_only_id, text="Raw only comment")
+        insert_comment(comment_id=preprocessed_id, text="Already preprocessed comment")
+        insert_preprocessed(comment_id=preprocessed_id, cleaned_text="already preprocessed comment")
+
+        missing_rows = fetch_comments_missing_preprocessing(limit=1000)
+        assert any(row["comment_id"] == raw_only_id for row in missing_rows)
+        assert all(row["comment_id"] != preprocessed_id for row in missing_rows)
+
+        overwrite_rows = fetch_comments_missing_preprocessing(limit=1000, overwrite=True)
+        assert any(row["comment_id"] == raw_only_id for row in overwrite_rows)
+        assert any(row["comment_id"] == preprocessed_id for row in overwrite_rows)
 
 
 # ===========================================================================
