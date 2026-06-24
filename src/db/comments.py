@@ -98,3 +98,22 @@ def fetch_comment(comment_id: str) -> dict[str, Any] | None:
         "apify_dataset_id": row[6],
         "apify_run_id": row[7],
     }
+
+
+def fetch_comments_missing_preprocessing(limit: int = 100, overwrite: bool = False) -> list[dict[str, Any]]:
+    """Return raw comments that need preprocessing."""
+    where_clause = "" if overwrite else "WHERE pc.comment_id IS NULL"
+    sql = f"""
+        SELECT c.comment_id, c.comment_text
+        FROM comments c
+        LEFT JOIN preprocessed_comments pc ON c.comment_id = pc.comment_id
+        {where_clause}
+        ORDER BY c.date_collected ASC, c.comment_id ASC
+        LIMIT %s
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (limit,))
+            rows = cur.fetchall()
+
+    return [{"comment_id": row[0], "comment_text": row[1], "text": row[1]} for row in rows]

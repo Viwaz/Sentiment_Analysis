@@ -242,18 +242,15 @@ def persist_collected_comments_to_db(
     collected: pd.DataFrame,
     user_id: int | None = None,
 ) -> dict[str, int]:
-    """Persist collected Apify rows to raw and preprocessed DB tables."""
+    """Persist collected Apify rows to the raw comments DB table."""
     from src.db.activity import log_action
     from src.db.comments import insert_comment
-    from src.db.preprocess import insert_preprocessed
 
     comments_written = 0
-    preprocessed_written = 0
 
     for index, row in collected.reset_index(drop=True).iterrows():
         comment_id = _comment_id_from_row(row, index)
         text = _db_text(row.get("text"))
-        cleaned_text = _db_text(row.get("cleaned_text"))
 
         if not text:
             continue
@@ -275,26 +272,7 @@ def persist_collected_comments_to_db(
         )
         comments_written += 1
 
-        if cleaned_text:
-            insert_preprocessed(
-                comment_id=comment_id,
-                cleaned_text=cleaned_text,
-                emoji_aliases=_db_text(row.get("emoji_aliases")) or None,
-                emoji_count=_db_value(row.get("emoji_count")),
-                token_count=_db_value(row.get("token_count_cleaned")),
-            )
-            log_action(
-                user_id=user_id,
-                action_type="preprocess",
-                comment_id=comment_id,
-                details={"source": "collect_apify"},
-            )
-            preprocessed_written += 1
-
-    return {
-        "comments_written": comments_written,
-        "preprocessed_written": preprocessed_written,
-    }
+    return {"comments_written": comments_written}
 
 
 def main() -> None:
@@ -308,7 +286,7 @@ def main() -> None:
     parser.add_argument("--actor-id", default=DEFAULT_ACTOR_ID, help="Apify actor ID.")
     parser.add_argument("--token", default=None, help="Apify token. Prefer APIFY_API_TOKEN instead of this argument.")
     parser.add_argument("--token-file", default=str(DEFAULT_TOKEN_FILE), help="Path to a local file containing the Apify token.")
-    parser.add_argument("--persist-db", action="store_true", help="Persist collected raw and preprocessed comments to PostgreSQL.")
+    parser.add_argument("--persist-db", action="store_true", help="Persist collected raw comments to PostgreSQL.")
     parser.add_argument("--user-id", type=int, default=None, help="Optional user_id for DB activity logs.")
     parser.add_argument("--predict-output", default=None, help="Optional CSV path for immediate prediction output.")
     parser.add_argument("--reference-model", default="afriberta_small", help="Reference model to use when --predict-output is set.")
@@ -340,7 +318,7 @@ def main() -> None:
         result = persist_collected_comments_to_db(collected, user_id=args.user_id)
         print(
             "Persisted collected comments to DB: "
-            f"{result['comments_written']} raw, {result['preprocessed_written']} preprocessed"
+            f"{result['comments_written']} raw"
         )
 
     if args.predict_output:

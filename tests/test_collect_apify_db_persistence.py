@@ -5,7 +5,7 @@ import pandas as pd
 from src import collect_apify
 
 
-def test_persist_collected_comments_to_db_writes_raw_cleaned_and_logs(monkeypatch):
+def test_persist_collected_comments_to_db_writes_only_raw_comments_and_logs(monkeypatch):
     calls = []
     collected = pd.DataFrame(
         [
@@ -31,30 +31,22 @@ def test_persist_collected_comments_to_db_writes_raw_cleaned_and_logs(monkeypatc
         lambda **kwargs: calls.append(("insert_comment", kwargs)) or kwargs["comment_id"],
     )
     monkeypatch.setattr(
-        "src.db.preprocess.insert_preprocessed",
-        lambda **kwargs: calls.append(("insert_preprocessed", kwargs)) or 1,
-    )
-    monkeypatch.setattr(
         "src.db.activity.log_action",
         lambda **kwargs: calls.append(("log_action", kwargs)) or 1,
     )
 
     result = collect_apify.persist_collected_comments_to_db(collected, user_id=7)
 
-    assert result == {"comments_written": 1, "preprocessed_written": 1}
+    assert result == {"comments_written": 1}
     assert [name for name, _ in calls] == [
         "insert_comment",
-        "log_action",
-        "insert_preprocessed",
         "log_action",
     ]
     assert calls[0][1]["comment_id"] == "comment-1"
     assert calls[0][1]["comment_text"] == "Great service!"
     assert calls[0][1]["apify_dataset_id"] == "dataset-1"
-    assert calls[2][1]["cleaned_text"] == "great service!"
     assert [payload["action_type"] for name, payload in calls if name == "log_action"] == [
         "ingest",
-        "preprocess",
     ]
 
 
