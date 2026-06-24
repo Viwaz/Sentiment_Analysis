@@ -727,16 +727,20 @@ if not is_developer:
     st.markdown("### 🔗 Analyse a Facebook Post")
     st.write("Paste a Facebook post URL below. We will automatically collect the comments, analyse the sentiment, and store everything in the database.")
 
-    user_scrape_url = st.text_input("Facebook Post URL", placeholder="https://www.facebook.com/...", key="user_scrape_url")
+    user_url_path = Path("secret/url.txt")
+    default_user_url = user_url_path.read_text(encoding="utf-8").strip() if user_url_path.exists() else ""
+    user_scrape_url = st.text_input("Facebook Post URL", value=default_user_url, placeholder="https://www.facebook.com/...", key="user_scrape_url")
 
     u_col1, u_col2 = st.columns(2)
     with u_col1:
         user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
     with u_col2:
         user_token_path = Path("secret/token.txt")
-        user_has_token = user_token_path.exists() or os.getenv("APIFY_API_TOKEN") is not None
+        default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
+        user_has_token = bool(default_user_token)
         user_scrape_token = st.text_input(
             "Apify API Token",
+            value=default_user_token,
             type="password",
             placeholder="Required if not pre-configured",
             help="Enter your Apify API token to enable scraping.",
@@ -990,10 +994,13 @@ with tab_batch:
             
 # ----------------- Tab 3: Web Scraper (Apify) -----------------
 with tab_scrape:
-    st.markdown("### 🔗 Apify Web Scraper")
-    st.write("Paste a Facebook post URL to automatically scrape comments, predict sentiment, and save to the database.")
+    st.subheader("🔗 Web Scraper (Apify)")
+    st.write("Automate comment collection directly from Facebook. Data is automatically cleaned and saved to the database.")
     
-    scrape_url = st.text_input("Facebook Post URL", placeholder="https://www.facebook.com/...")
+    # Check if URL exists in file
+    url_path = Path("secret/url.txt")
+    default_url = url_path.read_text(encoding="utf-8").strip() if url_path.exists() else ""
+    scrape_url = st.text_input("Facebook Post URL", value=default_url, placeholder="https://www.facebook.com/...", key="scrape_url")
     
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
@@ -1001,8 +1008,9 @@ with tab_scrape:
     with col_s2:
         # Check if token exists in file/env
         token_path = Path("secret/token.txt")
-        has_token_file = token_path.exists() or os.getenv("APIFY_API_TOKEN") is not None
-        scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not set in environment", help="Enter your Apify token if not configured in the system.")
+        default_token = token_path.read_text(encoding="utf-8").strip() if token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
+        has_token_file = bool(default_token)
+        scrape_token = st.text_input("Apify API Token", value=default_token, type="password", placeholder="Required if not set in environment", help="Enter your Apify token if not configured in the system.")
     with col_s3:
         available_options = []
         if baseline_model is not None:
