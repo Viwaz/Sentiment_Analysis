@@ -263,6 +263,44 @@ st.markdown("""
         background: linear-gradient(90deg, #6366F1, #3B82F6) !important;
     }
 
+    /* ── Chat Input (st.chat_input) Styling ── */
+    [data-testid="stChatInput"] {
+        background-color: #FFFFFF !important;
+        border: 1.5px solid #CBD5E1 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+        padding: 4px !important;
+    }
+    [data-testid="stChatInput"] div {
+        background-color: #FFFFFF !important;
+    }
+    [data-testid="stChatInputTextArea"] {
+        color: #1E293B !important;
+        background-color: #FFFFFF !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-size: 0.95rem !important;
+    }
+    [data-testid="stChatInputTextArea"]::placeholder {
+        color: #94A3B8 !important;
+        opacity: 1 !important;
+    }
+    /* Buttons inside the chat input (like submit and attachment buttons) */
+    [data-testid="stChatInput"] button {
+        background-color: transparent !important;
+        color: #4F46E5 !important;
+        border: none !important;
+    }
+    [data-testid="stChatInput"] button:hover {
+        background-color: #F1F5F9 !important;
+        color: #3B82F6 !important;
+    }
+    /* Material symbols and icons inside chat input */
+    [data-testid="stChatInput"] svg,
+    [data-testid="stChatInput"] span {
+        color: #4F46E5 !important;
+        fill: #4F46E5 !important;
+    }
+
     /* ── Footer ── */
     .footer {
         text-align: center;
@@ -423,11 +461,12 @@ def run_parallel_predictions(df_run, baseline_model, baseline_vec, transformers,
     return [labels_order[idx] for idx in pred_indices]
 
 
-def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, is_developer=True):
+def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, uploaded_file, is_developer=True):
     st.markdown("### 📁 Batch Sentiment Analysis")
-    st.write("Upload a CSV file containing comments, run the model, and download predictions.")
-    
-    uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
+    if uploaded_file is None:
+        return
+        
+    st.markdown(f"**Loaded CSV:** `{getattr(uploaded_file, 'name', 'Uploaded File')}`")
     
     # Initialize session state for batch results if not exists
     if "batch_df" not in st.session_state:
@@ -438,67 +477,83 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, is_
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file)
-            st.success("File uploaded successfully!")
-            
             # Find candidate text columns
             text_cols = [c for c in df.columns if any(x in c.lower() for x in ["text", "comment", "body"])]
-            text_column = st.selectbox("Select Comment Column", df.columns, index=df.columns.get_loc(text_cols[0]) if text_cols else 0)
             
-            # Model selector
-            batch_models = []
-            if baseline_model is not None:
-                batch_models.append("TF-IDF Baseline")
-            for t in transformers:
-                batch_models.append(f"Transformer ({t})")
+            if not st.session_state.batch_processing:
+                text_column = st.selectbox("Select Comment Column", df.columns, index=df.columns.get_loc(text_cols[0]) if text_cols else 0)
                 
-            if not batch_models:
-                st.error("No models are currently available. Please train models first.")
-                return
+                # Model selector
+                batch_models = []
+                if baseline_model is not None:
+                    batch_models.append("TF-IDF Baseline")
+                for t in transformers:
+                    batch_models.append(f"Transformer ({t})")
+                    
+                if not batch_models:
+                    st.error("No models are currently available. Please train models first.")
+                    return
+                    
+                if is_developer:
+                    batch_model_choice = st.selectbox("Select Model for Batch Run", batch_models)
+                else:
+                    batch_model_choice = "Parallel Ensemble"
                 
-            if is_developer:
-                batch_model_choice = st.selectbox("Select Model for Batch Run", batch_models)
-            else:
-                batch_model_choice = "Parallel Ensemble"
+                if st.button("Run Batch Prediction"):
+                    st.session_state.batch_text_column_val = text_column
+                    st.session_state.batch_model_choice_val = batch_model_choice
+                    st.session_state.batch_processing = True
+                    st.session_state.trigger_batch_predict = True
+                    st.rerun()
             
-            if st.button("Run Batch Prediction"):
+            if st.session_state.trigger_batch_predict:
+                text_column = st.session_state.batch_text_column_val
+                batch_model_choice = st.session_state.batch_model_choice_val
                 with st.spinner("Processing batch..."):
-                    # Preprocess and clean text
-                    from src.preprocess import clean_text
-                    
-                    df_run = df.copy()
-                    df_run["cleaned_text"] = df_run[text_column].apply(clean_text)
-                    
-                    # Run predictions
-                    if batch_model_choice == "TF-IDF Baseline":
-                        from src.evaluate_external import transform_with_saved_vectorizer
-                        X_batch = transform_with_saved_vectorizer(baseline_vec, df_run["cleaned_text"])
-                        predictions = baseline_model.predict(X_batch)
-                    elif batch_model_choice.startswith("Transformer ("):
-                        run_id = batch_model_choice.replace("Transformer (", "").rstrip(")")
-                        t_model, t_tokenizer = load_transformer_model(run_id)
+                    try:
+                        # Preprocess and clean text
+                        from src.preprocess import clean_text
                         
-                        import torch
-                        predictions = []
-                        id_to_label = getattr(t_model.config, "id2label", {0: "negative", 1: "neutral", 2: "positive"})
+                        df_run = df.copy()
+                        df_run["cleaned_text"] = df_run[text_column].apply(clean_text)
                         
-                        # Process texts
-                        for txt in df_run["cleaned_text"]:
-                            inputs = t_tokenizer(txt, return_tensors="pt", truncation=True, max_length=128)
-                            with torch.no_grad():
-                                logits = t_model(**inputs).logits.numpy()[0]
-                                pred_idx = np.argmax(logits)
-                                predictions.append(id_to_label[pred_idx].lower())
-                    else:
-                        # Parallel Ensemble
-                        predictions = run_parallel_predictions(
-                            df_run, baseline_model, baseline_vec, transformers, paths
-                        )
-                                
-                    df_run["predicted_sentiment"] = predictions
-                    st.session_state.batch_df = df_run
-                    st.session_state.batch_text_col = text_column
-                    st.success("Batch prediction complete!")
-                    
+                        # Run predictions
+                        if batch_model_choice == "TF-IDF Baseline":
+                            from src.evaluate_external import transform_with_saved_vectorizer
+                            X_batch = transform_with_saved_vectorizer(baseline_vec, df_run["cleaned_text"])
+                            predictions = baseline_model.predict(X_batch)
+                        elif batch_model_choice.startswith("Transformer ("):
+                            run_id = batch_model_choice.replace("Transformer (", "").rstrip(")")
+                            t_model, t_tokenizer = load_transformer_model(run_id)
+                            
+                            import torch
+                            predictions = []
+                            id_to_label = getattr(t_model.config, "id2label", {0: "negative", 1: "neutral", 2: "positive"})
+                            
+                            # Process texts
+                            for txt in df_run["cleaned_text"]:
+                                inputs = t_tokenizer(txt, return_tensors="pt", truncation=True, max_length=128)
+                                with torch.no_grad():
+                                    logits = t_model(**inputs).logits.numpy()[0]
+                                    pred_idx = np.argmax(logits)
+                                    predictions.append(id_to_label[pred_idx].lower())
+                        else:
+                            # Parallel Ensemble
+                            predictions = run_parallel_predictions(
+                                df_run, baseline_model, baseline_vec, transformers, paths
+                            )
+                                    
+                        df_run["predicted_sentiment"] = predictions
+                        st.session_state.batch_df = df_run
+                        st.session_state.batch_text_col = text_column
+                        st.success("Batch prediction complete!")
+                    except Exception as e:
+                        st.error(f"Error during batch prediction: {e}")
+                    finally:
+                        st.session_state.trigger_batch_predict = False
+                        st.session_state.batch_processing = False
+                        st.rerun()
+                        
             # Render results panel if we have results in session state
             if st.session_state.batch_df is not None:
                 df_results = st.session_state.batch_df
@@ -724,46 +779,66 @@ if is_developer:
 
 if not is_developer:
     # ── User Mode: Web Scraper ──────────────────────────────────────────────
-    st.markdown("### 🔗 Analyse a Facebook Post")
-    st.write("Paste a Facebook post URL below. We will automatically collect the comments, analyse the sentiment, and store everything in the database.")
+    st.markdown("### 🔗 Analyze a Facebook Post or Upload CSV")
+    
+    if "user_active_url" not in st.session_state:
+        st.session_state.user_active_url = None
+    if "user_active_file" not in st.session_state:
+        st.session_state.user_active_file = None
+    if "user_processing" not in st.session_state:
+        st.session_state.user_processing = False
+    if "trigger_user_scrape" not in st.session_state:
+        st.session_state.trigger_user_scrape = False
+    if "user_scrape_results" not in st.session_state:
+        st.session_state.user_scrape_results = None
+        
+    # Render chat input if not processing
+    if not st.session_state.user_processing and not st.session_state.get("batch_processing", False):
+        prompt = st.chat_input("Paste Facebook Post URL here...", accept_file=True, file_type=["csv"], key="user_chat")
+        if prompt:
+            if prompt.text:
+                st.session_state.user_active_url = prompt.text
+                st.session_state.user_active_file = None
+                st.session_state.batch_df = None
+                st.session_state.user_scrape_results = None
+            if prompt.get("files"):
+                st.session_state.user_active_file = prompt["files"][0]
+                st.session_state.user_active_url = None
+                st.session_state.batch_df = None
+                st.session_state.user_scrape_results = None
 
-    user_url_path = Path("secret/url.txt")
-    default_user_url = user_url_path.read_text(encoding="utf-8").strip() if user_url_path.exists() else ""
-    user_scrape_url = st.text_input("Facebook Post URL", value=default_user_url, placeholder="https://www.facebook.com/...", key="user_scrape_url")
+    if st.session_state.user_active_url:
+        if not st.session_state.user_processing:
+            st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
+            u_col1, u_col2 = st.columns(2)
+            with u_col1:
+                user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
+            with u_col2:
+                user_token_path = Path("secret/token.txt")
+                default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
+                user_has_token = bool(default_user_token)
+                if user_has_token:
+                    user_scrape_token = default_user_token
+                else:
+                    user_scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not pre-configured", help="Enter your Apify API token to enable scraping.", key="user_apify_token")
 
-    u_col1, u_col2 = st.columns(2)
-    with u_col1:
-        user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
-    with u_col2:
-        user_token_path = Path("secret/token.txt")
-        default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
-        user_has_token = bool(default_user_token)
-        if user_has_token:
-            st.success("✅ Apify API Token loaded from configuration.")
-            user_scrape_token = default_user_token
-        else:
-            user_scrape_token = st.text_input(
-                "Apify API Token",
-                type="password",
-                placeholder="Required if not pre-configured",
-                help="Enter your Apify API token to enable scraping.",
-                key="user_apify_token"
-            )
+            if st.button("🚀 Scrape & Analyse", type="primary", key="user_scrape_btn"):
+                if not user_scrape_token and not user_has_token:
+                    st.error("⚠️ Please enter your Apify API Token to proceed.")
+                else:
+                    st.session_state.user_scrape_limit_val = user_scrape_limit
+                    st.session_state.user_scrape_token_val = user_scrape_token if not user_has_token else default_user_token
+                    st.session_state.user_processing = True
+                    st.session_state.trigger_user_scrape = True
+                    st.rerun()
 
-    if st.button("🚀 Scrape & Analyse", type="primary", disabled=not user_scrape_url, key="user_scrape_btn"):
-        if not user_scrape_token and not user_has_token:
-            st.error("⚠️ Please enter your Apify API Token to proceed.")
-        else:
+        if st.session_state.trigger_user_scrape:
+            user_scrape_limit_val = st.session_state.user_scrape_limit_val
+            user_scrape_token_val = st.session_state.user_scrape_token_val
             with st.spinner("🔍 Scraping comments from Facebook via Apify... (this may take a minute)"):
                 try:
                     from src.collect_apify import collect_facebook_comments, persist_collected_comments_to_db
-                    token_to_use = user_scrape_token if user_scrape_token else None
-                    collected_df = collect_facebook_comments(
-                        urls=[user_scrape_url],
-                        limit=user_scrape_limit,
-                        token=token_to_use,
-                        mode="sync"
-                    )
+                    collected_df = collect_facebook_comments(urls=[st.session_state.user_active_url], limit=user_scrape_limit_val, token=user_scrape_token_val, mode="sync")
                     st.success(f"✅ Scraped {len(collected_df)} comments!")
 
                     with st.spinner("💾 Saving to database..."):
@@ -776,7 +851,6 @@ if not is_developer:
                         import uuid
 
                         df_user = collected_df.copy()
-
                         if baseline_model is not None:
                             X = transform_with_saved_vectorizer(baseline_vec, df_user["cleaned_text"])
                             preds = baseline_model.predict(X)
@@ -796,40 +870,46 @@ if not is_developer:
                                 s_neu = float(probs[i][classes.index("neutral")]) if probs is not None and "neutral" in classes else 0.0
                                 s_pos = float(probs[i][classes.index("positive")]) if probs is not None and "positive" in classes else 0.0
                                 try:
-                                    insert_prediction(
-                                        comment_id=c_id, predicted_label=p_label,
-                                        predicted_confidence=conf, score_negative=s_neg,
-                                        score_neutral=s_neu, score_positive=s_pos,
-                                        model_name="TF-IDF Baseline", model_version="baseline",
-                                        model_family="classical_ml"
-                                    )
+                                    insert_prediction(comment_id=c_id, predicted_label=p_label, predicted_confidence=conf, score_negative=s_neg, score_neutral=s_neu, score_positive=s_pos, model_name="TF-IDF Baseline", model_version="baseline", model_family="classical_ml")
                                     log_action(user_id=None, action_type="predict", comment_id=c_id, details={"source": "user_apify_scrape"})
                                 except Exception:
                                     pass
 
-                        st.success("🎉 Analysis complete! Results are shown below.")
-
-                        # Display a nice results table
-                        pos_count = (df_user["predicted_sentiment"] == "positive").sum()
-                        neg_count = (df_user["predicted_sentiment"] == "negative").sum()
-                        neu_count = (df_user["predicted_sentiment"] == "neutral").sum()
-
-                        r1, r2, r3 = st.columns(3)
-                        r1.metric("😊 Positive", pos_count)
-                        r2.metric("😠 Negative", neg_count)
-                        r3.metric("😐 Neutral", neu_count)
-
-                        st.markdown("#### Comment Breakdown")
-                        st.dataframe(
-                            df_user[["text", "predicted_sentiment"]].rename(columns={"text": "Comment", "predicted_sentiment": "Sentiment"}),
-                            use_container_width=True
-                        )
+                        st.session_state.user_scrape_results = df_user
                 except Exception as e:
                     st.error(f"❌ Something went wrong during scraping: {e}")
+                finally:
+                    st.session_state.trigger_user_scrape = False
+                    st.session_state.user_processing = False
+                    st.rerun()
 
-    st.markdown("---")
-    st.markdown("### 📁 Or Upload a CSV File for Batch Analysis")
-    render_batch_analysis(baseline_model, baseline_vec, transformers, paths, is_developer=False)
+        if st.session_state.user_scrape_results is not None:
+            df_user = st.session_state.user_scrape_results
+            st.success("🎉 Analysis complete! Results are shown below.")
+            pos_count = (df_user["predicted_sentiment"] == "positive").sum()
+            neg_count = (df_user["predicted_sentiment"] == "negative").sum()
+            neu_count = (df_user["predicted_sentiment"] == "neutral").sum()
+
+            r1, r2, r3 = st.columns(3)
+            r1.metric("😊 Positive", pos_count)
+            r2.metric("😠 Negative", neg_count)
+            r3.metric("😐 Neutral", neu_count)
+
+            st.markdown("#### Comment Breakdown")
+            st.dataframe(df_user[["text", "predicted_sentiment"]].rename(columns={"text": "Comment", "predicted_sentiment": "Sentiment"}), use_container_width=True)
+            
+            if st.button("Clear Results"):
+                st.session_state.user_active_url = None
+                st.session_state.user_scrape_results = None
+                st.rerun()
+
+    elif st.session_state.user_active_file:
+        render_batch_analysis(baseline_model, baseline_vec, transformers, paths, st.session_state.user_active_file, is_developer=False)
+        if st.button("Clear CSV"):
+            st.session_state.user_active_file = None
+            st.session_state.batch_df = None
+            st.rerun()
+
     st.markdown(
         """
         <div class='footer'>
@@ -841,10 +921,9 @@ if not is_developer:
     st.stop()
 
 # Below is only accessible to verified Developers
-tab_live, tab_batch, tab_scrape, tab_active, tab_metrics, tab_controls, tab_db = st.tabs([
+tab_live, tab_analysis_scrape, tab_active, tab_metrics, tab_controls, tab_db = st.tabs([
     "💬 Live Sentiment Classifier", 
-    "📁 Batch Analysis (CSV)", 
-    "🔗 Web Scraper (Apify)",
+    "🔗 Web Scraper & Batch Analysis",
     "🎯 Active Learning Assistant", 
     "📊 Performance Dashboard", 
     "⚙️ Pipeline & Control Panel",
@@ -981,7 +1060,7 @@ with tab_live:
                         log_action(
                             user_id=None, 
                             action_type="predict", 
-                            comment_id=c_id, 
+                                comment_id=c_id, 
                             details={"source": "dashboard", "prediction_id": p_id}
                         )
                         st.success("✅ Prediction successfully saved to the database!")
@@ -991,76 +1070,89 @@ with tab_live:
                 except Exception as e:
                     st.error(f"Error during prediction: {e}")
                     
-# ----------------- Tab 2: Batch Sentiment Analysis -----------------
-with tab_batch:
-    render_batch_analysis(baseline_model, baseline_vec, transformers, paths, is_developer=is_developer)
-            
-# ----------------- Tab 3: Web Scraper (Apify) -----------------
-with tab_scrape:
-    st.subheader("🔗 Web Scraper (Apify)")
-    st.write("Automate comment collection directly from Facebook. Data is automatically cleaned and saved to the database.")
-    
-    # Check if URL exists in file
-    url_path = Path("secret/url.txt")
-    default_url = url_path.read_text(encoding="utf-8").strip() if url_path.exists() else ""
-    scrape_url = st.text_input("Facebook Post URL", value=default_url, placeholder="https://www.facebook.com/...", key="scrape_url")
-    
-    col_s1, col_s2, col_s3 = st.columns(3)
-    with col_s1:
-        scrape_limit = st.number_input("Max Comments to Scrape", min_value=1, max_value=1000, value=50)
-    with col_s2:
-        # Check if token exists in file/env
-        token_path = Path("secret/token.txt")
-        default_token = token_path.read_text(encoding="utf-8").strip() if token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
-        has_token_file = bool(default_token)
-        if has_token_file:
-            st.success("✅ Apify API Token loaded from configuration.")
-            scrape_token = default_token
-        else:
-            scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not set in environment", help="Enter your Apify token if not configured in the system.")
-    with col_s3:
-        available_options = []
-        if baseline_model is not None:
-            available_options.append("TF-IDF Baseline")
-        for t in transformers:
-            available_options.append(f"Transformer ({t})")
-            
-        scrape_model = st.selectbox("Classification Model", available_options, key="scrape_model_sel") if available_options else None
+# ----------------- Tab 2: Web Scraper & Batch Analysis -----------------
+with tab_analysis_scrape:
+    st.subheader("🔗 Web Scraper & Batch Analysis")
+    if "dev_active_url" not in st.session_state:
+        st.session_state.dev_active_url = None
+    if "dev_active_file" not in st.session_state:
+        st.session_state.dev_active_file = None
+    if "dev_processing" not in st.session_state:
+        st.session_state.dev_processing = False
+    if "trigger_dev_scrape" not in st.session_state:
+        st.session_state.trigger_dev_scrape = False
+    if "dev_scrape_results" not in st.session_state:
+        st.session_state.dev_scrape_results = None
         
-    if st.button("🚀 Scrape & Predict", type="primary", disabled=(not scrape_url or scrape_model is None)):
-        if not scrape_token and not has_token_file:
-            st.error("Missing Apify API Token. Please enter one above.")
-        else:
+    # Render chat input if not processing
+    if not st.session_state.dev_processing and not st.session_state.get("batch_processing", False):
+        prompt = st.chat_input("Paste Facebook Post URL here...", accept_file=True, file_type=["csv"], key="dev_chat")
+        if prompt:
+            if prompt.text:
+                st.session_state.dev_active_url = prompt.text
+                st.session_state.dev_active_file = None
+                st.session_state.batch_df = None
+                st.session_state.dev_scrape_results = None
+            if prompt.get("files"):
+                st.session_state.dev_active_file = prompt["files"][0]
+                st.session_state.dev_active_url = None
+                st.session_state.batch_df = None
+                st.session_state.dev_scrape_results = None
+
+    if st.session_state.dev_active_url:
+        if not st.session_state.dev_processing:
+            st.markdown(f"**Target URL:** `{st.session_state.dev_active_url}`")
+            col_s1, col_s2, col_s3 = st.columns(3)
+            with col_s1:
+                scrape_limit = st.number_input("Max Comments to Scrape", min_value=1, max_value=1000, value=50)
+            with col_s2:
+                token_path = Path("secret/token.txt")
+                default_token = token_path.read_text(encoding="utf-8").strip() if token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
+                has_token_file = bool(default_token)
+                if has_token_file:
+                    scrape_token = default_token
+                else:
+                    scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not set in environment")
+            with col_s3:
+                available_options = []
+                if baseline_model is not None:
+                    available_options.append("TF-IDF Baseline")
+                for t in transformers:
+                    available_options.append(f"Transformer ({t})")
+                scrape_model = st.selectbox("Classification Model", available_options, key="scrape_model_sel") if available_options else None
+                
+            if st.button("🚀 Scrape & Predict", type="primary", disabled=(scrape_model is None)):
+                if not scrape_token and not has_token_file:
+                    st.error("Missing Apify API Token. Please enter one above.")
+                else:
+                    st.session_state.dev_scrape_limit_val = scrape_limit
+                    st.session_state.dev_scrape_token_val = scrape_token
+                    st.session_state.dev_scrape_model_val = scrape_model
+                    st.session_state.dev_processing = True
+                    st.session_state.trigger_dev_scrape = True
+                    st.rerun()
+
+        if st.session_state.trigger_dev_scrape:
+            scrape_limit_val = st.session_state.dev_scrape_limit_val
+            scrape_token_val = st.session_state.dev_scrape_token_val
+            scrape_model_val = st.session_state.dev_scrape_model_val
             with st.spinner("Scraping comments from Facebook using Apify... (this may take a minute)"):
                 try:
                     from src.collect_apify import collect_facebook_comments, persist_collected_comments_to_db
-                    
-                    # 1. Scrape comments
-                    token_to_use = scrape_token if scrape_token else None
-                    collected_df = collect_facebook_comments(
-                        urls=[scrape_url],
-                        limit=scrape_limit,
-                        token=token_to_use,
-                        mode="sync" # sync mode since we want results immediately in UI for demo limit
-                    )
-                    
+                    collected_df = collect_facebook_comments(urls=[st.session_state.dev_active_url], limit=scrape_limit_val, token=scrape_token_val, mode="sync")
                     st.success(f"✅ Successfully scraped {len(collected_df)} comments!")
                     
-                    # 2. Save to database
                     with st.spinner("Saving raw and preprocessed comments to database..."):
-                        db_res = persist_collected_comments_to_db(collected_df)
+                        persist_collected_comments_to_db(collected_df)
                         
-                    # 3. Predict sentiment
-                    with st.spinner(f"Running predictions using {scrape_model}..."):
+                    with st.spinner(f"Running predictions using {scrape_model_val}..."):
                         from src.db.predictions import insert_prediction
                         from src.db.activity import log_action
-                        
                         df_run = collected_df.copy()
-                        # Run predictions just like batch logic
-                        if scrape_model == "TF-IDF Baseline":
+                        
+                        if scrape_model_val == "TF-IDF Baseline":
                             from src.evaluate_external import transform_with_saved_vectorizer
                             X_batch = transform_with_saved_vectorizer(baseline_vec, df_run["cleaned_text"])
-                            
                             if hasattr(baseline_model, "predict_proba"):
                                 probs = baseline_model.predict_proba(X_batch)
                             elif hasattr(baseline_model, "decision_function"):
@@ -1071,15 +1163,13 @@ with tab_scrape:
                                 probs = softmax(dec, axis=1)
                             else:
                                 probs = None
-                                
                             preds = baseline_model.predict(X_batch)
                         else:
                             import torch
                             from scipy.special import softmax
-                            run_id = scrape_model.replace("Transformer (", "").rstrip(")")
+                            run_id = scrape_model_val.replace("Transformer (", "").rstrip(")")
                             t_model, t_tokenizer = load_transformer_model(run_id)
                             id_to_label = getattr(t_model.config, "id2label", {0: "negative", 1: "neutral", 2: "positive"})
-                            
                             probs_list = []
                             preds = []
                             batch_size = 16
@@ -1096,23 +1186,16 @@ with tab_scrape:
                             probs = np.vstack(probs_list)
                             
                         df_run["predicted_sentiment"] = preds
-                        
-                        # Save predictions to database
-                        fam = "transformer" if "Transformer" in scrape_model else "classical_ml"
+                        fam = "transformer" if "Transformer" in scrape_model_val else "classical_ml"
                         ver = run_id if fam == "transformer" else "baseline"
-                        
                         classes = getattr(baseline_model, "classes_", ["negative", "neutral", "positive"]) if fam == "classical_ml" else ["negative", "neutral", "positive"]
                         
                         saved_preds = 0
                         for idx, row in df_run.iterrows():
-                            # ID logic matching persist_collected_comments_to_db
                             c_id = str(row.get("comment_id")) if pd.notna(row.get("comment_id")) else f"apify_{row.get('apify_dataset_id', 'dataset')}_{row.get('apify_run_id', 'run')}_{row.get('id', idx+1)}"
-                            
                             p_label = row["predicted_sentiment"]
-                            
                             conf = 1.0
                             s_neg, s_neu, s_pos = 0.0, 0.0, 0.0
-                            
                             if probs is not None:
                                 p_row = probs[idx]
                                 conf = float(np.max(p_row))
@@ -1126,33 +1209,41 @@ with tab_scrape:
                                     s_neg = float(p_row[l2id.get("negative", 0)])
                                     s_neu = float(p_row[l2id.get("neutral", 1)])
                                     s_pos = float(p_row[l2id.get("positive", 2)])
-
                             try:
-                                p_id = insert_prediction(
-                                    comment_id=c_id,
-                                    predicted_label=p_label,
-                                    predicted_confidence=conf,
-                                    score_negative=s_neg,
-                                    score_neutral=s_neu,
-                                    score_positive=s_pos,
-                                    model_name=scrape_model,
-                                    model_version=ver,
-                                    model_family=fam
-                                )
+                                insert_prediction(comment_id=c_id, predicted_label=p_label, predicted_confidence=conf, score_negative=s_neg, score_neutral=s_neu, score_positive=s_pos, model_name=scrape_model_val, model_version=ver, model_family=fam)
                                 log_action(user_id=None, action_type="predict", comment_id=c_id, details={"source": "apify_scrape"})
                                 saved_preds += 1
                             except Exception:
                                 pass
-                                
-                    st.success(f"✅ Predicted and saved {saved_preds} comments to the database!")
-                    
-                    st.markdown("#### Scraped Results")
-                    st.dataframe(df_run[["text", "cleaned_text", "predicted_sentiment"]].head(100), use_container_width=True)
-                    
+                        
+                        st.session_state.dev_scrape_results = (df_run, saved_preds)
                 except Exception as e:
                     st.error(f"Error during scraping pipeline: {e}")
+                finally:
+                    st.session_state.trigger_dev_scrape = False
+                    st.session_state.dev_processing = False
+                    st.rerun()
 
-# ----------------- Tab 4: Active Learning Assistant -----------------
+        if st.session_state.dev_scrape_results is not None:
+            df_run, saved_preds = st.session_state.dev_scrape_results
+            st.success(f"✅ Predicted and saved {saved_preds} comments to the database!")
+            st.markdown("#### Scraped Results")
+            st.dataframe(df_run[["text", "cleaned_text", "predicted_sentiment"]].head(100), use_container_width=True)
+            
+            if st.button("Clear Results", key="dev_clear_results_btn"):
+                st.session_state.dev_active_url = None
+                st.session_state.dev_scrape_results = None
+                st.rerun()
+
+    elif st.session_state.dev_active_file:
+        render_batch_analysis(baseline_model, baseline_vec, transformers, paths, st.session_state.dev_active_file, is_developer=True)
+        if st.button("Clear CSV"):
+            st.session_state.dev_active_file = None
+            st.session_state.batch_df = None
+            st.rerun()
+
+# ----------------- Tab 3: Active Learning Assistant -----------------
+# ----------------- Tab 3: Active Learning Assistant -----------------
 with tab_active:
     st.markdown("### 🎯 Active Learning Annotation Assistant")
     st.write(
@@ -1440,12 +1531,79 @@ with tab_metrics:
     compare_path = paths.results_dir / "model_comparison.csv"
     if compare_path.exists():
         compare_df = pd.read_csv(compare_path)
-        # Highlight best model
-        st.markdown("#### Model Rankings")
+        
+        # Extract best model
+        best_row = compare_df.sort_values(by="macro_f1", ascending=False).iloc[0]
+        st.success(
+            f"🏆 **Top Model:** `{best_row['model_name']}` ({best_row['model_family']}) "
+            f"with **Macro F1 of {best_row['macro_f1']:.4f}** and **Accuracy of {best_row['accuracy']:.4f}** "
+            f"on the `{best_row['split']}` split."
+        )
+        
+        st.markdown("#### Model Rankings & Metrics")
+        
+        # 1. Graphical Metrics Table
+        presentation_df = compare_df.copy()
+        presentation_df = presentation_df.sort_values(by=["split", "macro_f1"], ascending=[True, False])
+        
+        family_map = {
+            "classical_ml": "Classical ML",
+            "transformer": "Transformer"
+        }
+        presentation_df["model_family"] = presentation_df["model_family"].map(family_map).fillna(presentation_df["model_family"])
+        
+        presentation_df = presentation_df.rename(columns={
+            "model_family": "Family",
+            "model_name": "Model Name",
+            "feature_set": "Feature Set",
+            "split": "Split",
+            "macro_f1": "Macro F1",
+            "accuracy": "Accuracy",
+            "weighted_f1": "Weighted F1"
+        })
+        presentation_df = presentation_df.drop(columns=["source_file"], errors="ignore")
+        
         st.dataframe(
-            compare_df.sort_values(by="macro_f1", ascending=False).style.highlight_max(axis=0, subset=["macro_f1", "accuracy"], color="#BCF0DA"),
+            presentation_df,
+            column_config={
+                "Family": st.column_config.TextColumn("Family", width="medium"),
+                "Model Name": st.column_config.TextColumn("Model Name", width="medium"),
+                "Feature Set": st.column_config.TextColumn("Feature Set", width="small"),
+                "Split": st.column_config.TextColumn("Split", width="small"),
+                "Macro F1": st.column_config.NumberColumn(
+                    "Macro F1 Score",
+                    help="Macro-averaged F1 Score",
+                    format="%.4f",
+                ),
+                "Accuracy": st.column_config.NumberColumn(
+                    "Accuracy Score",
+                    help="Overall classification accuracy",
+                    format="%.4f",
+                ),
+                "Weighted F1": st.column_config.NumberColumn(
+                    "Weighted F1 Score",
+                    help="Weighted-averaged F1 Score",
+                    format="%.4f",
+                ),
+            },
+            use_container_width=True,
+            hide_index=True
+        )
+        
+        # 2. Performance Comparison Bar Chart
+        st.markdown("#### F1-Score Performance Comparison")
+        chart_df = compare_df.copy()
+        chart_df["Model (Split)"] = chart_df["model_name"] + " (" + chart_df["split"] + ")"
+        chart_df = chart_df.sort_values(by="macro_f1", ascending=True)
+        
+        st.bar_chart(
+            data=chart_df,
+            x="Model (Split)",
+            y="macro_f1",
+            color="model_family",
             use_container_width=True
         )
+            
     else:
         st.info("No model comparisons (`model_comparison.csv`) found. Run model training scripts first.")
         
