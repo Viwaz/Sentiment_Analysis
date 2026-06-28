@@ -1,0 +1,729 @@
+﻿diff --git a/streamlit_app.py b/streamlit_app.py
+index 0dad49a..690f9a1 100644
+--- a/streamlit_app.py
++++ b/streamlit_app.py
+@@ -4,6 +4,7 @@ import numpy as np
+ import joblib
+ import json
+ import os
++from src.db.users import create_user, authenticate_user
+ import subprocess
+ import time
+ from pathlib import Path
+@@ -703,32 +704,120 @@ st.sidebar.markdown(
+ )
+ 
+ st.sidebar.markdown("---")
++
++# ΓöÇΓöÇ Session state defaults ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++if "logged_in" not in st.session_state:
++    st.session_state.logged_in = False
++if "current_user" not in st.session_state:
++    st.session_state.current_user = None  # dict: {user_id, username, role}
+ if "logged_in_as_dev" not in st.session_state:
+     st.session_state.logged_in_as_dev = False
+ 
+ is_developer = st.session_state.logged_in_as_dev
+ 
+-if not is_developer:
+-    st.sidebar.subheader("≡ƒöÉ Access Control")
+-    role_choice = st.sidebar.selectbox("Select Role", ["User", "Developer"], index=0)
+-    if role_choice == "Developer":
+-        passcode = st.sidebar.text_input("Developer Passcode", type="password", help="Enter passcode to access developer controls.")
+-        # We can either use a submit button or just trigger on enter.
+-        # Streamlit natively handles "Enter to apply" on text inputs.
+-        if passcode == "dev123":
+-            st.session_state.logged_in_as_dev = True
+-            st.rerun()
+-        elif passcode != "":
+-            st.sidebar.error("Γ¥î Invalid Passcode")
+-            st.sidebar.info("Enter 'dev123' to unlock.")
+-    else:
+-        st.sidebar.info("≡ƒæÑ General User mode active.")
+-else:
+-    st.sidebar.success("≡ƒöæ Developer access active")
+-    if st.sidebar.button("Logout", key="sidebar_logout", use_container_width=True):
++# ΓöÇΓöÇ Logged-in banner ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++if st.session_state.logged_in and st.session_state.current_user:
++    user_info = st.session_state.current_user
++    role_icon = "≡ƒöæ" if user_info["role"] == "developer" else "≡ƒæñ"
++    st.sidebar.markdown(
++        f"""
++        <div style='background:rgba(79,70,229,0.15);border-radius:12px;padding:12px 16px;margin-bottom:8px;'>
++            <span style='font-size:1.1rem;font-weight:700;'>{role_icon} {user_info['username']}</span><br>
++            <span style='font-size:0.8rem;color:#94A3B8;text-transform:uppercase;letter-spacing:0.05em;'>{user_info['role']}</span>
++        </div>
++        """,
++        unsafe_allow_html=True
++    )
++    if st.sidebar.button("≡ƒÜ¬ Logout", key="sidebar_logout", use_container_width=True):
++        st.session_state.logged_in = False
++        st.session_state.current_user = None
+         st.session_state.logged_in_as_dev = False
+         st.rerun()
++else:
++    # ΓöÇΓöÇ Auth tabs: Login / Register ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++    login_tab, register_tab = st.sidebar.tabs(["≡ƒöÉ Login", "≡ƒô¥ Register"])
++
++    # ΓöÇΓöÇ LOGIN TAB ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++    with login_tab:
++        login_identifier = st.text_input(
++            "Username",
++            placeholder="Enter your username",
++            key="login_username"
++        )
++        login_password = st.text_input(
++            "Password",
++            type="password",
++            placeholder="Enter your password",
++            key="login_password"
++        )
++        if st.button("Login", key="login_btn", use_container_width=True):
++            if not login_identifier or not login_password:
++                st.warning("ΓÜá∩╕Å Please fill in both fields.")
++            else:
++                try:
++                    user = authenticate_user(login_identifier, login_password)
++                    if user is None:
++                        st.error("Γ¥î Login failed. Check your credentials.")
++                    else:
++                        st.session_state.logged_in = True
++                        st.session_state.current_user = user
++                        st.session_state.logged_in_as_dev = (user["role"] in ("developer", "admin"))
++                        st.success(f"Γ£à Welcome back, **{user['username']}**!")
++                        st.rerun()
++                except Exception as e:
++                    st.error(f"Γ¥î Error: {e}")
++
++    # ΓöÇΓöÇ REGISTER TAB ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++    with register_tab:
++        reg_username = st.text_input(
++            "Username",
++            placeholder="Choose a username",
++            key="reg_username"
++        )
++        reg_email = st.text_input(
++            "Email",
++            placeholder="your@email.com",
++            key="reg_email"
++        )
++        reg_password = st.text_input(
++            "Password",
++            type="password",
++            placeholder="Create a strong password",
++            key="reg_password"
++        )
++        reg_password2 = st.text_input(
++            "Confirm Password",
++            type="password",
++            placeholder="Repeat your password",
++            key="reg_password2"
++        )
++        if st.button("Create Account", key="reg_btn", use_container_width=True):
++            if not reg_username or not reg_email or not reg_password:
++                st.warning("ΓÜá∩╕Å All fields are required.")
++            elif reg_password != reg_password2:
++                st.error("Γ¥î Passwords do not match.")
++            elif "@" not in reg_email:
++                st.error("Γ¥î Please enter a valid email address.")
++            else:
++                try:
++                    user = create_user(
++                        reg_username,
++                        reg_password,
++                        role="general",
++                        email=reg_email
++                    )
++                    st.success(
++                        f"Γ£à Account created for **{user['username']}**! "
++                        "You can now log in."
++                    )
++                except Exception as e:
++                    err_msg = str(e)
++                    if "unique" in err_msg.lower() or "duplicate" in err_msg.lower():
++                        st.error("Γ¥î Username or email already exists.")
++                    else:
++                        st.error(f"Γ¥î Registration failed: {e}")
+ 
++# Continue with existing path setup
+ paths = build_paths()
+ 
+ # Load metadata for display
+@@ -831,6 +920,8 @@ if not is_developer:
+                     st.session_state.user_processing = True
+                     st.session_state.trigger_user_scrape = True
+                     st.rerun()
++        else:
++            st.info("ΓÅ│ Scraping and analysis in progress... Please wait.")
+ 
+         if st.session_state.trigger_user_scrape:
+             user_scrape_limit_val = st.session_state.user_scrape_limit_val
+@@ -881,24 +972,94 @@ if not is_developer:
+                 finally:
+                     st.session_state.trigger_user_scrape = False
+                     st.session_state.user_processing = False
+-                    st.rerun()
+ 
+         if st.session_state.user_scrape_results is not None:
+             df_user = st.session_state.user_scrape_results
+             st.success("≡ƒÄë Analysis complete! Results are shown below.")
+-            pos_count = (df_user["predicted_sentiment"] == "positive").sum()
+-            neg_count = (df_user["predicted_sentiment"] == "negative").sum()
+-            neu_count = (df_user["predicted_sentiment"] == "neutral").sum()
+-
+-            r1, r2, r3 = st.columns(3)
+-            r1.metric("≡ƒÿè Positive", pos_count)
+-            r2.metric("≡ƒÿá Negative", neg_count)
+-            r3.metric("≡ƒÿÉ Neutral", neu_count)
++            pos_count = int((df_user["predicted_sentiment"] == "positive").sum())
++            neg_count = int((df_user["predicted_sentiment"] == "negative").sum())
++            neu_count = int((df_user["predicted_sentiment"] == "neutral").sum())
++            total_count = len(df_user)
++
++            r1, r2, r3, r4 = st.columns(4)
++            r1.metric("≡ƒôè Total", total_count)
++            r2.metric("≡ƒÿè Positive", pos_count)
++            r3.metric("≡ƒÿá Negative", neg_count)
++            r4.metric("≡ƒÿÉ Neutral", neu_count)
++
++            # ΓöÇΓöÇ Sentiment Charts ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++            labels_chart = ['Positive', 'Neutral', 'Negative']
++            sizes_chart  = [pos_count, neu_count, neg_count]
++            colors_chart = ['#10B981', '#F59E0B', '#EF4444']
++            filtered_labels_c = [l for l, s in zip(labels_chart, sizes_chart) if s > 0]
++            filtered_sizes_c  = [s for s in sizes_chart if s > 0]
++            filtered_colors_c = [c for c, s in zip(colors_chart, sizes_chart) if s > 0]
++
++            chart_col1, chart_col2 = st.columns(2)
++            with chart_col1:
++                st.markdown("#### ≡ƒÑº Sentiment Distribution")
++                if filtered_sizes_c:
++                    import matplotlib.pyplot as plt
++                    fig_pie_u, ax_pie_u = plt.subplots(figsize=(5, 4))
++                    explode_u = [0.05] * len(filtered_sizes_c)
++                    wedges_u, texts_u, autotexts_u = ax_pie_u.pie(
++                        filtered_sizes_c,
++                        explode=explode_u,
++                        labels=filtered_labels_c,
++                        autopct='%1.1f%%',
++                        shadow=True,
++                        startangle=140,
++                        colors=filtered_colors_c,
++                        textprops=dict(color="#1E293B", weight="bold", size=10),
++                        wedgeprops=dict(edgecolor='white', linewidth=1.5)
++                    )
++                    for at_u in autotexts_u:
++                        at_u.set_color('white')
++                        at_u.set_fontsize(11)
++                    ax_pie_u.axis('equal')
++                    plt.tight_layout()
++                    st.pyplot(fig_pie_u)
++                    plt.close(fig_pie_u)
++                else:
++                    st.info("No sentiments to display.")
++
++            with chart_col2:
++                st.markdown("#### ≡ƒôè Sentiment Counts")
++                if filtered_sizes_c:
++                    import matplotlib.pyplot as plt
++                    import seaborn as sns
++                    fig_bar_u, ax_bar_u = plt.subplots(figsize=(5, 4))
++                    sentiment_df_chart = pd.DataFrame({
++                        'Sentiment': filtered_labels_c,
++                        'Count': filtered_sizes_c
++                    })
++                    sns.barplot(
++                        x='Count', y='Sentiment',
++                        data=sentiment_df_chart,
++                        palette=filtered_colors_c,
++                        ax=ax_bar_u,
++                        hue='Sentiment',
++                        legend=False
++                    )
++                    ax_bar_u.spines['top'].set_visible(False)
++                    ax_bar_u.spines['right'].set_visible(False)
++                    ax_bar_u.spines['left'].set_color('#CBD5E1')
++                    ax_bar_u.spines['bottom'].set_color('#CBD5E1')
++                    ax_bar_u.tick_params(colors='#475569', labelsize=11)
++                    ax_bar_u.set_ylabel('', color='#475569', fontsize=12)
++                    ax_bar_u.set_xlabel('Count', color='#475569', fontsize=12)
++                    for container in ax_bar_u.containers:
++                        ax_bar_u.bar_label(container, fmt='%d', padding=5, color='#1E293B', weight='bold', fontsize=11)
++                    plt.tight_layout()
++                    st.pyplot(fig_bar_u)
++                    plt.close(fig_bar_u)
++                else:
++                    st.info("No sentiments to display.")
+ 
+             st.markdown("#### Comment Breakdown")
+             st.dataframe(df_user[["text", "predicted_sentiment"]].rename(columns={"text": "Comment", "predicted_sentiment": "Sentiment"}), use_container_width=True)
+-            
+-            if st.button("Clear Results"):
++
++            if st.button("≡ƒùæ∩╕Å Clear Results & Start New Analysis", key="user_clear_results_btn"):
+                 st.session_state.user_active_url = None
+                 st.session_state.user_scrape_results = None
+                 st.rerun()
+@@ -921,11 +1082,10 @@ if not is_developer:
+     st.stop()
+ 
+ # Below is only accessible to verified Developers
+-tab_live, tab_analysis_scrape, tab_active, tab_metrics, tab_controls, tab_db = st.tabs([
+-    "≡ƒÆ¼ Live Sentiment Classifier", 
++tab_live, tab_analysis_scrape, tab_metrics, tab_controls, tab_db = st.tabs([
++    "≡ƒÆ¼ Live Sentiment Classifier",
+     "≡ƒöù Web Scraper & Batch Analysis",
+-    "≡ƒÄ» Active Learning Assistant", 
+-    "≡ƒôè Performance Dashboard", 
++    "≡ƒôè Performance Dashboard",
+     "ΓÜÖ∩╕Å Pipeline & Control Panel",
+     "≡ƒùä∩╕Å Database Logs"
+ ])
+@@ -1120,7 +1280,7 @@ with tab_analysis_scrape:
+                 for t in transformers:
+                     available_options.append(f"Transformer ({t})")
+                 scrape_model = st.selectbox("Classification Model", available_options, key="scrape_model_sel") if available_options else None
+-                
++
+             if st.button("≡ƒÜÇ Scrape & Predict", type="primary", disabled=(scrape_model is None)):
+                 if not scrape_token and not has_token_file:
+                     st.error("Missing Apify API Token. Please enter one above.")
+@@ -1131,6 +1291,8 @@ with tab_analysis_scrape:
+                     st.session_state.dev_processing = True
+                     st.session_state.trigger_dev_scrape = True
+                     st.rerun()
++        else:
++            st.info("ΓÅ│ Scraping and analysis in progress... Please wait.")
+ 
+         if st.session_state.trigger_dev_scrape:
+             scrape_limit_val = st.session_state.dev_scrape_limit_val
+@@ -1222,7 +1384,6 @@ with tab_analysis_scrape:
+                 finally:
+                     st.session_state.trigger_dev_scrape = False
+                     st.session_state.dev_processing = False
+-                    st.rerun()
+ 
+         if st.session_state.dev_scrape_results is not None:
+             df_run, saved_preds = st.session_state.dev_scrape_results
+@@ -1230,7 +1391,7 @@ with tab_analysis_scrape:
+             st.markdown("#### Scraped Results")
+             st.dataframe(df_run[["text", "cleaned_text", "predicted_sentiment"]].head(100), use_container_width=True)
+             
+-            if st.button("Clear Results", key="dev_clear_results_btn"):
++            if st.button("≡ƒùæ∩╕Å Clear Results & Start New Scrape", key="dev_clear_results_btn"):
+                 st.session_state.dev_active_url = None
+                 st.session_state.dev_scrape_results = None
+                 st.rerun()
+@@ -1242,287 +1403,6 @@ with tab_analysis_scrape:
+             st.session_state.batch_df = None
+             st.rerun()
+ 
+-# ----------------- Tab 3: Active Learning Assistant -----------------
+-# ----------------- Tab 3: Active Learning Assistant -----------------
+-with tab_active:
+-    st.markdown("### ≡ƒÄ» Active Learning Annotation Assistant")
+-    st.write(
+-        "Upload a pool of unlabeled comments. The system will run the baseline model to find the most "
+-        "uncertain comments (high entropy/least confidence), allowing you to annotate them here and expand the training set."
+-    )
+-    
+-    # Check if baseline model is trained
+-    if baseline_model is None:
+-        st.error("Baseline model is required for Active Learning uncertainty estimation. Please train it first.")
+-    else:
+-        # Load unlabeled file
+-        scratch_dir = paths.root / "data" / "scratch"
+-        scratch_dir.mkdir(parents=True, exist_ok=True)
+-        unlabeled_files = sorted(list(scratch_dir.glob("*.csv")))
+-        
+-        col_pool, col_params = st.columns([2, 1])
+-        with col_pool:
+-            pool_source = st.radio("Unlabeled Data Source:", ["Select Scratch CSV File", "Upload Custom CSV File"])
+-            
+-            unlabeled_path = None
+-            unlabeled_df = None
+-            
+-            if pool_source == "Select Scratch CSV File":
+-                if not unlabeled_files:
+-                    st.warning("No CSV files found in data/scratch/. Please upload one.")
+-                else:
+-                    file_names = [f.name for f in unlabeled_files]
+-                    selected_file_name = st.selectbox("Select Scratch CSV File", file_names)
+-                    unlabeled_path = scratch_dir / selected_file_name
+-                    if unlabeled_path.exists():
+-                        unlabeled_df = pd.read_csv(unlabeled_path)
+-            else:
+-                uploaded_pool = st.file_uploader("Upload Unlabeled CSV File", type=["csv"], key="pool_uploader")
+-                if uploaded_pool is not None:
+-                    unlabeled_df = pd.read_csv(uploaded_pool)
+-                    
+-        with col_params:
+-            strategy = st.selectbox("Uncertainty Query Strategy", ["entropy", "margin", "lc"], index=0, 
+-                                    help="Entropy: highest randomness. Margin: closest top-2. Least Confidence: smallest maximum probability.")
+-            n_query = st.number_input("Number of samples to query", min_value=1, max_value=500, value=20)
+-            
+-        if unlabeled_df is not None:
+-            st.write(f"Total Comments in Pool: {len(unlabeled_df)}")
+-            
+-            # Find text and ID columns
+-            text_cols = [c for c in unlabeled_df.columns if any(x in c.lower() for x in ["text", "comment", "body"])]
+-            text_col = st.selectbox("Unlabeled Comment Column", unlabeled_df.columns, index=unlabeled_df.columns.get_loc(text_cols[0]) if text_cols else 0)
+-            
+-            id_cols = [c for c in unlabeled_df.columns if any(x in c.lower() for x in ["id", "index"])]
+-            id_col = st.selectbox("Unlabeled ID Column (Optional)", ["None"] + list(unlabeled_df.columns), 
+-                                   index=unlabeled_df.columns.get_loc(id_cols[0]) + 1 if id_cols else 0)
+-            
+-            run_al_btn = st.button("≡ƒöì Find Uncertain Comments")
+-            
+-            # Keep active learning query state in Streamlit session state
+-            if "al_df" not in st.session_state:
+-                st.session_state.al_df = None
+-            if "al_index" not in st.session_state:
+-                st.session_state.al_index = 0
+-            if "al_annotations" not in st.session_state:
+-                st.session_state.al_annotations = []
+-                
+-            if run_al_btn:
+-                with st.spinner("Analyzing comment uncertainties..."):
+-                    try:
+-                        # Clean texts
+-                        from src.preprocess import clean_text
+-                        df_al = unlabeled_df.copy()
+-                        df_al = df_al.rename(columns={text_col: "text"})
+-                        
+-                        if id_col != "None" and id_col != "text":
+-                            df_al = df_al.rename(columns={id_col: "id"})
+-                        else:
+-                            df_al["id"] = range(10000, 10000 + len(df_al))
+-                            
+-                        # Drop missing text
+-                        df_al = df_al[df_al["text"].notna() & df_al["text"].astype(str).str.strip().ne("")].copy()
+-                        df_al["cleaned_text"] = df_al["text"].apply(clean_text)
+-                        
+-                        # Calculate features and uncertainty scores
+-                        # LinearSVC doesn't support predict_proba ΓÇö use decision_function fallback
+-                        from src.evaluate_external import transform_with_saved_vectorizer
+-                        from src.active_learning import compute_entropy, compute_margin, compute_least_confidence
+-                        X_al = transform_with_saved_vectorizer(baseline_vec, df_al["cleaned_text"])
+-
+-                        if hasattr(baseline_model, "predict_proba"):
+-                            probs = baseline_model.predict_proba(X_al)
+-                            if strategy == "entropy":
+-                                scores = compute_entropy(probs)
+-                            elif strategy == "margin":
+-                                scores = compute_margin(probs)
+-                            else:
+-                                scores = compute_least_confidence(probs)
+-                        elif hasattr(baseline_model, "decision_function"):
+-                            # LinearSVC fallback ΓÇö use margin of top-2 decision scores as uncertainty
+-                            st.info(
+-                                "Γä╣∩╕Å The saved model (LinearSVC) does not support probability estimates. "
+-                                "Using decision function margin as uncertainty score instead."
+-                            )
+-                            decisions = baseline_model.decision_function(X_al)
+-                            if len(decisions.shape) == 1 or decisions.shape[1] == 1:
+-                                scores = -np.abs(decisions)
+-                            else:
+-                                sorted_dec = np.sort(decisions, axis=1)
+-                                scores = -(sorted_dec[:, -1] - sorted_dec[:, -2])
+-                        else:
+-                            raise AttributeError(
+-                                "The saved baseline model supports neither predict_proba nor decision_function. "
+-                                "Please retrain the baseline with a Logistic Regression or Naive Bayes model."
+-                            )
+-                            
+-                        df_al["uncertainty_score"] = scores
+-                        
+-                        # Filter duplicates from existing cleaned comments
+-                        cleaned_path = paths.interim_dir / "cleaned_comments.csv"
+-                        if cleaned_path.exists():
+-                            annotated_df = pd.read_csv(cleaned_path)
+-                            if "cleaned_text" in annotated_df.columns:
+-                                annotated_texts = set(annotated_df["cleaned_text"].tolist())
+-                                df_al = df_al[~df_al["cleaned_text"].isin(annotated_texts)].copy()
+-                                
+-                        # Sort and get top
+-                        df_al_sorted = df_al.sort_values(by="uncertainty_score", ascending=False).head(n_query)
+-                        
+-                        st.session_state.al_df = df_al_sorted.reset_index(drop=True)
+-                        st.session_state.al_index = 0
+-                        st.session_state.al_annotations = []
+-                        st.success(f"Successfully queried {len(df_al_sorted)} uncertain comments!")
+-                    except Exception as e:
+-                        st.error(f"Failed to query comments: {e}")
+-                        
+-            # ΓöÇΓöÇ Bulk Annotation Interface ΓöÇΓöÇ
+-            if st.session_state.al_df is not None and len(st.session_state.al_df) > 0:
+-                al_df = st.session_state.al_df
+-
+-                st.markdown("---")
+-                st.markdown(
+-                    f"#### ≡ƒô¥ Annotate All {len(al_df)} Uncertain Comments",
+-                )
+-                st.caption(
+-                    "Label every comment below, then click **Submit All Annotations** at the bottom. "
+-                    "You can skip any comment by unchecking *Include in Training Pool*."
+-                )
+-
+-                # Column headers
+-                hcol1, hcol2, hcol3, hcol4 = st.columns([5, 2, 1, 2])
+-                with hcol1:
+-                    st.markdown("**Comment**")
+-                with hcol2:
+-                    st.markdown("**Sentiment Label**")
+-                with hcol3:
+-                    st.markdown("**Include**")
+-                with hcol4:
+-                    st.markdown("**Uncertainty Score**")
+-
+-                st.markdown("<hr style='margin:4px 0 10px 0; border-color:#E2E8F0;'>", unsafe_allow_html=True)
+-
+-                # One row per comment
+-                bulk_labels   = {}
+-                bulk_includes = {}
+-
+-                for i, row in al_df.iterrows():
+-                     col_text, col_label, col_inc, col_score = st.columns([5, 2, 1, 2])
+-
+-                     with col_text:
+-                         st.markdown(
+-                             f"""
+-                             <div style='padding:10px 12px; background:white; border-radius:10px;
+-                                         border:1px solid #E2E8F0; font-size:0.92rem; line-height:1.5;
+-                                         box-shadow:0 2px 6px rgba(0,0,0,0.04);'>
+-                                 {row["text"]}
+-                             </div>
+-                             """,
+-                             unsafe_allow_html=True,
+-                         )
+-
+-                     with col_label:
+-                         bulk_labels[i] = st.selectbox(
+-                             label="label",
+-                             options=["positive", "negative", "neutral"],
+-                             index=0,
+-                             key=f"bulk_label_{i}",
+-                             label_visibility="collapsed",
+-                         )
+-
+-                     with col_inc:
+-                         bulk_includes[i] = st.checkbox(
+-                             label="inc",
+-                             value=True,
+-                             key=f"bulk_inc_{i}",
+-                             label_visibility="collapsed",
+-                         )
+-
+-                     with col_score:
+-                         score_val = row["uncertainty_score"]
+-                         bar_pct   = min(abs(score_val) / max(al_df["uncertainty_score"].abs().max(), 1e-9), 1.0)
+-                         bar_color = "#6366F1"
+-                         st.markdown(
+-                             f"""
+-                             <div style='padding:8px 0;'>
+-                                 <span style='font-weight:600; font-size:0.9rem; color:#1E293B;'>{score_val:.4f}</span>
+-                                 <div style='background:#EEF2FF; border-radius:999px; height:6px; margin-top:4px;'>
+-                                     <div style='width:{bar_pct*100:.1f}%; background:{bar_color};
+-                                                 border-radius:999px; height:6px;'></div>
+-                                 </div>
+-                             </div>
+-                             """,
+-                             unsafe_allow_html=True,
+-                         )
+-
+-                     st.markdown("<div style='margin-bottom:6px;'></div>", unsafe_allow_html=True)
+-
+-                st.markdown("---")
+-
+-                # Summary preview
+-                included_count = sum(1 for v in bulk_includes.values() if v)
+-                st.markdown(
+-                    f"**{included_count} of {len(al_df)} comments** marked for inclusion in the training pool.",
+-                    help="Uncheck *Include* on any comment you want to skip."
+-                )
+-
+-                if st.button("Γ£à Submit All Annotations", type="primary"):
+-                    annotations = []
+-                    for i, row in al_df.iterrows():
+-                        annotations.append({
+-                            "id":              int(row["id"]),
+-                            "text":            row["text"],
+-                            "sentiment_label": bulk_labels[i],
+-                            "include":         "Yes" if bulk_includes[i] else "No",
+-                            "notes":           f"[AL {strategy}: {row['uncertainty_score']:.4f}]",
+-                        })
+-                    st.session_state.al_annotations = annotations
+-                    st.session_state.al_submitted = True
+-                    st.rerun()
+-
+-            # ΓöÇΓöÇ Save Section (shown after submission) ΓöÇΓöÇ
+-            if st.session_state.get("al_submitted") and st.session_state.al_annotations:
+-                st.balloons()
+-                st.success(f"≡ƒÄë {len(st.session_state.al_annotations)} annotations ready to save!")
+-
+-                new_anno_df = pd.DataFrame(st.session_state.al_annotations)
+-                st.dataframe(new_anno_df, use_container_width=True)
+-
+-                from src.data_utils import discover_raw_files
+-                raw_files = discover_raw_files(paths.raw_dir)
+-                raw_file_options = [f.name for f in raw_files] + ["Create New File (active_annotations.csv)"]
+-                target_file_choice = st.selectbox(
+-                    "Select Target CSV File in data/raw/", raw_file_options, key="al_target_file"
+-                )
+-
+-                if st.button("≡ƒÆ╛ Append & Save to Raw Training Pool"):
+-                    try:
+-                        target_path = (
+-                            paths.raw_dir / "active_annotations.csv"
+-                            if target_file_choice == "Create New File (active_annotations.csv)"
+-                            else paths.raw_dir / target_file_choice
+-                        )
+-                        if target_path.exists():
+-                            existing_raw = pd.read_csv(target_path)
+-                            for col in ["id", "text", "sentiment_label", "include", "notes"]:
+-                                if col not in existing_raw.columns:
+-                                    existing_raw[col] = ""
+-                            combined = pd.concat([existing_raw, new_anno_df], ignore_index=True)
+-                        else:
+-                            combined = new_anno_df
+-
+-                        combined.to_csv(target_path, index=False, encoding="utf-8")
+-                        st.success(f"Γ£à Saved {len(new_anno_df)} annotations to **{target_path.name}**!")
+-
+-                        # Reset state
+-                        st.session_state.al_df          = None
+-                        st.session_state.al_index       = 0
+-                        st.session_state.al_annotations = []
+-                        st.session_state.al_submitted   = False
+-                    except Exception as e:
+-                        st.error(f"Failed to save annotations: {e}")
+-
+-
+ # ----------------- Tab 4: Performance Dashboard -----------------
+ with tab_metrics:
+     st.markdown("### ≡ƒôè Performance Dashboard & Model Comparison")
+@@ -1679,6 +1559,124 @@ with tab_controls:
+                     st.error(f"Baseline training failed with exit code: {ret_code}")
+                     st.text_area("Error Log (Stderr)", stderr, height=200)
+ 
++    # ΓöÇΓöÇ Raw Data Upload for Retraining ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++    st.markdown("---")
++    st.markdown("### ≡ƒôñ Upload Raw Data for Retraining")
++    st.markdown(
++        """
++        <div class='metric-card'>
++            <h4>3. Upload Raw Training Data</h4>
++            <p style='color:#64748B;'>Upload a new CSV file with raw comments to add to the training pool.
++            The file will be saved to <code>data/raw/</code> so the pipeline can consume it.
++            Use <strong>Save &amp; Retrain</strong> to run preprocessing and baseline training in one click.</p>
++        </div>
++        """,
++        unsafe_allow_html=True
++    )
++
++    uploaded_raw_files = st.file_uploader(
++        "Upload Raw CSV Files (select one or more)",
++        type=["csv"],
++        accept_multiple_files=True,
++        key="raw_data_uploader",
++        help="Upload one or more CSV files with raw comments. All files will be saved to data/raw/ before retraining."
++    )
++
++    if uploaded_raw_files:
++        st.markdown(f"**{len(uploaded_raw_files)} file(s) selected:**")
++        all_preview_dfs = {}
++        for uf in uploaded_raw_files:
++            try:
++                df_preview = pd.read_csv(uf)
++                all_preview_dfs[uf.name] = df_preview
++                with st.expander(f"≡ƒôä {uf.name} ΓÇö {len(df_preview)} rows ┬╖ {len(df_preview.columns)} cols"):
++                    st.dataframe(df_preview.head(5), use_container_width=True)
++            except Exception as e:
++                st.error(f"Could not read `{uf.name}`: {e}")
++
++        st.markdown("---")
++        save_col1, save_col2 = st.columns([1, 1])
++        with save_col1:
++            if st.button("≡ƒÆ╛ Save All Files to data/raw/", key="save_raw_btn", use_container_width=True):
++                saved = []
++                for fname, fdf in all_preview_dfs.items():
++                    fdf.to_csv(paths.raw_dir / fname, index=False, encoding="utf-8")
++                    saved.append(fname)
++                st.success(f"Γ£à Saved {len(saved)} file(s) to `data/raw/`: {', '.join(saved)}")
++
++        with save_col2:
++            if st.button("≡ƒÜÇ Save & Retrain (Baseline)", type="primary", key="retrain_baseline_btn", use_container_width=True):
++                for fname, fdf in all_preview_dfs.items():
++                    fdf.to_csv(paths.raw_dir / fname, index=False, encoding="utf-8")
++                st.success(f"Γ£à Saved {len(all_preview_dfs)} file(s). Starting retraining pipelineΓÇª")
++
++                with st.spinner("Step 1/2 ΓÇö Running PreprocessingΓÇª"):
++                    ret_code, stdout, stderr = run_script("src.preprocess")
++                    if ret_code != 0:
++                        st.error(f"Γ¥î Preprocessing failed:\n{stderr[:500]}")
++                        st.stop()
++                    st.success("Γ£à Preprocessing complete!")
++
++                with st.spinner("Step 2/2 ΓÇö Training Baseline ModelsΓÇª"):
++                    ret_code, stdout, stderr = run_script("src.train_baseline")
++                    if ret_code == 0:
++                        run_script("src.compare_models")
++                        st.success("Γ£à Baseline retraining complete! Models have been updated.")
++                        st.balloons()
++                        st.rerun()
++                    else:
++                        st.error(f"Γ¥î Training failed:\n{stderr[:500]}")
++
++    # ΓöÇΓöÇ Transformer Training ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++    st.markdown("---")
++    st.markdown("### ≡ƒñû Train Transformer Model")
++    st.markdown(
++        """
++        <div class='metric-card'>
++            <h4>4. Fine-tune a Transformer</h4>
++            <p style='color:#64748B;'>Fine-tune a Hugging Face transformer on the preprocessed training data.
++            Requires preprocessing to have been run first. Training can take several minutes.
++            The default model is <code>castorini/afriberta_small</code> which works well for
++            code-switched African language text.</p>
++        </div>
++        """,
++        unsafe_allow_html=True
++    )
++
++    trans_col1, trans_col2 = st.columns(2)
++    with trans_col1:
++        transformer_model_name = st.text_input(
++            "Hugging Face Model ID",
++            value="castorini/afriberta_small",
++            key="transformer_model_name_input",
++            help="Enter a Hugging Face model ID (e.g. castorini/afriberta_small, bert-base-multilingual-cased)."
++        )
++    with trans_col2:
++        transformer_run_name = st.text_input(
++            "Run Name (optional)",
++            value="",
++            placeholder="e.g. afriberta_v2",
++            key="transformer_run_name_input",
++            help="Optional short name for this training run. Used to label saved model files."
++        )
++
++    trans_train_args = ["--model_name", transformer_model_name]
++    if transformer_run_name.strip():
++        trans_train_args += ["--run_name", transformer_run_name.strip()]
++
++    if st.button("≡ƒÜÇ Start Transformer Training", type="primary", key="train_transformer_btn"):
++        with st.spinner(f"Fine-tuning `{transformer_model_name}`ΓÇª This may take several minutes."):
++            ret_code, stdout, stderr = run_script("src.train_transformer", trans_train_args)
++            if ret_code == 0:
++                run_script("src.compare_models")
++                st.success("Γ£à Transformer training complete! Model is now available for inference.")
++                st.text_area("Training Log", stdout[-3000:] if stdout else "(no output)", height=250)
++                st.balloons()
++                st.rerun()
++            else:
++                st.error(f"Γ¥î Transformer training failed (exit code {ret_code}).")
++                st.text_area("Error Log", stderr[-3000:] if stderr else "(no output)", height=250)
++
+ # ----------------- Tab 6: Database Logs -----------------
+ with tab_db:
+     st.markdown("### ≡ƒùä∩╕Å Database Logs")

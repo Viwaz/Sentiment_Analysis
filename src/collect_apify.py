@@ -159,6 +159,13 @@ def normalise_apify_items(items: list[dict], source_urls: list[str]) -> pd.DataF
         text = _first_present(item, TEXT_FIELDS)
         if text in (None, ""):
             continue
+        # Attempt to capture post body text (varies by Apify actor fields)
+        post_text = (
+            item.get("postText")
+            or item.get("post_body")
+            or item.get("pageText")
+            or ""
+        )
         rows.append(
             {
                 "id": _first_present(item, ID_FIELDS) or index,
@@ -167,6 +174,7 @@ def normalise_apify_items(items: list[dict], source_urls: list[str]) -> pd.DataF
                 "comment_id": _first_present(item, ID_FIELDS),
                 "created_at": _first_present(item, CREATED_FIELDS),
                 "collection_source": "apify/facebook-comments-scraper",
+                "post_text": post_text,
             }
         )
     if not rows:
@@ -241,8 +249,9 @@ def collect_facebook_comments(
 def persist_collected_comments_to_db(
     collected: pd.DataFrame,
     user_id: int | None = None,
+    session_id: int | None = None,
 ) -> dict[str, int]:
-    """Persist collected Apify rows to the raw comments DB table."""
+    """Persist collected Apify rows to the raw comments DB table, linking to a scrape session if provided."""
     from src.db.activity import log_action
     from src.db.comments import insert_comment
 
@@ -263,6 +272,8 @@ def persist_collected_comments_to_db(
             created_at=_db_value(row.get("created_at")),
             apify_dataset_id=_db_text(row.get("apify_dataset_id")) or None,
             apify_run_id=_db_text(row.get("apify_run_id")) or None,
+            post_text=_db_text(row.get("post_text")),
+            session_id=session_id,
         )
         log_action(
             user_id=user_id,

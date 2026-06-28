@@ -30,6 +30,8 @@ def insert_comment(
     created_at: Any = None,
     apify_dataset_id: str | None = None,
     apify_run_id: str | None = None,
+    post_text: str | None = None,
+    session_id: int | None = None,
 ) -> str:
     """
     Insert a raw comment into the ``comments`` table.
@@ -45,9 +47,9 @@ def insert_comment(
 
     sql = """
         INSERT INTO comments (
-            comment_id, comment_text, source_url, created_at, collection_source, apify_dataset_id, apify_run_id
+            comment_id, comment_text, source_url, created_at, collection_source, apify_dataset_id, apify_run_id, post_text, session_id
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (comment_id) DO NOTHING
     """
     with get_connection() as conn:
@@ -62,8 +64,9 @@ def insert_comment(
                     actual_collection_source,
                     apify_dataset_id,
                     apify_run_id,
-                ),
-            )
+                    post_text,
+                    session_id,
+                ),            )
     return comment_id
 
 

@@ -49,12 +49,10 @@ project/
 |   |-- 04_transformer_training.ipynb
 |   |-- 05_error_analysis.ipynb
 |   |-- 06_external_evaluation.ipynb
-|   `-- 07_active_learning.ipynb
 |-- reports/
 |   |-- figures/
 |   `-- results/
 |-- src/
-|   |-- active_learning.py
 |   |-- collect_apify.py
 |   |-- compare_models.py
 |   |-- data_utils.py
@@ -265,3 +263,12 @@ Use:
 - `docs/GROUP_4_DS_SRS_V7.pdf` for the current SRS PDF copy.
 
 The original SRS PDF may still exist at the repository root on some machines if Windows or OneDrive blocks moving the file. The preferred documentation location is `docs/`.
+## New Features – Authentication, Session Tracking, and Post Text
+
+- **User registration & login (using username and password)** – every user must create an account before using the system. Implemented with JWT authentication and password hashing.
+- **Named scraping sessions** – each scraping run is given a name, stored in the `scrape_sessions` table, and linked to the authenticated user.
+- **Post text capture** – the Facebook post body is now retrieved and stored (`post_text` column) alongside each comment, and displayed in the Streamlit UI.
+- **Session History UI** – a new **📜 Session History** tab lets users view past scraping sessions, their associated post text, and sentiment analysis results (pie & bar charts).
+- **Database schema updates** – migration adds `scrape_sessions` table, `post_text` and `session_id` columns to `comments`, and related foreign‑key constraints.
+
+These changes enhance security, traceability, and result visibility for both users and developers.
