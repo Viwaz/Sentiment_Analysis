@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 import json
 import os
-from src.db.users import create_user, authenticate_user
+
 import subprocess
 import time
 from pathlib import Path
@@ -15,6 +15,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize database
+from src.database import init_db
+try:
+    init_db()
+except Exception as e:
+    st.warning(f"Database initialization failed (is PostgreSQL running?): {e}")
 
 # Custom Styling for a Premium UI
 st.markdown("""
@@ -60,9 +67,120 @@ st.markdown("""
     [data-testid="stSidebar"] [data-testid="stTextInput"] [data-testid="InputInstructions"],
     [data-testid="stSidebar"] [data-testid="stTextInput"] button,
     [data-testid="stSidebar"] [data-testid="stTextInput"] svg {
-        color: darkslategray !important;
-        fill: darkslategray !important;
+        color: #1E1E1E !important;
+        fill: #1E1E1E !important;
     }
+    
+    /* ── HIDE POPOVER DISCLOSURE ARROW (Material Icons span, not SVG) ── */
+    /* Confirmed via browser inspector: the chevron is a span[data-testid="stIconMaterial"]
+       rendering the "expand_more" glyph via Material Icons font */
+    div[data-testid="stPopover"] span[data-testid="stIconMaterial"] {
+        display: none !important;
+    }
+    /* Collapse the flex gap left after the span is removed */
+    div[data-testid="stPopover"] button,
+    div[data-testid="stPopover"] button > div {
+        gap: 0px !important;
+    }
+
+
+    /* Popover panel container constraints */
+    div[data-testid="stPopoverBody"] {
+        max-width: 160px !important;
+        padding: 8px !important;
+        background-color: #1A2332 !important;
+        border: 1px solid #2D3748 !important;
+    }
+
+    /* 2. UNIFY ALL FOUR OPTIONS (HTML LINK + NATIVE BUTTONS) */
+    div[data-testid="stPopoverBody"] button,
+    div[data-testid="stPopoverBody"] .menu-link-item {
+        font-size: 14px !important;
+        font-family: inherit !important;
+        font-weight: normal !important;
+        padding: 10px 16px !important;
+        margin-bottom: 8px !important;
+
+        /* Blue pill gradient matching the dashboard primary style */
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important;
+        background-color: #3B82F6 !important;
+        color: #FFFFFF !important;
+        border-radius: 8px !important;
+
+        border: none !important;
+        text-align: center !important;
+        justify-content: center !important;
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-decoration: none !important;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25) !important;
+        transform: none !important;
+        min-height: unset !important;
+    }
+    div[data-testid="stPopoverBody"] button * {
+        color: #FFFFFF !important;
+    }
+
+    /* Remove bottom margin from last button */
+    div[data-testid="stPopoverBody"] button:last-child {
+        margin-bottom: 0px !important;
+    }
+
+    /* 3. HOVER ACTIONS */
+    div[data-testid="stPopoverBody"] button:hover,
+    div[data-testid="stPopoverBody"] .menu-link-item:hover {
+        background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%) !important;
+        background-color: #60A5FA !important;
+        color: #FFFFFF !important;
+        cursor: pointer !important;
+    }
+    div[data-testid="stPopoverBody"] button:hover * {
+        color: #FFFFFF !important;
+    }
+
+    /* Delete button: red on hover */
+    div[data-testid="stPopoverBody"] button[data-testid="baseButton-primary"] {
+        background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%) !important;
+        background-color: #EF4444 !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25) !important;
+        transform: none !important;
+    }
+    div[data-testid="stPopoverBody"] button[data-testid="baseButton-primary"] * {
+        color: #FFFFFF !important;
+    }
+    div[data-testid="stPopoverBody"] button[data-testid="baseButton-primary"]:hover {
+        background: #DC2626 !important;
+        background-color: #DC2626 !important;
+        color: #FFFFFF !important;
+    }
+    div[data-testid="stPopoverBody"] button[data-testid="baseButton-primary"]:hover * {
+        color: #FFFFFF !important;
+    }
+
+    /* Catch-all text colour inside popover */
+    div[data-testid="stPopoverBody"] * {
+        color: #FFFFFF !important;
+    }
+    div[data-testid="stPopoverBody"] label {
+        color: #E2E8F0 !important;
+        font-size: 13px !important;
+    }
+    div[data-testid="stPopoverBody"] input {
+        color: #1E1E1E !important;
+    }
+
+    /* Legible input texts (dark charcoal) & high-contrast placeholders (stark gray) */
+    input {
+        color: #1E1E1E !important;
+    }
+    input::placeholder {
+        color: #555555 !important;
+        opacity: 1 !important;
+    }
+
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3,
@@ -734,102 +852,89 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
 # ── Session state defaults ──────────────────────────────────────────────────
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "user_id" not in st.session_state:
+    st.session_state.user_id = None
+if "username" not in st.session_state:
+    st.session_state.username = None
+if "view_mode" not in st.session_state:
+    st.session_state.view_mode = "new"
+if "current_session_id" not in st.session_state:
+    st.session_state.current_session_id = None
 if "current_user" not in st.session_state:
-    st.session_state.current_user = None
+    st.session_state.current_user = {"user_id": "guest", "username": "Guest", "role": "general"}
 if "logged_in_as_dev" not in st.session_state:
     st.session_state.logged_in_as_dev = False
 
-is_developer = st.session_state.logged_in_as_dev
-
-# ── Landing Page: Login / Register (shown when NOT logged in) ──
+# Gating: block dashboard views for unauthenticated users
 if not st.session_state.logged_in:
-    _, center_col, _ = st.columns([1, 1.8, 1])
-    with center_col:
-        st.markdown('<div class="auth-card">', unsafe_allow_html=True)
-        st.markdown("## Sentiment Classifier")
-        st.markdown('<p class="subtitle">Facebook Code-Switched Low-Resource Sentiment Analysis</p>', unsafe_allow_html=True)
-        login_tab, register_tab = st.tabs(["Login", "Register"])
-
-        with login_tab:
-            login_identifier = st.text_input(
-                "Username",
-                placeholder="Enter your username",
-                key="login_username"
-            )
-            login_password = st.text_input(
-                "Password",
-                type="password",
-                placeholder="Enter your password",
-                key="login_password"
-            )
-            if st.button("Login", key="login_btn", use_container_width=True):
-                if not login_identifier or not login_password:
-                    st.warning("[WARN] Please fill in both fields.")
+    st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🔐 Sentiment Analysis Dashboard</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748B;'>Please sign in or create an account to proceed.</p>", unsafe_allow_html=True)
+    
+    auth_tabs = st.tabs(["🔑 Sign In", "📝 Create Account"])
+    
+    with auth_tabs[0]:
+        with st.form("login_form"):
+            username = st.text_input("Username", key="login_username_input")
+            password = st.text_input("Password", type="password", key="login_password_input")
+            submit = st.form_submit_button("Log In", use_container_width=True)
+            if submit:
+                if not username or not password:
+                    st.error("Please fill out all fields.")
                 else:
-                    try:
-                        user = authenticate_user(login_identifier, login_password)
-                        if user is None:
-                            st.error("[ERR] Login failed. Check your credentials.")
-                        else:
-                            st.session_state.logged_in = True
-                            st.session_state.current_user = user
-                            st.session_state.logged_in_as_dev = (user["role"] in ("developer", "admin"))
-                            st.success(f"[OK] Welcome back, **{user['username']}**!")
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"[ERR] Error: {e}")
-
-        with register_tab:
-            reg_username = st.text_input(
-                "Username",
-                placeholder="Choose a username",
-                key="reg_username"
-            )
-            reg_password = st.text_input(
-                "Password",
-                type="password",
-                placeholder="Create a strong password",
-                key="reg_password"
-            )
-            reg_password2 = st.text_input(
-                "Confirm Password",
-                type="password",
-                placeholder="Repeat your password",
-                key="reg_password2"
-            )
-            reg_role = st.selectbox(
-                "Account Role",
-                ["general", "developer"],
-                index=0,
-                key="reg_role",
-                help="Select your role. Developers get access to advanced features."
-            )
-            if st.button("Create Account", key="reg_btn", use_container_width=True):
-                if not reg_username or not reg_password:
-                    st.warning("[WARN] All fields are required.")
-                elif reg_password != reg_password2:
-                    st.error("[ERR] Passwords do not match.")
+                    from src.database import authenticate_user
+                    user = authenticate_user(username, password)
+                    if user:
+                        st.session_state.logged_in = True
+                        st.session_state.user_id = user["user_id"]
+                        st.session_state.username = user["username"]
+                        st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
+                        st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
+                        st.session_state.view_mode = "new"
+                        st.success(f"Welcome back, {user['username']}!")
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password.")
+                        
+    with auth_tabs[1]:
+        with st.form("register_form"):
+            reg_username = st.text_input("Choose Username", key="register_username_input")
+            reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
+            reg_confirm = st.text_input("Confirm Password", type="password", key="register_confirm_input")
+            submit_reg = st.form_submit_button("Create Account", use_container_width=True)
+            if submit_reg:
+                if not reg_username or not reg_password or not reg_confirm:
+                    st.error("Please fill out all fields.")
+                elif reg_password != reg_confirm:
+                    st.error("Passwords do not match.")
                 else:
+                    from src.database import create_user
                     try:
-                        user = create_user(
-                            reg_username,
-                            reg_password,
-                            role=reg_role
-                        )
-                        st.success(
-                            f"[OK] Account created for **{user['username']}**! "
-                            "You can now log in."
-                        )
+                        create_user(reg_username, reg_password)
+                        st.success("Account created successfully! Please sign in using the 'Sign In' tab.")
+                    except ValueError as ve:
+                        st.error(str(ve))
                     except Exception as e:
-                        err_msg = str(e)
-                        if "unique" in err_msg.lower() or "duplicate" in err_msg.lower():
-                            st.error("[ERR] Username already exists.")
-                        else:
-                            st.error(f"[ERR] Registration failed: {e}")
-        st.markdown('</div>', unsafe_allow_html=True)
+                        st.error(f"Failed to create account: {e}")
+                        
+    st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# ── Sidebar (only accessible when logged in) ──
+# Handle shareable URL query parameter redirect
+if "session_id" in st.query_params:
+    try:
+        param_sess_id = int(st.query_params["session_id"])
+        if st.session_state.current_session_id != param_sess_id or st.session_state.view_mode != "history":
+            st.session_state.current_session_id = param_sess_id
+            st.session_state.view_mode = "history"
+            st.session_state.user_scrape_results = None
+            st.rerun()
+    except ValueError:
+        pass
+
+is_developer = st.session_state.logged_in_as_dev
+
+# ── Sidebar ──
 st.sidebar.markdown(
     """
     <div style='text-align: center; margin-bottom: 20px;'>
@@ -840,76 +945,104 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
+st.sidebar.markdown(f"👤 Logged in as: **{st.session_state.username}**")
 st.sidebar.markdown("---")
 
-user_info = st.session_state.current_user
-st.sidebar.markdown(
-    f"""
-    <div style='background:rgba(79,70,229,0.15);border-radius:12px;padding:12px 16px;margin-bottom:8px;'>
-        <span style='font-size:1.1rem;font-weight:700;'>{user_info['username']}</span><br>
-        <span style='font-size:0.8rem;color:#94A3B8;text-transform:uppercase;letter-spacing:0.05em;'>{user_info['role']}</span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-if st.sidebar.button("Logout", key="sidebar_logout", use_container_width=True):
-    st.session_state.logged_in = False
-    st.session_state.current_user = None
-    st.session_state.logged_in_as_dev = False
-    st.session_state.user_scrape_results = None
+# 1. "Analyze New URL" button fixed at the top
+if st.sidebar.button("➕ Analyze New URL", type="primary", use_container_width=True, key="new_analysis_sidebar_btn"):
+    st.session_state.view_mode = "new"
     st.session_state.current_session_id = None
-    st.session_state.view_session_id = None
+    st.session_state.user_scrape_results = None
     st.rerun()
 
-# ── General User Sessions Sidebar ──
-if not is_developer:
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### Your Sessions")
-    from src.db.sessions import get_user_sessions, rename_session
+st.sidebar.subheader("History Sessions")
+# Query user sessions
+from src.database import get_user_sessions
+sessions = get_user_sessions(st.session_state.user_id)
 
-    user_sessions = get_user_sessions(user_info["user_id"])
-    if not user_sessions:
-        st.sidebar.info("No sessions yet. Scrape a Facebook post to get started.")
-    else:
-        renaming_id = st.session_state.get("rename_session_id")
-        for s in user_sessions:
-            if renaming_id == s["session_id"]:
-                new_name = st.sidebar.text_input(
-                    "Rename session",
-                    value=s["session_name"],
-                    key=f"rename_input_{s['session_id']}",
-                    label_visibility="collapsed",
-                )
-                save_col, cancel_col = st.sidebar.columns(2)
-                if save_col.button("Save", key=f"save_rename_{s['session_id']}", use_container_width=True):
-                    rename_session(s["session_id"], new_name)
-                    st.session_state.rename_session_id = None
+if sessions:
+    for s in sessions:
+        # Determine label using display_title from database COALESCE
+        btn_label = s.get("display_title") or "Analysis Run"
+        session_id = s["session_id"]
+        
+        # Unique session state key for rename visibility flag
+        rename_flag_key = f"show_rename_{session_id}"
+        if rename_flag_key not in st.session_state:
+            st.session_state[rename_flag_key] = False
+            
+        # Wrap the columns tightly inside a container to guarantee rigid vertical alignment
+        with st.sidebar.container():
+            col_link, col_menu = st.columns([0.85, 0.15])
+            
+            with col_link:
+                is_active = (st.session_state.current_session_id == session_id and st.session_state.view_mode == "history")
+                btn_type = "primary" if is_active else "secondary"
+                if st.button(btn_label, key=f"session_btn_{session_id}", use_container_width=True, type=btn_type):
+                    st.session_state.current_session_id = session_id
+                    st.session_state.view_mode = "history"
+                    st.session_state.user_scrape_results = None
                     st.rerun()
-                if cancel_col.button("Cancel", key=f"cancel_rename_{s['session_id']}", use_container_width=True):
-                    st.session_state.rename_session_id = None
-                    st.rerun()
-            else:
-                cols = st.sidebar.columns([4, 1])
-                with cols[0]:
-                    label = f"{s['session_name']}  \n*{s['comment_count']} comments*"
-                    if st.button(
-                        label,
-                        key=f"view_session_{s['session_id']}",
-                        use_container_width=True,
-                    ):
-                        st.session_state.user_active_url = None
-                        st.session_state.user_active_file = None
-                        st.session_state.view_session_id = s["session_id"]
-                        st.session_state.user_scrape_results = None
-                        st.rerun()
-                with cols[1]:
-                    if st.button(
-                        "\u270F\ufe0f",
-                        key=f"rename_btn_{s['session_id']}",
-                        help="Rename session",
-                    ):
-                        st.session_state.rename_session_id = s["session_id"]
-                        st.rerun()
+                    
+            with col_menu:
+                # Popover context-menu – vertical dots trigger
+                with st.popover("⋮", use_container_width=True, key=f"session_action_pop_{session_id}"):
+                    if not st.session_state[rename_flag_key]:
+                        # Default Context Menu view
+                        # 1. Original Post – uniform menu-link-item anchor
+                        url_val = s.get("url") or "#"
+                        st.markdown(
+                            f'<a href="{url_val}" target="_blank" class="menu-link-item">Original Post</a>',
+                            unsafe_allow_html=True
+                        )
+                        
+                        # 2. Trigger Rename
+                        if st.button("Rename", key=f"rename_trigger_{session_id}", use_container_width=True):
+                            st.session_state[rename_flag_key] = True
+                            st.rerun()
+                            
+                        # 3. Share
+                        if st.button("Share", key=f"share_btn_{session_id}", use_container_width=True):
+                            st.query_params["session_id"] = str(session_id)
+                            st.info("Link set in query parameters!")
+                        
+                        # 4. Delete
+                        if st.button("Delete", key=f"delete_btn_{session_id}", type="primary", use_container_width=True):
+                            from src.database import delete_session
+                            delete_session(session_id)
+                            if st.session_state.current_session_id == session_id:
+                                st.session_state.current_session_id = None
+                                st.session_state.view_mode = "new"
+                            st.success("Deleted!")
+                            st.rerun()
+                    else:
+                        # Conditional state-driven Rename Form view
+                        rename_title = st.text_input(
+                            "Rename Session", 
+                            value=s.get("custom_title") or "", 
+                            placeholder="e.g., Fuel Price Hike",
+                            key=f"rename_input_{session_id}"
+                        )
+                        col_save, col_cancel = st.columns(2)
+                        with col_save:
+                            if st.button("Save", key=f"save_rename_btn_{session_id}", type="primary", use_container_width=True):
+                                from src.database import update_session_title
+                                title_clean = rename_title.strip()
+                                update_session_title(session_id, title_clean if title_clean else None)
+                                st.session_state[rename_flag_key] = False
+                                st.success("Session renamed!")
+                                st.rerun()
+                        with col_cancel:
+                            if st.button("Cancel", key=f"cancel_rename_btn_{session_id}", use_container_width=True):
+                                st.session_state[rename_flag_key] = False
+                                st.rerun()
+                                
+            # Small structural gap between sessions
+            st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+else:
+    st.sidebar.info("No past sessions found.")
+
+st.sidebar.markdown("---")
 
 # Continue with existing path setup
 paths = build_paths()
@@ -958,324 +1091,383 @@ if is_developer:
     else:
         st.sidebar.warning("[WARN] Transformers: None found locally")
 
+# Secure log out button at bottom of sidebar
+if st.sidebar.button("🔓 Log Out", use_container_width=True, key="logout_sidebar_btn"):
+    st.session_state.logged_in = False
+    st.session_state.user_id = None
+    st.session_state.username = None
+    st.session_state.view_mode = "new"
+    st.session_state.current_session_id = None
+    st.session_state.user_scrape_results = None
+    st.query_params.clear()
+    st.rerun()
+
 # ----------------- UI Tabs / Views -----------------
 
 if not is_developer:
-    # ── User Mode: Web Scraper ──────────────────────────────────────────────
+    # ── User Mode: Dashboard views ──
     
-    if "user_active_url" not in st.session_state:
-        st.session_state.user_active_url = None
-    if "user_active_file" not in st.session_state:
-        st.session_state.user_active_file = None
-    if "user_processing" not in st.session_state:
-        st.session_state.user_processing = False
-    if "trigger_user_scrape" not in st.session_state:
-        st.session_state.trigger_user_scrape = False
-    if "user_scrape_results" not in st.session_state:
-        st.session_state.user_scrape_results = None
-    if "user_cancel_requested" not in st.session_state:
-        st.session_state.user_cancel_requested = False
-    if "user_scrape_phase" not in st.session_state:
-        st.session_state.user_scrape_phase = None
-    if "view_session_id" not in st.session_state:
-        st.session_state.view_session_id = None
-    if "current_session_id" not in st.session_state:
-        st.session_state.current_session_id = None
-    if "rename_session_id" not in st.session_state:
-        st.session_state.rename_session_id = None
-    if "session_source_url" not in st.session_state:
-        st.session_state.session_source_url = None
+    if st.session_state.view_mode == "history" and st.session_state.current_session_id is not None:
+        # History View
+        from src.database import get_session, get_session_comments
         
-    def _user_cancel_cleanup():
-        st.session_state.trigger_user_scrape = False
-        st.session_state.user_processing = False
-        st.session_state.user_scrape_phase = None
-        st.session_state.user_cancel_requested = False
-
-    # ── Handle viewing a past session ──
-    if st.session_state.view_session_id is not None:
-        from src.db.sessions import fetch_session_results, get_session
-        session_data = get_session(st.session_state.view_session_id)
-        if session_data is not None:
-            rows = fetch_session_results(st.session_state.view_session_id)
-            df_user = pd.DataFrame(rows)
-            st.session_state.user_scrape_results = df_user
-            st.session_state.current_session_id = st.session_state.view_session_id
-            st.session_state.session_source_url = session_data["source_url"]
-        st.session_state.view_session_id = None
-        st.rerun()
-
-    # ── Show results FIRST if available ──
-    if st.session_state.user_scrape_results is not None:
-        df_user = st.session_state.user_scrape_results
-        st.success("Analysis complete!")
-        pos_count = int((df_user["predicted_sentiment"] == "positive").sum())
-        neg_count = int((df_user["predicted_sentiment"] == "negative").sum())
-        neu_count = int((df_user["predicted_sentiment"] == "neutral").sum())
-        total_count = len(df_user)
-
-        r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Total", total_count)
-        r2.metric("Positive", pos_count)
-        r3.metric("Negative", neg_count)
-        r4.metric("Neutral", neu_count)
-
-        labels_chart = ['Positive', 'Neutral', 'Negative']
-        sizes_chart  = [pos_count, neu_count, neg_count]
-        colors_chart = ['#10B981', '#F59E0B', '#EF4444']
-        filtered_labels_c = [l for l, s in zip(labels_chart, sizes_chart) if s > 0]
-        filtered_sizes_c  = [s for s in sizes_chart if s > 0]
-        filtered_colors_c = [c for c, s in zip(colors_chart, sizes_chart) if s > 0]
-
-        chart_col1, chart_col2 = st.columns(2)
-        with chart_col1:
-            st.markdown("#### Sentiment Distribution")
-            if filtered_sizes_c:
-                import matplotlib.pyplot as plt
-                fig_pie_u, ax_pie_u = plt.subplots(figsize=(5, 4))
-                explode_u = [0.05] * len(filtered_sizes_c)
-                wedges_u, texts_u, autotexts_u = ax_pie_u.pie(
-                    filtered_sizes_c, explode=explode_u, labels=filtered_labels_c,
-                    autopct='%1.1f%%', shadow=True, startangle=140, colors=filtered_colors_c,
-                    textprops=dict(color="#1E293B", weight="bold", size=10),
-                    wedgeprops=dict(edgecolor='white', linewidth=1.5)
-                )
-                for at_u in autotexts_u:
-                    at_u.set_color('white')
-                    at_u.set_fontsize(11)
-                ax_pie_u.axis('equal')
-                plt.tight_layout()
-                st.pyplot(fig_pie_u)
-                plt.close(fig_pie_u)
-            else:
-                st.info("No sentiments to display.")
-        with chart_col2:
-            st.markdown("#### Sentiment Counts")
-            if filtered_sizes_c:
-                import matplotlib.pyplot as plt
-                import seaborn as sns
-                fig_bar_u, ax_bar_u = plt.subplots(figsize=(5, 4))
-                sentiment_df_chart = pd.DataFrame({'Sentiment': filtered_labels_c, 'Count': filtered_sizes_c})
-                sns.barplot(x='Count', y='Sentiment', data=sentiment_df_chart,
-                    palette=filtered_colors_c, ax=ax_bar_u, hue='Sentiment', legend=False)
-                ax_bar_u.spines['top'].set_visible(False)
-                ax_bar_u.spines['right'].set_visible(False)
-                ax_bar_u.spines['left'].set_color('#CBD5E1')
-                ax_bar_u.spines['bottom'].set_color('#CBD5E1')
-                ax_bar_u.tick_params(colors='#475569', labelsize=11)
-                ax_bar_u.set_ylabel('', color='#475569', fontsize=12)
-                ax_bar_u.set_xlabel('Count', color='#475569', fontsize=12)
-                for container in ax_bar_u.containers:
-                    ax_bar_u.bar_label(container, fmt='%d', padding=5, color='#1E293B', weight='bold', fontsize=11)
-                plt.tight_layout()
-                st.pyplot(fig_bar_u)
-                plt.close(fig_bar_u)
-            else:
-                st.info("No sentiments to display.")
-
-        st.markdown("#### Comment Breakdown")
-        st.dataframe(df_user[["text", "predicted_sentiment"]].rename(columns={"text": "Comment", "predicted_sentiment": "Sentiment"}), use_container_width=True)
-
-        if st.button("Clear Clear Results & Start New Analysis", key="user_clear_results_btn"):
-            st.session_state.user_active_url = None
-            st.session_state.user_active_file = None
-            st.session_state.user_scrape_results = None
-            st.session_state.batch_df = None
+        session = get_session(st.session_state.current_session_id)
+        if session is None:
+            st.error("Selected session not found in database.")
+            st.session_state.view_mode = "new"
             st.session_state.current_session_id = None
-            st.session_state.session_source_url = None
             st.rerun()
-
-        st.markdown("""
-            <div class='footer'>
-                Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.
-            </div>
-        """, unsafe_allow_html=True)
-        st.stop()
-
-    # ── No results yet, show input area ──
-    st.markdown("### Analyze a Facebook Post or Upload CSV")
-
-    # Render chat input if not processing
-    if not st.session_state.user_processing and not st.session_state.get("batch_processing", False):
-        prompt = st.chat_input("Paste Facebook Post URL here...", accept_file=True, file_type=["csv"], key="user_chat")
-        if prompt:
-            if prompt.text:
-                st.session_state.user_active_url = prompt.text
-                st.session_state.user_active_file = None
-                st.session_state.batch_df = None
-                st.session_state.user_scrape_results = None
-            if prompt.get("files"):
-                st.session_state.user_active_file = prompt["files"][0]
-                st.session_state.user_active_url = None
-                st.session_state.batch_df = None
-                st.session_state.user_scrape_results = None
-
-    if st.session_state.user_active_url:
-        if not st.session_state.user_processing:
-            st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
-            u_col1, u_col2 = st.columns(2)
-            with u_col1:
-                user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
-            with u_col2:
-                user_token_path = Path("secret/token.txt")
-                default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
-                user_has_token = bool(default_user_token)
-                if user_has_token:
-                    user_scrape_token = default_user_token
-                else:
-                    user_scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not pre-configured", help="Enter your Apify API token to enable scraping.", key="user_apify_token")
-
-            if st.button("Run Scrape & Analyse", type="primary", key="user_scrape_btn"):
-                if not user_scrape_token and not user_has_token:
-                    st.error("[WARN] Please enter your Apify API Token to proceed.")
-                else:
-                    st.session_state.user_scrape_limit_val = user_scrape_limit
-                    st.session_state.user_scrape_token_val = user_scrape_token if not user_has_token else default_user_token
-                    st.session_state.user_processing = True
-                    st.session_state.trigger_user_scrape = True
-                    st.session_state.user_scrape_phase = "init"
-                    st.rerun()
+            
+        comments_list = get_session_comments(st.session_state.current_session_id)
+        
+        st.markdown(f"### 📊 Analysis Session for: `{session['url']}`")
+        st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
+        
+        if not comments_list:
+            st.info("No comments found for this session.")
         else:
-            st.info("Scraping and analysis in progress... Please wait.")
-            if st.button("Stop Stop", key="user_cancel_scrape", type="secondary", use_container_width=True):
-                st.session_state.user_cancel_requested = True
-                st.rerun()
-
-        if st.session_state.trigger_user_scrape:
-            phase = st.session_state.get("user_scrape_phase", "init")
+            df_user = pd.DataFrame(comments_list)
             
-            if phase == "init":
-                if st.session_state.get("user_cancel_requested", False):
-                    st.warning("Stop Operation cancelled.")
-                    _user_cancel_cleanup()
-                    st.rerun()
-                st.session_state.user_scrape_phase = "scraping"
-                st.rerun()
+            # Count sentiments
+            df_user["sentiment_label_clean"] = df_user["sentiment_label"].fillna("neutral").str.lower()
+            total_comments = len(df_user)
+            pos_count = int((df_user["sentiment_label_clean"] == "positive").sum())
+            neg_count = int((df_user["sentiment_label_clean"] == "negative").sum())
+            neu_count = int((df_user["sentiment_label_clean"] == "neutral").sum())
             
-            elif phase == "scraping":
-                if st.session_state.get("user_cancel_requested", False):
-                    st.warning("Stop Operation cancelled.")
-                    _user_cancel_cleanup()
-                    st.rerun()
-                user_scrape_limit_val = st.session_state.user_scrape_limit_val
-                user_scrape_token_val = st.session_state.user_scrape_token_val
-                from src.collect_apify import collect_facebook_comments
-                with st.spinner("Scraping comments from Facebook via Apify... (this may take a minute)"):
-                    try:
-                        collected_df = collect_facebook_comments(urls=[st.session_state.user_active_url], limit=user_scrape_limit_val, token=user_scrape_token_val, mode="sync")
-                        st.session_state.user_collected_df = collected_df
-                        st.success(f"[OK] Scraped {len(collected_df)} comments!")
-                    except Exception as e:
-                        st.error(f"[ERR] Scraping failed: {e}")
-                        st.session_state.user_collected_df = None
-                st.session_state.user_scrape_phase = "saving"
-                st.rerun()
+            pos_pct = pos_count / total_comments if total_comments > 0 else 0
+            neg_pct = neg_count / total_comments if total_comments > 0 else 0
+            neu_pct = neu_count / total_comments if total_comments > 0 else 0
             
-            elif phase == "saving":
-                if st.session_state.get("user_cancel_requested", False):
-                    st.warning("Stop Operation cancelled.")
-                    _user_cancel_cleanup()
-                    st.rerun()
-                collected_df = st.session_state.get("user_collected_df")
-                if collected_df is not None:
-                    from src.collect_apify import persist_collected_comments_to_db
-                    from src.db.sessions import create_session
-                    with st.spinner("Save Saving to database..."):
-                        try:
-                            session = create_session(
-                                user_id=st.session_state.current_user["user_id"],
-                                session_name="Scraping...",
-                                source_url=st.session_state.user_active_url,
-                                model_used="TF-IDF Baseline",
-                            )
-                            st.session_state.current_session_id = session["session_id"]
-                            persist_collected_comments_to_db(
-                                collected_df,
-                                user_id=st.session_state.current_user["user_id"],
-                                session_id=session["session_id"],
-                            )
-                        except Exception as e:
-                            st.error(f"[ERR] Error saving to database: {e}")
-                st.session_state.user_scrape_phase = "predicting"
-                st.rerun()
+            # Metrics
+            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+            with col_m1:
+                st.markdown(f"""
+                    <div class="metric-card" style="text-align: center;">
+                         <span style="font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Total Evaluated</span>
+                         <h2 style="margin: 8px 0 0 0; color: #1E293B; font-size: 2rem;">{total_comments}</h2>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col_m2:
+                st.markdown(f"""
+                    <div class="metric-card" style="text-align: center; border-left: 5px solid #10B981;">
+                         <span style="font-size: 0.85rem; color: #065F46; font-weight: 600; text-transform: uppercase;">Positive Sentiment</span>
+                         <h2 style="margin: 8px 0 0 0; color: #065F46; font-size: 2rem;">{pos_count} <span style="font-size: 1rem; color: #34D399;">({pos_pct:.1%})</span></h2>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col_m3:
+                st.markdown(f"""
+                    <div class="metric-card" style="text-align: center; border-left: 5px solid #F59E0B;">
+                         <span style="font-size: 0.85rem; color: #92400E; font-weight: 600; text-transform: uppercase;">Neutral Sentiment</span>
+                         <h2 style="margin: 8px 0 0 0; color: #92400E; font-size: 2rem;">{neu_count} <span style="font-size: 1rem; color: #FBBF24;">({neu_pct:.1%})</span></h2>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col_m4:
+                st.markdown(f"""
+                    <div class="metric-card" style="text-align: center; border-left: 5px solid #EF4444;">
+                         <span style="font-size: 0.85rem; color: #991B1B; font-weight: 600; text-transform: uppercase;">Negative Sentiment</span>
+                         <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
+                    </div>
+                """, unsafe_allow_html=True)
             
-            elif phase == "predicting":
-                if st.session_state.get("user_cancel_requested", False):
-                    st.warning("Stop Operation cancelled.")
-                    _user_cancel_cleanup()
-                    st.rerun()
-                collected_df = st.session_state.get("user_collected_df")
-                if collected_df is not None:
-                    from src.evaluate_external import transform_with_saved_vectorizer
-                    from src.db.predictions import insert_prediction
-                    from src.db.activity import log_action
-                    import uuid
-                    with st.spinner("Running sentiment predictions..."):
-                        try:
-                            df_user = collected_df.copy()
-                            if baseline_model is not None:
-                                X = transform_with_saved_vectorizer(baseline_vec, df_user["cleaned_text"])
-                                preds = baseline_model.predict(X)
-                                if hasattr(baseline_model, "predict_proba"):
-                                    probs = baseline_model.predict_proba(X)
-                                else:
-                                    probs = None
-
-                                df_user["predicted_sentiment"] = preds
-                                classes = list(getattr(baseline_model, "classes_", ["negative", "neutral", "positive"]))
-
-                                for i, row in df_user.iterrows():
-                                    c_id = str(row.get("comment_id")) if pd.notna(row.get("comment_id")) else str(uuid.uuid4())
-                                    p_label = row["predicted_sentiment"]
-                                    conf = float(np.max(probs[i])) if probs is not None else 1.0
-                                    s_neg = float(probs[i][classes.index("negative")]) if probs is not None and "negative" in classes else 0.0
-                                    s_neu = float(probs[i][classes.index("neutral")]) if probs is not None and "neutral" in classes else 0.0
-                                    s_pos = float(probs[i][classes.index("positive")]) if probs is not None and "positive" in classes else 0.0
-                                    try:
-                                        insert_prediction(comment_id=c_id, predicted_label=p_label, predicted_confidence=conf, score_negative=s_neg, score_neutral=s_neu, score_positive=s_pos, model_name="TF-IDF Baseline", model_version="baseline", model_family="classical_ml")
-                                        log_action(user_id=st.session_state.current_user["user_id"], action_type="predict", comment_id=c_id, details={"source": "user_apify_scrape"})
-                                    except Exception:
-                                        pass
-
-                                st.session_state.user_scrape_results = df_user
-                                pos_count = int((df_user["predicted_sentiment"] == "positive").sum())
-                                neg_count = int((df_user["predicted_sentiment"] == "negative").sum())
-                                neu_count = int((df_user["predicted_sentiment"] == "neutral").sum())
-                                from src.db.sessions import update_session
-                                update_session(
-                                    session_id=st.session_state.current_session_id,
-                                    session_name=f"Scrape \u2014 {len(df_user)} comments",
-                                    comment_count=len(df_user),
-                                    pos_count=pos_count,
-                                    neg_count=neg_count,
-                                    neu_count=neu_count,
-                                )
-                        except Exception as e:
-                            st.error(f"[ERR] Error during predictions: {e}")
-                st.session_state.trigger_user_scrape = False
-                st.session_state.user_processing = False
-                st.session_state.user_scrape_phase = None
-                st.session_state.user_cancel_requested = False
-                if "user_collected_df" in st.session_state:
-                    del st.session_state.user_collected_df
+            # Time-Series Trend Visualizer
+            st.markdown("### 📈 Time-Series Sentiment Trend")
+            df_user["created_time_dt"] = pd.to_datetime(df_user["created_time"], errors="coerce")
+            valid_times = df_user["created_time_dt"].notna()
+            
+            if valid_times.sum() == 0:
+                st.info("🕒 No comment creation timestamps available for this session to render a time-series.")
+            else:
+                df_ts = df_user[valid_times].copy()
+                ts_res = st.radio(
+                    "Aggregation Resolution",
+                    ["Hour", "Day"],
+                    horizontal=True,
+                    key=f"ts_res_{session['session_id']}",
+                    help="Choose how comments are grouped over time"
+                )
+                if ts_res == "Day":
+                    df_ts["time_group"] = df_ts["created_time_dt"].dt.date
+                else:
+                    df_ts["time_group"] = df_ts["created_time_dt"].dt.floor("h")
+                    
+                trend_raw = df_ts.groupby(["time_group", "sentiment_label_clean"]).size().reset_index(name="count")
+                trend_pivot = trend_raw.pivot(index="time_group", columns="sentiment_label_clean", values="count").fillna(0)
+                for label in ["positive", "neutral", "negative"]:
+                    if label not in trend_pivot.columns:
+                        trend_pivot[label] = 0.0
+                trend_pivot = trend_pivot[["positive", "neutral", "negative"]]
+                trend_pivot.columns = ["Positive", "Neutral", "Negative"]
+                trend_pivot = trend_pivot.sort_index()
+                st.line_chart(trend_pivot, use_container_width=True)
+                
+            # Aggregated Summaries
+            col1, col2 = st.columns([1, 1])
+            labels = ['Positive', 'Neutral', 'Negative']
+            sizes = [pos_count, neu_count, neg_count]
+            filtered_labels = [l for l, s in zip(labels, sizes) if s > 0]
+            filtered_sizes = [s for s in sizes if s > 0]
+            colors = ['#10B981', '#F59E0B', '#EF4444']
+            filtered_colors = [c for c, s in zip(colors, sizes) if s > 0]
+            
+            with col1:
+                st.markdown("#### Sentiment Distribution (3D-like Pie Chart)")
+                if filtered_sizes:
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots(figsize=(6, 5))
+                    explode = [0.05] * len(filtered_sizes)
+                    wedges, texts, autotexts = ax.pie(
+                        filtered_sizes, 
+                        explode=explode,
+                        labels=filtered_labels, 
+                        autopct='%1.1f%%',
+                        shadow=True, 
+                        startangle=140, 
+                        colors=filtered_colors,
+                        textprops=dict(color="#1E293B", weight="bold", size=10),
+                        wedgeprops=dict(edgecolor='white', linewidth=1.5)
+                    )
+                    for autotext in autotexts:
+                        autotext.set_color('white')
+                        autotext.set_fontsize(11)
+                    ax.axis('equal')  
+                    plt.tight_layout()
+                    st.pyplot(fig)
+                    plt.close(fig)
+                else:
+                    st.info("No sentiments to display.")
+                    
+            with col2:
+                st.markdown("#### Sentiment Category Counts (Bar Chart)")
+                if filtered_sizes:
+                    import matplotlib.pyplot as plt
+                    import seaborn as sns
+                    fig_bar, ax_bar = plt.subplots(figsize=(6, 5))
+                    sentiment_df = pd.DataFrame({
+                        'Sentiment': filtered_labels,
+                        'Count': filtered_sizes
+                    })
+                    sns.barplot(
+                        x='Count', 
+                        y='Sentiment', 
+                        data=sentiment_df, 
+                        palette=filtered_colors,
+                        ax=ax_bar,
+                        hue='Sentiment',
+                        legend=False
+                    )
+                    ax_bar.spines['top'].set_visible(False)
+                    ax_bar.spines['right'].set_visible(False)
+                    ax_bar.spines['left'].set_color('#CBD5E1')
+                    ax_bar.spines['bottom'].set_color('#CBD5E1')
+                    ax_bar.tick_params(colors='#475569', labelsize=11)
+                    ax_bar.set_ylabel('', color='#475569', fontsize=12)
+                    ax_bar.set_xlabel('Count', color='#475569', fontsize=12)
+                    for container in ax_bar.containers:
+                        ax_bar.bar_label(container, fmt='%d', padding=5, color='#1E293B', weight='bold', fontsize=11)
+                    plt.tight_layout()
+                    st.pyplot(fig_bar)
+                    plt.close(fig_bar)
+                else:
+                    st.info("No sentiments to display.")
+                    
+            # Preview Data Table
+            st.markdown("#### Prediction Preview")
+            st.dataframe(
+                df_user[["comment_text", "sentiment_label_clean"]].rename(
+                    columns={"comment_text": "Comment", "sentiment_label_clean": "Sentiment"}
+                ),
+                use_container_width=True
+            )
+            
+            if st.button("➕ Analyze New URL", key="history_back_btn"):
+                st.session_state.view_mode = "new"
+                st.session_state.current_session_id = None
                 st.rerun()
-
-    elif st.session_state.user_active_file:
-        render_batch_analysis(baseline_model, baseline_vec, transformers, paths, st.session_state.user_active_file, is_developer=False)
-        if st.button("Clear CSV"):
+                
+        st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
+        st.stop()
+        
+    else:
+        # New Analysis View
+        st.markdown("### Analyze a Facebook Post or Upload CSV")
+        
+        # URL scrape inputs
+        if "user_active_url" not in st.session_state:
+            st.session_state.user_active_url = None
+        if "user_active_file" not in st.session_state:
             st.session_state.user_active_file = None
-            st.session_state.batch_df = None
-            st.rerun()
-
-    st.markdown(
-        """
-        <div class='footer'>
-            Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.stop()
+        if "user_processing" not in st.session_state:
+            st.session_state.user_processing = False
+        if "trigger_user_scrape" not in st.session_state:
+            st.session_state.trigger_user_scrape = False
+        if "user_scrape_phase" not in st.session_state:
+            st.session_state.user_scrape_phase = None
+        if "user_cancel_requested" not in st.session_state:
+            st.session_state.user_cancel_requested = False
+            
+        def _user_cancel_cleanup():
+            st.session_state.trigger_user_scrape = False
+            st.session_state.user_processing = False
+            st.session_state.user_scrape_phase = None
+            st.session_state.user_cancel_requested = False
+            
+        # Chat-like input for URL
+        if not st.session_state.user_processing and not st.session_state.get("batch_processing", False):
+            prompt = st.chat_input("Paste Facebook Post URL here...", accept_file=True, file_type=["csv"], key="user_chat")
+            if prompt:
+                if prompt.text:
+                    st.session_state.user_active_url = prompt.text
+                    st.session_state.user_active_file = None
+                if prompt.get("files"):
+                    st.session_state.user_active_file = prompt["files"][0]
+                    st.session_state.user_active_url = None
+                    
+        if st.session_state.user_active_url:
+            if not st.session_state.user_processing:
+                st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
+                u_col1, u_col2 = st.columns(2)
+                with u_col1:
+                    user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
+                with u_col2:
+                    user_token_path = Path("secret/token.txt")
+                    default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
+                    user_has_token = bool(default_user_token)
+                    if user_has_token:
+                        user_scrape_token = default_user_token
+                    else:
+                        user_scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not pre-configured", help="Enter your Apify API token to enable scraping.", key="user_apify_token")
+                        
+                if st.button("Run Scrape & Analyse", type="primary", key="user_scrape_btn"):
+                    if not user_scrape_token and not user_has_token:
+                        st.error("Please enter your Apify API Token to proceed.")
+                    else:
+                        st.session_state.user_scrape_limit_val = user_scrape_limit
+                        st.session_state.user_scrape_token_val = user_scrape_token if not user_has_token else default_user_token
+                        st.session_state.user_processing = True
+                        st.session_state.trigger_user_scrape = True
+                        st.session_state.user_scrape_phase = "init"
+                        st.rerun()
+            else:
+                st.info("Scraping and analysis in progress... Please wait.")
+                if st.button("Stop Scrape", key="user_cancel_scrape", type="secondary", use_container_width=True):
+                    st.session_state.user_cancel_requested = True
+                    st.rerun()
+                    
+            # Scraper logic
+            if st.session_state.trigger_user_scrape:
+                phase = st.session_state.get("user_scrape_phase", "init")
+                
+                if phase == "init":
+                    if st.session_state.get("user_cancel_requested", False):
+                        st.warning("Scrape cancelled.")
+                        _user_cancel_cleanup()
+                        st.rerun()
+                    st.session_state.user_scrape_phase = "scraping"
+                    st.rerun()
+                    
+                elif phase == "scraping":
+                    if st.session_state.get("user_cancel_requested", False):
+                        st.warning("Scrape cancelled.")
+                        _user_cancel_cleanup()
+                        st.rerun()
+                    user_scrape_limit_val = st.session_state.user_scrape_limit_val
+                    user_scrape_token_val = st.session_state.user_scrape_token_val
+                    from src.collect_apify import collect_facebook_comments
+                    with st.spinner("Scraping comments from Facebook via Apify... (this may take a minute)"):
+                        try:
+                            collected_df = collect_facebook_comments(urls=[st.session_state.user_active_url], limit=user_scrape_limit_val, token=user_scrape_token_val, mode="sync")
+                            st.session_state.user_collected_df = collected_df
+                            st.success(f"[OK] Scraped {len(collected_df)} comments!")
+                        except Exception as e:
+                            st.error(f"[ERR] Scraping failed: {e}")
+                            st.session_state.user_collected_df = None
+                    st.session_state.user_scrape_phase = "predicting"
+                    st.rerun()
+                    
+                elif phase == "predicting":
+                    if st.session_state.get("user_cancel_requested", False):
+                        st.warning("Predicting cancelled.")
+                        _user_cancel_cleanup()
+                        st.rerun()
+                    collected_df = st.session_state.get("user_collected_df")
+                    if collected_df is not None:
+                        from src.evaluate_external import transform_with_saved_vectorizer
+                        from src.preprocess import clean_text
+                        from src.database import save_analysis
+                        with st.spinner("Running sentiment predictions..."):
+                            try:
+                                df_user = collected_df.copy()
+                                df_user["cleaned_text"] = df_user["text"].apply(clean_text)
+                                if baseline_model is not None:
+                                    X = transform_with_saved_vectorizer(baseline_vec, df_user["cleaned_text"])
+                                    preds = baseline_model.predict(X)
+                                    df_user["predicted_sentiment"] = preds
+                                else:
+                                    df_user["predicted_sentiment"] = "neutral"
+                                    
+                                # Save using new save_analysis
+                                session = save_analysis(
+                                    user_id=st.session_state.user_id,
+                                    url=st.session_state.user_active_url,
+                                    df=df_user
+                                )
+                                st.session_state.current_session_id = session["session_id"]
+                                st.session_state.view_mode = "history"
+                                st.session_state.user_active_url = None
+                                st.success("Analysis saved to database!")
+                            except Exception as e:
+                                st.error(f"[ERR] Error during predictions: {e}")
+                    st.session_state.trigger_user_scrape = False
+                    st.session_state.user_processing = False
+                    st.session_state.user_scrape_phase = None
+                    st.session_state.user_cancel_requested = False
+                    if "user_collected_df" in st.session_state:
+                        del st.session_state.user_collected_df
+                    st.rerun()
+                    
+        elif st.session_state.user_active_file:
+            # Batch CSV upload flow
+            st.markdown(f"**Loaded CSV:** `{st.session_state.user_active_file.name}`")
+            try:
+                df = pd.read_csv(st.session_state.user_active_file)
+                text_cols = [c for c in df.columns if any(x in c.lower() for x in ["text", "comment", "body"])]
+                text_column = st.selectbox("Select Comment Column", df.columns, index=df.columns.get_loc(text_cols[0]) if text_cols else 0)
+                
+                if st.button("Run Batch Prediction"):
+                    with st.spinner("Processing batch..."):
+                        from src.preprocess import clean_text
+                        from src.evaluate_external import transform_with_saved_vectorizer
+                        from src.database import save_analysis
+                        
+                        df_run = df.copy()
+                        df_run["cleaned_text"] = df_run[text_column].apply(clean_text)
+                        if baseline_model is not None:
+                            X_batch = transform_with_saved_vectorizer(baseline_vec, df_run["cleaned_text"])
+                            predictions = baseline_model.predict(X_batch)
+                            df_run["predicted_sentiment"] = predictions
+                        else:
+                            df_run["predicted_sentiment"] = "neutral"
+                            
+                        # Save
+                        session = save_analysis(
+                            user_id=st.session_state.user_id,
+                            url="CSV Upload: " + st.session_state.user_active_file.name,
+                            df=df_run
+                        )
+                        st.session_state.current_session_id = session["session_id"]
+                        st.session_state.view_mode = "history"
+                        st.session_state.user_active_file = None
+                        st.rerun()
+            except Exception as e:
+                st.error(f"Error loading CSV file: {e}")
+                
+            if st.button("Clear CSV"):
+                st.session_state.user_active_file = None
+                st.rerun()
+                
+        st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
+        st.stop()
 
 # Below is only accessible to verified Developers
 tab_live, tab_analysis_scrape, tab_metrics, tab_controls, tab_db = st.tabs([
