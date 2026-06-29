@@ -1115,19 +1115,17 @@ if not is_developer:
             st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
             u_col1, u_col2 = st.columns(2)
             with u_col1:
-                user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
+                user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=10000, key="user_scrape_limit")
             with u_col2:
                 user_token_path = Path("secret/token.txt")
                 default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
                 user_has_token = bool(default_user_token)
                 if user_has_token:
                     user_scrape_token = default_user_token
-                else:
-                    user_scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not pre-configured", help="Enter your Apify API token to enable scraping.", key="user_apify_token")
 
             if st.button("Run Scrape & Analyse", type="primary", key="user_scrape_btn"):
                 if not user_scrape_token and not user_has_token:
-                    st.error("[WARN] Please enter your Apify API Token to proceed.")
+                    st.error("[WARN] Scrapper Token not found, Contact admin.")
                 else:
                     st.session_state.user_scrape_limit_val = user_scrape_limit
                     st.session_state.user_scrape_token_val = user_scrape_token if not user_has_token else default_user_token

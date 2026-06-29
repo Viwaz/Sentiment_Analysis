@@ -19,7 +19,7 @@ secret/token.txt
 # Transformer training artifacts
 models/transformer/*
 !models/transformer/.gitkeep
-!models/transformer/*/
+models/transformer/*/
 !models/transformer/*/model_metadata.json
 models/transformer/checkpoint-*/
 models/transformer/best_model/
