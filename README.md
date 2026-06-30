@@ -1,4 +1,4 @@
-﻿# Low-Resource Facebook Sentiment Classifier
+# Low-Resource Facebook Sentiment Classifier
 
 A longitudinal sentiment analysis system for code-switched Facebook comments in low-resource language settings. The platform combines a pretrained **AfriBERTa Small** transformer model with a multi-user **Streamlit dashboard**, a **FastAPI model service**, and a **PostgreSQL** persistence layer for tracking public sentiment shifts over time.
 

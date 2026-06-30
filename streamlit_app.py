@@ -775,6 +775,27 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                         df_run["model_confidence"] = confidences
                         st.session_state.batch_df = df_run
                         st.session_state.batch_text_col = text_column
+
+                        # ── Cache word cloud images once, right after prediction ──
+                        try:
+                            from src.models import generate_wordcloud as _gen_wc_cache
+                            _cache_texts = df_run[text_column].tolist()
+                            _cache_sents = df_run["predicted_sentiment"].tolist()
+                            _wc_cache: dict = {}
+                            for _lbl in ["All", "Positive", "Negative", "Neutral"]:
+                                _f = None if _lbl == "All" else _lbl.lower()
+                                _wc_o = _gen_wc_cache(
+                                    texts=_cache_texts,
+                                    sentiment_filter=_f,
+                                    predicted_sentiments=_cache_sents,
+                                    stopwords_path="stopwords_chichewa.txt",
+                                    width=900, height=380, max_words=120,
+                                )
+                                _wc_cache[_lbl] = _wc_o.to_image() if _wc_o else None
+                            st.session_state.batch_wordclouds = _wc_cache
+                        except Exception:
+                            st.session_state.batch_wordclouds = {}
+
                         st.success("Batch prediction complete!")
                     except Exception as e:
                         st.error(f"Error during batch prediction: {e}")
@@ -907,82 +928,55 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                 st.markdown("#### Prediction Preview")
                 render_styled_predictions_df(df_results, text_col, "predicted_sentiment", "model_confidence")
 
-                # ── Sentiment-Specific Word Clouds (Task 2) ──────────────────────
+                # ── Sentiment-Specific Word Clouds ───────────────────────────
                 st.markdown("---")
                 st.markdown("#### 🌥️ Sentiment Word Clouds")
                 _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
                 _wc_tabs = st.tabs(_wc_sentiments)
-                _wc_colormaps = {
-                    "All": "plasma",
-                    "Positive": "Greens",
-                    "Negative": "Reds",
-                    "Neutral": "YlOrBr",
-                }
-                _stopwords_path = "stopwords_chichewa.txt"
-                _raw_texts = df_results[text_col].tolist() if text_col in df_results.columns else []
-                _raw_sentiments = df_results["predicted_sentiment"].tolist() if "predicted_sentiment" in df_results.columns else []
+                _wc_cache = st.session_state.get("batch_wordclouds", {})
+
                 for _wc_tab, _wc_label in zip(_wc_tabs, _wc_sentiments):
                     with _wc_tab:
-                        try:
-                            from src.models import generate_wordcloud as _gen_wc
-                            _filter = None if _wc_label == "All" else _wc_label.lower()
-                            _wc_obj = _gen_wc(
-                                texts=_raw_texts,
-                                sentiment_filter=_filter,
-                                predicted_sentiments=_raw_sentiments,
-                                stopwords_path=_stopwords_path,
-                                background_color="white",
-                                colormap=_wc_colormaps.get(_wc_label, "viridis"),
-                                width=900,
-                                height=380,
-                                max_words=120,
-                            )
-                            if _wc_obj is not None:
-                                _fig_wc, _ax_wc = plt.subplots(figsize=(11, 4.5))
-                                _ax_wc.imshow(_wc_obj, interpolation="bilinear")
-                                _ax_wc.axis("off")
-                                _fig_wc.patch.set_facecolor("white")
-                                plt.tight_layout(pad=0)
-                                st.pyplot(_fig_wc)
-                                plt.close(_fig_wc)
-                            else:
-                                st.info(f"No '{_wc_label}' comments to visualise.")
-                        except ImportError:
-                            st.warning("Install `wordcloud` (`pip install wordcloud`) to enable word clouds.")
-                        except Exception as _wc_err:
-                            st.error(f"Word cloud error: {_wc_err}")
+                        _cached_img = _wc_cache.get(_wc_label)
+                        if _cached_img is not None:
+                            st.image(_cached_img, use_container_width=True)
+                        else:
+                            st.info(f"No '{_wc_label}' comments to visualise.")
 
                 st.markdown("---")
                 # Download actions
                 col_dl1, col_dl2 = st.columns(2)
                 with col_dl1:
-                    csv_data = df_results.to_csv(index=False).encode('utf-8')
+                    csv_data = df_results.to_csv(index=False).encode("utf-8")
                     st.download_button(
                         label="Download Predictions CSV",
                         data=csv_data,
                         file_name="sentiment_predictions.csv",
                         mime="text/csv",
-                        use_container_width=True
+                        use_container_width=True,
                     )
                 with col_dl2:
-                    try:
-                        from src.report_generator import create_report_pdf
-                        import datetime
-                        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                        pdf_data = create_report_pdf(
-                            url=uploaded_file.name,
-                            timestamp=now_str,
-                            df=df_results
-                        )
-                        st.download_button(
-                            label="📄 Download PDF Report",
-                            data=pdf_data,
-                            file_name="sentiment_report.pdf",
-                            mime="application/pdf",
-                            use_container_width=True
-                        )
-                    except Exception as pdf_ex:
-                        st.error(f"Could not generate PDF report: {pdf_ex}")
+                    if st.button("📥 Generate PDF Report"):
+                        with st.spinner("Preparing your report..."):
+                            try:
+                                from src.report_generator import create_report_pdf
+                                import datetime
+                                now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                                pdf_data = create_report_pdf(
+                                    url=uploaded_file.name,
+                                    timestamp=now_str,
+                                    df=df_results,
+                                    wordclouds=st.session_state.get("batch_wordclouds"),
+                                )
+                                st.download_button(
+                                    label="📄 Download PDF Report",
+                                    data=pdf_data,
+                                    file_name="sentiment_report.pdf",
+                                    mime="application/pdf",
+                                    use_container_width=True,
+                                )
+                            except Exception as pdf_ex:
+                                st.error(f"Could not generate PDF report: {pdf_ex}")
 
                 
         except Exception as e:
@@ -1268,7 +1262,29 @@ if not is_developer:
             st.info("No comments found for this session.")
         else:
             df_user = pd.DataFrame(comments_list)
-            
+
+            # Cache word clouds for this history session (regenerate only when session changes)
+            if st.session_state.get("_hist_wc_session") != st.session_state.current_session_id:
+                st.session_state._hist_wc_session = st.session_state.current_session_id
+                try:
+                    from src.models import generate_wordcloud as _gen_wc_hist
+                    _hist_texts = df_user["comment_text"].tolist()
+                    _hist_sents = df_user["sentiment_label"].fillna("neutral").tolist()
+                    _hist_cache: dict = {}
+                    for _lbl in ["All", "Positive", "Negative", "Neutral"]:
+                        _f = None if _lbl == "All" else _lbl.lower()
+                        _wc_o = _gen_wc_hist(
+                            texts=_hist_texts,
+                            sentiment_filter=_f,
+                            predicted_sentiments=_hist_sents,
+                            stopwords_path="stopwords_chichewa.txt",
+                            width=900, height=380, max_words=120,
+                        )
+                        _hist_cache[_lbl] = _wc_o.to_image() if _wc_o else None
+                    st.session_state.batch_wordclouds = _hist_cache
+                except Exception:
+                    st.session_state.batch_wordclouds = {}
+
             # Count sentiments
             df_user["sentiment_label_clean"] = df_user["sentiment_label"].fillna("neutral").str.lower()
             total_comments = len(df_user)
@@ -1423,22 +1439,25 @@ if not is_developer:
                     st.session_state.current_session_id = None
                     st.rerun()
             with col_dl2:
-                try:
-                    from src.report_generator import create_report_pdf
-                    pdf_data = create_report_pdf(
-                        url=session["url"],
-                        timestamp=session["timestamp"],
-                        df=df_user
-                    )
-                    st.download_button(
-                        label="📄 Download PDF Report",
-                        data=pdf_data,
-                        file_name="sentiment_report.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
-                except Exception as pdf_ex:
-                    st.error(f"Could not generate PDF report: {pdf_ex}")
+                if st.button("📥 Generate PDF Report", key="hist_pdf_btn", use_container_width=True):
+                    with st.spinner("Preparing your report..."):
+                        try:
+                            from src.report_generator import create_report_pdf
+                            pdf_data = create_report_pdf(
+                                url=session["url"],
+                                timestamp=session["timestamp"],
+                                df=df_user,
+                                wordclouds=st.session_state.get("batch_wordclouds"),
+                            )
+                            st.download_button(
+                                label="📄 Download PDF Report",
+                                data=pdf_data,
+                                file_name="sentiment_report.pdf",
+                                mime="application/pdf",
+                                use_container_width=True,
+                            )
+                        except Exception as pdf_ex:
+                            st.error(f"Could not generate PDF report: {pdf_ex}")
                 
         st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
@@ -1483,7 +1502,7 @@ if not is_developer:
                 st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
                 u_col1, u_col2 = st.columns(2)
                 with u_col1:
-                    user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
+                    user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=1000, value=50, key="user_scrape_limit")
                 with u_col2:
                     user_token_path = Path("secret/token.txt")
                     default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
@@ -1691,10 +1710,6 @@ with tab_live:
             
             st.markdown("#### Input Text Preprocessing")
             st.markdown(f"**Cleaned Text:** *`{cleaned}`*")
-            if enable_translation:
-                translated = translate_chichewa(text_input)
-                if translated:
-                    st.markdown(f"**Translated Text (English):** *`{translated}`*")
             
             with st.spinner("Classifying..."):
                 pred_label = None
@@ -1728,14 +1743,27 @@ with tab_live:
                             
                     # Display Results
                     st.markdown("#### Classification Result")
-                    
+
+                    # Compute max confidence for the badge
+                    _badge_conf = float(np.max(probs)) if probs is not None else None
+                    _conf_str   = f" · {_badge_conf:.1%}" if _badge_conf is not None else ""
+
                     if pred_label == "positive":
-                        st.markdown("<span class='badge badge-positive'>POSITIVE</span>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"<span class='badge badge-positive'>POSITIVE{_conf_str}</span>",
+                            unsafe_allow_html=True,
+                        )
                     elif pred_label == "negative":
-                        st.markdown("<span class='badge badge-negative'>NEGATIVE</span>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"<span class='badge badge-negative'>NEGATIVE{_conf_str}</span>",
+                            unsafe_allow_html=True,
+                        )
                     else:
-                        st.markdown("<span class='badge badge-neutral'>NEUTRAL</span>", unsafe_allow_html=True)
-                        
+                        st.markdown(
+                            f"<span class='badge badge-neutral'>NEUTRAL{_conf_str}</span>",
+                            unsafe_allow_html=True,
+                        )
+
                     if probs is not None:
                         st.write("Confidence Breakdown:")
                         for c_label, prob in zip(classes, probs):
