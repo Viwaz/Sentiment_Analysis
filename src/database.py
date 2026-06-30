@@ -76,8 +76,24 @@ def init_db() -> None:
                     session_id       INTEGER NOT NULL REFERENCES dashboard.sessions(session_id) ON DELETE CASCADE,
                     comment_text     TEXT NOT NULL,
                     sentiment_label  VARCHAR(50),
+                    model_confidence NUMERIC(10,8),
                     created_time     TIMESTAMP WITHOUT TIME ZONE
                 );
+            """)
+
+            # Idempotent migration: add model_confidence to existing installs
+            cur.execute("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'dashboard'
+                          AND table_name = 'comments'
+                          AND column_name = 'model_confidence'
+                    ) THEN
+                        ALTER TABLE dashboard.comments ADD COLUMN model_confidence NUMERIC(10,8);
+                    END IF;
+                END $$;
             """)
 
 
@@ -233,7 +249,8 @@ def _comment_row_to_dict(row: tuple) -> dict[str, Any]:
         "session_id": row[1],
         "comment_text": row[2],
         "sentiment_label": row[3],
-        "created_time": row[4].isoformat() if row[4] else None,
+        "model_confidence": float(row[4]) if row[4] is not None else None,
+        "created_time": row[5].isoformat() if row[5] else None,
     }
 
 
@@ -241,14 +258,15 @@ def add_comment(
     session_id: int,
     comment_text: str,
     sentiment_label: str | None = None,
+    model_confidence: float | None = None,
     created_time: str | None = None,
 ) -> None:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO dashboard.comments (session_id, comment_text, sentiment_label, created_time) "
-                "VALUES (%s, %s, %s, %s)",
-                (session_id, comment_text, sentiment_label, created_time),
+                "INSERT INTO dashboard.comments (session_id, comment_text, sentiment_label, model_confidence, created_time) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (session_id, comment_text, sentiment_label, model_confidence, created_time),
             )
 
 
@@ -256,7 +274,7 @@ def get_session_comments(session_id: int) -> list[dict[str, Any]]:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT comment_id, session_id, comment_text, sentiment_label, created_time "
+                "SELECT comment_id, session_id, comment_text, sentiment_label, model_confidence, created_time "
                 "FROM dashboard.comments WHERE session_id = %s ORDER BY created_time NULLS LAST",
                 (session_id,),
             )
@@ -285,6 +303,7 @@ def save_analysis(user_id: int, url: str, df: pd.DataFrame) -> dict[str, Any]:
     and ``predicted_sentiment`` (or ``predicted_label``).
     The optional ``created_at`` / ``createdAt`` / ``created_time`` column
     holds the original Facebook timestamp.
+    The optional ``model_confidence`` column holds the per-row confidence score.
     """
     session = create_session(user_id, url)
 
@@ -297,6 +316,7 @@ def save_analysis(user_id: int, url: str, df: pd.DataFrame) -> dict[str, Any]:
     time_col = next(
         (c for c in ("created_at", "createdAt", "created_time", "timestamp") if c in df.columns), None
     )
+    confidence_col = "model_confidence" if "model_confidence" in df.columns else None
 
     if text_col is None:
         raise ValueError("DataFrame must contain a text/comment column.")
@@ -309,14 +329,15 @@ def save_analysis(user_id: int, url: str, df: pd.DataFrame) -> dict[str, Any]:
         sentiment = str(row.get(sentiment_col, "")) if sentiment_col and pd.notna(row.get(sentiment_col)) else ""
         raw_time = row.get(time_col) if time_col else None
         created = parse_datetime(raw_time)
-        data_tuples.append((session["session_id"], str(text), sentiment or None, created))
+        confidence = float(row[confidence_col]) if confidence_col and pd.notna(row.get(confidence_col)) else None
+        data_tuples.append((session["session_id"], str(text), sentiment or None, confidence, created))
 
     if data_tuples:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 execute_values(
                     cur,
-                    "INSERT INTO dashboard.comments (session_id, comment_text, sentiment_label, created_time) "
+                    "INSERT INTO dashboard.comments (session_id, comment_text, sentiment_label, model_confidence, created_time) "
                     "VALUES %s",
                     data_tuples
                 )

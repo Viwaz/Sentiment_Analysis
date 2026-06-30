@@ -291,6 +291,16 @@ class TestPreprocessed:
 
         insert_comment(comment_id=raw_only_id, text="Raw only comment")
         insert_comment(comment_id=preprocessed_id, text="Already preprocessed comment")
+        
+        # Set a historical date_collected so they rank first in fetch queries (ignoring any volume in the DB)
+        from src.db.connection import get_connection as _get_conn
+        with _get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE comments SET date_collected = '1970-01-01 00:00:00' WHERE comment_id IN (%s, %s)",
+                    (raw_only_id, preprocessed_id)
+                )
+        
         insert_preprocessed(comment_id=preprocessed_id, cleaned_text="already preprocessed comment")
 
         missing_rows = fetch_comments_missing_preprocessing(limit=1000)

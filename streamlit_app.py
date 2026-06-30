@@ -452,6 +452,61 @@ st.markdown("""
 
 # ----------------- Helper Functions -----------------
 
+def render_styled_predictions_df(df: pd.DataFrame, text_col: str, sentiment_col: str, confidence_col: str | None = None) -> None:
+    # Build display frame
+    cols = []
+    if text_col in df.columns:
+        cols.append(text_col)
+    if "cleaned_text" in df.columns:
+        cols.append("cleaned_text")
+    if sentiment_col in df.columns:
+        cols.append(sentiment_col)
+    if confidence_col and confidence_col in df.columns:
+        cols.append(confidence_col)
+        
+    preview_df = df[cols].head(100).copy()
+    
+    # Rename columns for presentation
+    renames = {
+        text_col: "Comment",
+        "cleaned_text": "Cleaned Text",
+        sentiment_col: "Sentiment"
+    }
+    if confidence_col:
+        renames[confidence_col] = "Model Confidence"
+    preview_df.rename(columns=renames, inplace=True)
+    
+    # Row highlight for low confidence
+    def highlight_low_confidence(row):
+        if "Model Confidence" in row.index:
+            val = row["Model Confidence"]
+            try:
+                if val is not None and pd.notna(val) and float(val) < 0.60:
+                    return ["background-color: #FFE4E4; color: #7F1D1D;"] * len(row)
+            except (TypeError, ValueError):
+                pass
+        return [""] * len(row)
+        
+    sentiment_colors = {
+        "positive": "#16A34A",
+        "negative": "#DC2626",
+        "neutral": "#D97706",
+    }
+    
+    styled = preview_df.style.apply(highlight_low_confidence, axis=1)
+    
+    if "Model Confidence" in preview_df.columns:
+        styled = styled.format({"Model Confidence": "{:.1%}"})
+        
+    def colour_sentiment(val):
+        color = sentiment_colors.get(str(val).lower(), "#475569")
+        return f"color: {color}; font-weight: 700; text-transform: capitalize;"
+        
+    if "Sentiment" in preview_df.columns:
+        styled = styled.map(colour_sentiment, subset=["Sentiment"])
+        
+    st.dataframe(styled, use_container_width=True)
+
 @st.cache_resource
 def get_project_root():
     return Path(__file__).resolve().parent
@@ -616,7 +671,9 @@ def run_parallel_predictions(df_run, baseline_model, baseline_vec, transformers,
     ensemble_probs = np.mean(results, axis=0)
     labels_order = ["negative", "neutral", "positive"]
     pred_indices = np.argmax(ensemble_probs, axis=1)
-    return [labels_order[idx] for idx in pred_indices]
+    pred_labels = [labels_order[idx] for idx in pred_indices]
+    pred_confidences = ensemble_probs.max(axis=1).tolist()
+    return pred_labels, pred_confidences
 
 
 def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, uploaded_file, is_developer=True):
@@ -678,14 +735,25 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                         # Run predictions
                         if batch_model_choice == "TF-IDF Baseline":
                             from src.evaluate_external import transform_with_saved_vectorizer
+                            from scipy.special import softmax as _softmax
                             X_batch = transform_with_saved_vectorizer(baseline_vec, df_run["cleaned_text"])
+                            if hasattr(baseline_model, "predict_proba"):
+                                probs_batch = baseline_model.predict_proba(X_batch)
+                            elif hasattr(baseline_model, "decision_function"):
+                                dec = baseline_model.decision_function(X_batch)
+                                probs_batch = _softmax(dec if dec.ndim == 2 else np.column_stack([-dec, dec]), axis=1)
+                            else:
+                                probs_batch = None
                             predictions = baseline_model.predict(X_batch)
+                            confidences = probs_batch.max(axis=1).tolist() if probs_batch is not None else [1.0] * len(predictions)
                         elif batch_model_choice.startswith("Transformer ("):
+                            from scipy.special import softmax as _softmax
                             run_id = batch_model_choice.replace("Transformer (", "").rstrip(")")
                             t_model, t_tokenizer = load_transformer_model(run_id)
                             
                             import torch
                             predictions = []
+                            confidences = []
                             id_to_label = getattr(t_model.config, "id2label", {0: "negative", 1: "neutral", 2: "positive"})
                             
                             # Process texts
@@ -693,15 +761,18 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                                 inputs = t_tokenizer(txt, return_tensors="pt", truncation=True, max_length=128)
                                 with torch.no_grad():
                                     logits = t_model(**inputs).logits.numpy()[0]
-                                    pred_idx = np.argmax(logits)
+                                    probs = _softmax(logits)
+                                    pred_idx = int(np.argmax(probs))
                                     predictions.append(id_to_label[pred_idx].lower())
+                                    confidences.append(float(probs[pred_idx]))
                         else:
                             # Parallel Ensemble
-                            predictions = run_parallel_predictions(
+                            predictions, confidences = run_parallel_predictions(
                                 df_run, baseline_model, baseline_vec, transformers, paths
                             )
                                     
                         df_run["predicted_sentiment"] = predictions
+                        df_run["model_confidence"] = confidences
                         st.session_state.batch_df = df_run
                         st.session_state.batch_text_col = text_column
                         st.success("Batch prediction complete!")
@@ -711,6 +782,7 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                         st.session_state.trigger_batch_predict = False
                         st.session_state.batch_processing = False
                         st.rerun()
+
                         
             # Render results panel if we have results in session state
             if st.session_state.batch_df is not None:
@@ -833,16 +905,85 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                         
                 # Preview Data Table
                 st.markdown("#### Prediction Preview")
-                st.dataframe(df_results[[text_col, "cleaned_text", "predicted_sentiment"]].head(100), use_container_width=True)
-                
-                # Download predicted CSV
-                csv_data = df_results.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="Download Download Predictions CSV",
-                    data=csv_data,
-                    file_name="sentiment_predictions.csv",
-                    mime="text/csv"
-                )
+                render_styled_predictions_df(df_results, text_col, "predicted_sentiment", "model_confidence")
+
+                # ── Sentiment-Specific Word Clouds (Task 2) ──────────────────────
+                st.markdown("---")
+                st.markdown("#### 🌥️ Sentiment Word Clouds")
+                _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
+                _wc_tabs = st.tabs(_wc_sentiments)
+                _wc_colormaps = {
+                    "All": "plasma",
+                    "Positive": "Greens",
+                    "Negative": "Reds",
+                    "Neutral": "YlOrBr",
+                }
+                _stopwords_path = "stopwords_chichewa.txt"
+                _raw_texts = df_results[text_col].tolist() if text_col in df_results.columns else []
+                _raw_sentiments = df_results["predicted_sentiment"].tolist() if "predicted_sentiment" in df_results.columns else []
+                for _wc_tab, _wc_label in zip(_wc_tabs, _wc_sentiments):
+                    with _wc_tab:
+                        try:
+                            from src.models import generate_wordcloud as _gen_wc
+                            _filter = None if _wc_label == "All" else _wc_label.lower()
+                            _wc_obj = _gen_wc(
+                                texts=_raw_texts,
+                                sentiment_filter=_filter,
+                                predicted_sentiments=_raw_sentiments,
+                                stopwords_path=_stopwords_path,
+                                background_color="white",
+                                colormap=_wc_colormaps.get(_wc_label, "viridis"),
+                                width=900,
+                                height=380,
+                                max_words=120,
+                            )
+                            if _wc_obj is not None:
+                                _fig_wc, _ax_wc = plt.subplots(figsize=(11, 4.5))
+                                _ax_wc.imshow(_wc_obj, interpolation="bilinear")
+                                _ax_wc.axis("off")
+                                _fig_wc.patch.set_facecolor("white")
+                                plt.tight_layout(pad=0)
+                                st.pyplot(_fig_wc)
+                                plt.close(_fig_wc)
+                            else:
+                                st.info(f"No '{_wc_label}' comments to visualise.")
+                        except ImportError:
+                            st.warning("Install `wordcloud` (`pip install wordcloud`) to enable word clouds.")
+                        except Exception as _wc_err:
+                            st.error(f"Word cloud error: {_wc_err}")
+
+                st.markdown("---")
+                # Download actions
+                col_dl1, col_dl2 = st.columns(2)
+                with col_dl1:
+                    csv_data = df_results.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="Download Predictions CSV",
+                        data=csv_data,
+                        file_name="sentiment_predictions.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
+                with col_dl2:
+                    try:
+                        from src.report_generator import create_report_pdf
+                        import datetime
+                        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                        pdf_data = create_report_pdf(
+                            url=uploaded_file.name,
+                            timestamp=now_str,
+                            df=df_results
+                        )
+                        st.download_button(
+                            label="📄 Download PDF Report",
+                            data=pdf_data,
+                            file_name="sentiment_report.pdf",
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
+                    except Exception as pdf_ex:
+                        st.error(f"Could not generate PDF report: {pdf_ex}")
+
                 
         except Exception as e:
             st.error(f"Error processing CSV file: {e}")
@@ -1273,17 +1414,31 @@ if not is_developer:
                     
             # Preview Data Table
             st.markdown("#### Prediction Preview")
-            st.dataframe(
-                df_user[["comment_text", "sentiment_label_clean"]].rename(
-                    columns={"comment_text": "Comment", "sentiment_label_clean": "Sentiment"}
-                ),
-                use_container_width=True
-            )
+            render_styled_predictions_df(df_user, "comment_text", "sentiment_label", "model_confidence")
             
-            if st.button("➕ Analyze New URL", key="history_back_btn"):
-                st.session_state.view_mode = "new"
-                st.session_state.current_session_id = None
-                st.rerun()
+            col_dl1, col_dl2 = st.columns(2)
+            with col_dl1:
+                if st.button("➕ Analyze New URL", key="history_back_btn", use_container_width=True):
+                    st.session_state.view_mode = "new"
+                    st.session_state.current_session_id = None
+                    st.rerun()
+            with col_dl2:
+                try:
+                    from src.report_generator import create_report_pdf
+                    pdf_data = create_report_pdf(
+                        url=session["url"],
+                        timestamp=session["timestamp"],
+                        df=df_user
+                    )
+                    st.download_button(
+                        label="📄 Download PDF Report",
+                        data=pdf_data,
+                        file_name="sentiment_report.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                except Exception as pdf_ex:
+                    st.error(f"Could not generate PDF report: {pdf_ex}")
                 
         st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
@@ -1400,11 +1555,21 @@ if not is_developer:
                                 df_user = collected_df.copy()
                                 df_user["cleaned_text"] = df_user["text"].apply(clean_text)
                                 if baseline_model is not None:
+                                    from scipy.special import softmax as _sm
                                     X = transform_with_saved_vectorizer(baseline_vec, df_user["cleaned_text"])
                                     preds = baseline_model.predict(X)
+                                    if hasattr(baseline_model, "predict_proba"):
+                                        _probs = baseline_model.predict_proba(X)
+                                    elif hasattr(baseline_model, "decision_function"):
+                                        _dec = baseline_model.decision_function(X)
+                                        _probs = _sm(_dec if _dec.ndim == 2 else np.column_stack([-_dec, _dec]), axis=1)
+                                    else:
+                                        _probs = None
                                     df_user["predicted_sentiment"] = preds
+                                    df_user["model_confidence"] = _probs.max(axis=1).tolist() if _probs is not None else [1.0] * len(preds)
                                 else:
                                     df_user["predicted_sentiment"] = "neutral"
+                                    df_user["model_confidence"] = None
                                     
                                 # Save using new save_analysis
                                 session = save_analysis(
@@ -1443,11 +1608,21 @@ if not is_developer:
                         df_run = df.copy()
                         df_run["cleaned_text"] = df_run[text_column].apply(clean_text)
                         if baseline_model is not None:
+                            from scipy.special import softmax as _sm
                             X_batch = transform_with_saved_vectorizer(baseline_vec, df_run["cleaned_text"])
                             predictions = baseline_model.predict(X_batch)
+                            if hasattr(baseline_model, "predict_proba"):
+                                _probs = baseline_model.predict_proba(X_batch)
+                            elif hasattr(baseline_model, "decision_function"):
+                                _dec = baseline_model.decision_function(X_batch)
+                                _probs = _sm(_dec if _dec.ndim == 2 else np.column_stack([-_dec, _dec]), axis=1)
+                            else:
+                                _probs = None
                             df_run["predicted_sentiment"] = predictions
+                            df_run["model_confidence"] = _probs.max(axis=1).tolist() if _probs is not None else [1.0] * len(predictions)
                         else:
                             df_run["predicted_sentiment"] = "neutral"
+                            df_run["model_confidence"] = None
                             
                         # Save
                         session = save_analysis(
@@ -1504,6 +1679,7 @@ with tab_live:
         else:
             model_choice = st.selectbox("Select Classification Model", available_options)
             
+        enable_translation = st.toggle("Translate Chichewa Comments", value=True)
         submit_btn = st.button("Classify Sentiment", disabled=(model_choice is None or not text_input))
         
     with col2:
@@ -1515,6 +1691,10 @@ with tab_live:
             
             st.markdown("#### Input Text Preprocessing")
             st.markdown(f"**Cleaned Text:** *`{cleaned}`*")
+            if enable_translation:
+                translated = translate_chichewa(text_input)
+                if translated:
+                    st.markdown(f"**Translated Text (English):** *`{translated}`*")
             
             with st.spinner("Classifying..."):
                 pred_label = None
@@ -1797,6 +1977,7 @@ with tab_analysis_scrape:
                             classes = getattr(baseline_model, "classes_", ["negative", "neutral", "positive"]) if fam == "classical_ml" else ["negative", "neutral", "positive"]
                             
                             saved_preds = 0
+                            confidences = []
                             for idx, row in df_run.iterrows():
                                 c_id = str(row.get("comment_id")) if pd.notna(row.get("comment_id")) else f"apify_{row.get('apify_dataset_id', 'dataset')}_{row.get('apify_run_id', 'run')}_{row.get('id', idx+1)}"
                                 p_label = row["predicted_sentiment"]
@@ -1815,6 +1996,7 @@ with tab_analysis_scrape:
                                         s_neg = float(p_row[l2id.get("negative", 0)])
                                         s_neu = float(p_row[l2id.get("neutral", 1)])
                                         s_pos = float(p_row[l2id.get("positive", 2)])
+                                confidences.append(conf)
                                 try:
                                     insert_prediction(comment_id=c_id, predicted_label=p_label, predicted_confidence=conf, score_negative=s_neg, score_neutral=s_neu, score_positive=s_pos, model_name=scrape_model_val, model_version=ver, model_family=fam)
                                     log_action(user_id=None, action_type="predict", comment_id=c_id, details={"source": "apify_scrape"})
@@ -1822,6 +2004,7 @@ with tab_analysis_scrape:
                                 except Exception:
                                     pass
                             
+                            df_run["model_confidence"] = confidences
                             st.session_state.dev_scrape_results = (df_run, saved_preds)
                         except Exception as e:
                             st.error(f"Error during predictions: {e}")
@@ -1902,7 +2085,7 @@ with tab_analysis_scrape:
                     st.info("No sentiments to display.")
             
             st.markdown("#### Scraped Results")
-            st.dataframe(df_run[["text", "cleaned_text", "predicted_sentiment"]].head(100), use_container_width=True)
+            render_styled_predictions_df(df_run, "text", "predicted_sentiment", "model_confidence")
             
             if st.button("Clear Clear Results & Start New Scrape", key="dev_clear_results_btn"):
                 st.session_state.dev_active_url = None
