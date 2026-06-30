@@ -446,6 +446,22 @@ st.markdown("""
         font-size: 0.85rem;
         border-top: 1px solid #E2E8F0;
     }
+
+    /* ── Sidebar selectbox: disable typing / search behaviour ── */
+    /* Hides the editable cursor and blocks keyboard input on the inner
+       search <input> that Streamlit renders inside a searchable selectbox.
+       The displayed selection text and the dropdown arrow remain fully
+       functional — only free-text entry is suppressed.               */
+    [data-testid="stSidebar"] [data-testid="stSelectbox"] input {
+        caret-color: transparent !important;
+        pointer-events: none !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] {
+        cursor: pointer !important;
+    }
+
     </style>
 """, unsafe_allow_html=True)
 
@@ -809,174 +825,164 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
             if st.session_state.batch_df is not None:
                 df_results = st.session_state.batch_df
                 text_col = st.session_state.batch_text_col
-                
-                st.markdown("---")
-                st.markdown("### Results Panel")
-                
-                # Summary cards
+
                 total_comments = len(df_results)
                 pos_count = sum(df_results["predicted_sentiment"] == "positive")
                 neu_count = sum(df_results["predicted_sentiment"] == "neutral")
                 neg_count = sum(df_results["predicted_sentiment"] == "negative")
-                
                 pos_pct = pos_count / total_comments if total_comments > 0 else 0
                 neu_pct = neu_count / total_comments if total_comments > 0 else 0
                 neg_pct = neg_count / total_comments if total_comments > 0 else 0
-                
-                col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-                with col_m1:
-                    st.markdown(f"""
-                        <div class="metric-card" style="text-align: center;">
-                             <span style="font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Total Evaluated</span>
-                             <h2 style="margin: 8px 0 0 0; color: #1E293B; font-size: 2rem;">{total_comments}</h2>
-                        </div>
-                    """, unsafe_allow_html=True)
-                with col_m2:
-                    st.markdown(f"""
-                        <div class="metric-card" style="text-align: center; border-left: 5px solid #10B981;">
-                             <span style="font-size: 0.85rem; color: #065F46; font-weight: 600; text-transform: uppercase;">Positive Sentiment</span>
-                             <h2 style="margin: 8px 0 0 0; color: #065F46; font-size: 2rem;">{pos_count} <span style="font-size: 1rem; color: #34D399;">({pos_pct:.1%})</span></h2>
-                        </div>
-                    """, unsafe_allow_html=True)
-                with col_m3:
-                    st.markdown(f"""
-                        <div class="metric-card" style="text-align: center; border-left: 5px solid #F59E0B;">
-                             <span style="font-size: 0.85rem; color: #92400E; font-weight: 600; text-transform: uppercase;">Neutral Sentiment</span>
-                             <h2 style="margin: 8px 0 0 0; color: #92400E; font-size: 2rem;">{neu_count} <span style="font-size: 1rem; color: #FBBF24;">({neu_pct:.1%})</span></h2>
-                        </div>
-                    """, unsafe_allow_html=True)
-                with col_m4:
-                    st.markdown(f"""
-                        <div class="metric-card" style="text-align: center; border-left: 5px solid #EF4444;">
-                             <span style="font-size: 0.85rem; color: #991B1B; font-weight: 600; text-transform: uppercase;">Negative Sentiment</span>
-                             <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
-                        </div>
-                    """, unsafe_allow_html=True)
-                
-                # Visualize predictions
-                col1, col2 = st.columns([1, 1])
-                
+
                 labels = ['Positive', 'Neutral', 'Negative']
                 sizes = [pos_count, neu_count, neg_count]
                 filtered_labels = [l for l, s in zip(labels, sizes) if s > 0]
                 filtered_sizes = [s for s in sizes if s > 0]
-                colors = ['#10B981', '#F59E0B', '#EF4444']
-                filtered_colors = [c for c, s in zip(colors, sizes) if s > 0]
-                
-                with col1:
-                    st.markdown("#### Sentiment Distribution (3D-like Pie Chart)")
-                    if filtered_sizes:
-                        import matplotlib.pyplot as plt
-                        fig, ax = plt.subplots(figsize=(6, 5))
-                        explode = [0.05] * len(filtered_sizes)
-                        wedges, texts, autotexts = ax.pie(
-                            filtered_sizes, 
-                            explode=explode,
-                            labels=filtered_labels, 
-                            autopct='%1.1f%%',
-                            shadow=True, 
-                            startangle=140, 
-                            colors=filtered_colors,
-                            textprops=dict(color="#1E293B", weight="bold", size=10),
-                            wedgeprops=dict(edgecolor='white', linewidth=1.5)
-                        )
-                        for autotext in autotexts:
-                            autotext.set_color('white')
-                            autotext.set_fontsize(11)
-                        ax.axis('equal')  
-                        plt.tight_layout()
-                        st.pyplot(fig)
-                        plt.close(fig)
-                    else:
-                        st.info("No sentiments to display.")
-                        
-                with col2:
-                    st.markdown("#### Sentiment Category Counts (Bar Chart)")
-                    if filtered_sizes:
-                        import matplotlib.pyplot as plt
-                        import seaborn as sns
-                        fig_bar, ax_bar = plt.subplots(figsize=(6, 5))
-                        sentiment_df = pd.DataFrame({
-                            'Sentiment': filtered_labels,
-                            'Count': filtered_sizes
-                        })
-                        sns.barplot(
-                            x='Count', 
-                            y='Sentiment', 
-                            data=sentiment_df, 
-                            palette=filtered_colors,
-                            ax=ax_bar,
-                            hue='Sentiment',
-                            legend=False
-                        )
-                        ax_bar.spines['top'].set_visible(False)
-                        ax_bar.spines['right'].set_visible(False)
-                        ax_bar.spines['left'].set_color('#CBD5E1')
-                        ax_bar.spines['bottom'].set_color('#CBD5E1')
-                        ax_bar.tick_params(colors='#475569', labelsize=11)
-                        ax_bar.set_ylabel('', color='#475569', fontsize=12)
-                        ax_bar.set_xlabel('Count', color='#475569', fontsize=12)
-                        for container in ax_bar.containers:
-                            ax_bar.bar_label(container, fmt='%d', padding=5, color='#1E293B', weight='bold', fontsize=11)
-                        plt.tight_layout()
-                        st.pyplot(fig_bar)
-                        plt.close(fig_bar)
-                    else:
-                        st.info("No sentiments to display.")
-                        
-                # Preview Data Table
-                st.markdown("#### Prediction Preview")
-                render_styled_predictions_df(df_results, text_col, "predicted_sentiment", "model_confidence")
+                colors_ch = ['#10B981', '#F59E0B', '#EF4444']
+                filtered_colors = [c for c, s in zip(colors_ch, sizes) if s > 0]
 
-                # ── Sentiment-Specific Word Clouds ───────────────────────────
+                # ── Export action pinned to the top ───────────────────────────
                 st.markdown("---")
-                st.markdown("#### 🌥️ Sentiment Word Clouds")
-                _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
-                _wc_tabs = st.tabs(_wc_sentiments)
-                _wc_cache = st.session_state.get("batch_wordclouds", {})
+                col_res_hdr, col_res_export = st.columns([0.7, 0.3])
+                with col_res_hdr:
+                    st.markdown("### 📊 Results Panel")
+                with col_res_export:
+                    _export_tabs = st.tabs(["📥 Export"])
+                    with _export_tabs[0]:
+                        csv_data = df_results.to_csv(index=False).encode("utf-8")
+                        st.download_button(
+                            label="Download CSV",
+                            data=csv_data,
+                            file_name="sentiment_predictions.csv",
+                            mime="text/csv",
+                            use_container_width=True,
+                        )
+                        if st.button("Generate PDF", key="batch_pdf_btn", use_container_width=True):
+                            with st.spinner("Preparing your report..."):
+                                try:
+                                    from src.report_generator import create_report_pdf
+                                    import datetime
+                                    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                                    pdf_data = create_report_pdf(
+                                        url=uploaded_file.name,
+                                        timestamp=now_str,
+                                        df=df_results,
+                                        wordclouds=st.session_state.get("batch_wordclouds"),
+                                    )
+                                    st.download_button(
+                                        label="📄 Download PDF",
+                                        data=pdf_data,
+                                        file_name="sentiment_report.pdf",
+                                        mime="application/pdf",
+                                        use_container_width=True,
+                                    )
+                                except Exception as pdf_ex:
+                                    st.error(f"Could not generate PDF: {pdf_ex}")
 
-                for _wc_tab, _wc_label in zip(_wc_tabs, _wc_sentiments):
-                    with _wc_tab:
-                        _cached_img = _wc_cache.get(_wc_label)
-                        if _cached_img is not None:
-                            st.image(_cached_img, use_container_width=True)
+                # ── Tab partition: Overview Analytics / Detailed Records ───────
+                tab_analytics, tab_records = st.tabs(["📊 Overview Analytics", "📋 Detailed Records"])
+
+                with tab_analytics:
+                    # KPI summary cards
+                    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+                    with col_m1:
+                        st.markdown(f"""
+                            <div class="metric-card" style="text-align: center;">
+                                 <span style="font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Total Evaluated</span>
+                                 <h2 style="margin: 8px 0 0 0; color: #1E293B; font-size: 2rem;">{total_comments}</h2>
+                            </div>
+                        """, unsafe_allow_html=True)
+                    with col_m2:
+                        st.markdown(f"""
+                            <div class="metric-card" style="text-align: center; border-left: 5px solid #10B981;">
+                                 <span style="font-size: 0.85rem; color: #065F46; font-weight: 600; text-transform: uppercase;">Positive Sentiment</span>
+                                 <h2 style="margin: 8px 0 0 0; color: #065F46; font-size: 2rem;">{pos_count} <span style="font-size: 1rem; color: #34D399;">({pos_pct:.1%})</span></h2>
+                            </div>
+                        """, unsafe_allow_html=True)
+                    with col_m3:
+                        st.markdown(f"""
+                            <div class="metric-card" style="text-align: center; border-left: 5px solid #F59E0B;">
+                                 <span style="font-size: 0.85rem; color: #92400E; font-weight: 600; text-transform: uppercase;">Neutral Sentiment</span>
+                                 <h2 style="margin: 8px 0 0 0; color: #92400E; font-size: 2rem;">{neu_count} <span style="font-size: 1rem; color: #FBBF24;">({neu_pct:.1%})</span></h2>
+                            </div>
+                        """, unsafe_allow_html=True)
+                    with col_m4:
+                        st.markdown(f"""
+                            <div class="metric-card" style="text-align: center; border-left: 5px solid #EF4444;">
+                                 <span style="font-size: 0.85rem; color: #991B1B; font-weight: 600; text-transform: uppercase;">Negative Sentiment</span>
+                                 <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
+                            </div>
+                        """, unsafe_allow_html=True)
+
+                    # Flat charts side by side
+                    st.markdown("")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("#### Sentiment Distribution")
+                        if filtered_sizes:
+                            import matplotlib.pyplot as plt
+                            fig, ax = plt.subplots(figsize=(6, 5))
+                            wedges, texts, autotexts = ax.pie(
+                                filtered_sizes,
+                                labels=filtered_labels,
+                                autopct='%1.1f%%',
+                                shadow=False,
+                                startangle=140,
+                                colors=filtered_colors,
+                                textprops=dict(color="#1E293B", weight="bold", size=10),
+                                wedgeprops=dict(edgecolor='white', linewidth=1.0)
+                            )
+                            for autotext in autotexts:
+                                autotext.set_color('white')
+                                autotext.set_fontsize(11)
+                            ax.axis('equal')
+                            plt.tight_layout()
+                            st.pyplot(fig)
+                            plt.close(fig)
                         else:
-                            st.info(f"No '{_wc_label}' comments to visualise.")
+                            st.info("No sentiments to display.")
 
-                st.markdown("---")
-                # Download actions
-                col_dl1, col_dl2 = st.columns(2)
-                with col_dl1:
-                    csv_data = df_results.to_csv(index=False).encode("utf-8")
-                    st.download_button(
-                        label="Download Predictions CSV",
-                        data=csv_data,
-                        file_name="sentiment_predictions.csv",
-                        mime="text/csv",
-                        use_container_width=True,
-                    )
-                with col_dl2:
-                    if st.button("📥 Generate PDF Report"):
-                        with st.spinner("Preparing your report..."):
-                            try:
-                                from src.report_generator import create_report_pdf
-                                import datetime
-                                now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                                pdf_data = create_report_pdf(
-                                    url=uploaded_file.name,
-                                    timestamp=now_str,
-                                    df=df_results,
-                                    wordclouds=st.session_state.get("batch_wordclouds"),
-                                )
-                                st.download_button(
-                                    label="📄 Download PDF Report",
-                                    data=pdf_data,
-                                    file_name="sentiment_report.pdf",
-                                    mime="application/pdf",
-                                    use_container_width=True,
-                                )
-                            except Exception as pdf_ex:
-                                st.error(f"Could not generate PDF report: {pdf_ex}")
+                    with col2:
+                        st.markdown("#### Sentiment Counts")
+                        if filtered_sizes:
+                            import matplotlib.pyplot as plt
+                            import seaborn as sns
+                            fig_bar, ax_bar = plt.subplots(figsize=(6, 5))
+                            sentiment_df = pd.DataFrame({'Sentiment': filtered_labels, 'Count': filtered_sizes})
+                            sns.barplot(x='Count', y='Sentiment', data=sentiment_df,
+                                        palette=filtered_colors, ax=ax_bar, hue='Sentiment', legend=False)
+                            ax_bar.spines['top'].set_visible(False)
+                            ax_bar.spines['right'].set_visible(False)
+                            ax_bar.spines['left'].set_color('#CBD5E1')
+                            ax_bar.spines['bottom'].set_color('#CBD5E1')
+                            ax_bar.tick_params(colors='#475569', labelsize=11)
+                            ax_bar.set_ylabel('', color='#475569', fontsize=12)
+                            ax_bar.set_xlabel('Count', color='#475569', fontsize=12)
+                            for container in ax_bar.containers:
+                                ax_bar.bar_label(container, fmt='%d', padding=5,
+                                                 color='#1E293B', weight='bold', fontsize=11)
+                            plt.tight_layout()
+                            st.pyplot(fig_bar)
+                            plt.close(fig_bar)
+                        else:
+                            st.info("No sentiments to display.")
+
+                    # Word clouds in sub-tabs within Analytics
+                    st.markdown("#### 🌥️ Sentiment Word Clouds")
+                    _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
+                    _wc_tabs = st.tabs(_wc_sentiments)
+                    _wc_cache = st.session_state.get("batch_wordclouds", {})
+                    for _wc_tab, _wc_label in zip(_wc_tabs, _wc_sentiments):
+                        with _wc_tab:
+                            _cached_img = _wc_cache.get(_wc_label)
+                            if _cached_img is not None:
+                                st.image(_cached_img, use_container_width=True)
+                            else:
+                                st.info(f"No '{_wc_label}' comments to visualise.")
+
+                with tab_records:
+                    st.markdown("#### Prediction Preview")
+                    render_styled_predictions_df(df_results, text_col, "predicted_sentiment", "model_confidence")
 
                 
         except Exception as e:
@@ -1091,89 +1097,102 @@ if st.sidebar.button("➕ Analyze New URL", type="primary", use_container_width=
     st.rerun()
 
 st.sidebar.subheader("History Sessions")
-# Query user sessions
-from src.database import get_user_sessions
-sessions = get_user_sessions(st.session_state.user_id)
+
+# Cache sessions in session state to improve page performance
+if "sessions_cache" not in st.session_state or st.session_state.get("sessions_cache_dirty", True):
+    from src.database import get_user_sessions
+    st.session_state.sessions_cache = get_user_sessions(st.session_state.user_id)
+    st.session_state.sessions_cache_dirty = False
+
+sessions = st.session_state.sessions_cache
 
 if sessions:
-    for s in sessions:
-        # Determine label using display_title from database COALESCE
-        btn_label = s.get("display_title") or "Analysis Run"
-        session_id = s["session_id"]
-        
-        # Unique session state key for rename visibility flag
+    # Build dictionary for dropdown selection options
+    session_options = {s["session_id"]: s.get("display_title") or f"Analysis Run ({s.get('timestamp')})" for s in sessions}
+    
+    current_sid = st.session_state.current_session_id
+    if current_sid not in session_options:
+        current_sid = sessions[0]["session_id"]
+        if st.session_state.view_mode == "history":
+            st.session_state.current_session_id = current_sid
+
+    options_list = list(session_options.keys())
+    try:
+        select_index = options_list.index(current_sid)
+    except ValueError:
+        select_index = 0
+
+
+    # ── Navigation callback: only fires when the user explicitly picks a session ──
+    def _navigate_to_session():
+        sid = st.session_state.get("history_session_selectbox")
+        if sid and sid != st.session_state.get("current_session_id"):
+            st.session_state.current_session_id = sid
+            st.session_state.view_mode = "history"
+            st.session_state.user_scrape_results = None
+            st.session_state.comments_cache_session_id = None
+            # Streamlit auto-reruns after on_change; no explicit st.rerun() needed
+
+    st.sidebar.selectbox(
+        "Select Past Session",
+        options=options_list,
+        format_func=lambda x: session_options[x],
+        index=select_index,
+        key="history_session_selectbox",
+        on_change=_navigate_to_session,
+    )
+    selected_session_id = st.session_state.get("history_session_selectbox", options_list[select_index])
+
+    active_s = next((s for s in sessions if s["session_id"] == selected_session_id), None)
+    if active_s:
+        session_id = active_s["session_id"]
         rename_flag_key = f"show_rename_{session_id}"
         if rename_flag_key not in st.session_state:
             st.session_state[rename_flag_key] = False
-            
-        # Wrap the columns tightly inside a container to guarantee rigid vertical alignment
-        with st.sidebar.container():
-            col_link, col_menu = st.columns([0.85, 0.15])
-            
-            with col_link:
-                is_active = (st.session_state.current_session_id == session_id and st.session_state.view_mode == "history")
-                btn_type = "primary" if is_active else "secondary"
-                if st.button(btn_label, key=f"session_btn_{session_id}", use_container_width=True, type=btn_type):
-                    st.session_state.current_session_id = session_id
-                    st.session_state.view_mode = "history"
-                    st.session_state.user_scrape_results = None
+
+        with st.sidebar.popover("⚙️ Session Settings", use_container_width=True):
+            if not st.session_state[rename_flag_key]:
+                url_val = active_s.get("url") or "#"
+                st.markdown(
+                    f'<a href="{url_val}" target="_blank" class="menu-link-item">Original Post</a>',
+                    unsafe_allow_html=True
+                )
+                if st.button("Rename", key=f"rename_trigger_{session_id}", use_container_width=True):
+                    st.session_state[rename_flag_key] = True
                     st.rerun()
-                    
-            with col_menu:
-                # Popover context-menu – vertical dots trigger
-                with st.popover("⋮", use_container_width=True, key=f"session_action_pop_{session_id}"):
-                    if not st.session_state[rename_flag_key]:
-                        # Default Context Menu view
-                        # 1. Original Post – uniform menu-link-item anchor
-                        url_val = s.get("url") or "#"
-                        st.markdown(
-                            f'<a href="{url_val}" target="_blank" class="menu-link-item">Original Post</a>',
-                            unsafe_allow_html=True
-                        )
-                        
-                        # 2. Trigger Rename
-                        if st.button("Rename", key=f"rename_trigger_{session_id}", use_container_width=True):
-                            st.session_state[rename_flag_key] = True
-                            st.rerun()
-                            
-                        # 3. Share
-                        if st.button("Share", key=f"share_btn_{session_id}", use_container_width=True):
-                            st.query_params["session_id"] = str(session_id)
-                            st.info("Link set in query parameters!")
-                        
-                        # 4. Delete
-                        if st.button("Delete", key=f"delete_btn_{session_id}", type="primary", use_container_width=True):
-                            from src.database import delete_session
-                            delete_session(session_id)
-                            if st.session_state.current_session_id == session_id:
-                                st.session_state.current_session_id = None
-                                st.session_state.view_mode = "new"
-                            st.success("Deleted!")
-                            st.rerun()
-                    else:
-                        # Conditional state-driven Rename Form view
-                        rename_title = st.text_input(
-                            "Rename Session", 
-                            value=s.get("custom_title") or "", 
-                            placeholder="e.g., Fuel Price Hike",
-                            key=f"rename_input_{session_id}"
-                        )
-                        col_save, col_cancel = st.columns(2)
-                        with col_save:
-                            if st.button("Save", key=f"save_rename_btn_{session_id}", type="primary", use_container_width=True):
-                                from src.database import update_session_title
-                                title_clean = rename_title.strip()
-                                update_session_title(session_id, title_clean if title_clean else None)
-                                st.session_state[rename_flag_key] = False
-                                st.success("Session renamed!")
-                                st.rerun()
-                        with col_cancel:
-                            if st.button("Cancel", key=f"cancel_rename_btn_{session_id}", use_container_width=True):
-                                st.session_state[rename_flag_key] = False
-                                st.rerun()
-                                
-            # Small structural gap between sessions
-            st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+                if st.button("Share", key=f"share_btn_{session_id}", use_container_width=True):
+                    st.query_params["session_id"] = str(session_id)
+                    st.info("Link set in query parameters!")
+                if st.button("Delete", key=f"delete_btn_{session_id}", type="primary", use_container_width=True):
+                    from src.database import delete_session
+                    delete_session(session_id)
+                    st.session_state.sessions_cache_dirty = True
+                    st.session_state.current_session_id = None
+                    st.session_state.view_mode = "new"
+                    st.session_state.comments_cache_session_id = None
+                    st.success("Deleted!")
+                    st.rerun()
+            else:
+                rename_title = st.text_input(
+                    "Rename Session", 
+                    value=active_s.get("custom_title") or "", 
+                    placeholder="e.g., Fuel Price Hike",
+                    key=f"rename_input_{session_id}"
+                )
+                col_save, col_cancel = st.columns(2)
+                with col_save:
+                    if st.button("Save", key=f"save_rename_btn_{session_id}", type="primary", use_container_width=True):
+                        from src.database import update_session_title
+                        title_clean = rename_title.strip()
+                        update_session_title(session_id, title_clean if title_clean else None)
+                        st.session_state[rename_flag_key] = False
+                        st.session_state.sessions_cache_dirty = True
+                        st.success("Session renamed!")
+                        st.rerun()
+                with col_cancel:
+                    if st.button("Cancel", key=f"cancel_rename_btn_{session_id}", use_container_width=True):
+                        st.session_state[rename_flag_key] = False
+                        st.rerun()
 else:
     st.sidebar.info("No past sessions found.")
 
@@ -1253,12 +1272,17 @@ if not is_developer:
             st.session_state.current_session_id = None
             st.rerun()
             
-        comments_list = get_session_comments(st.session_state.current_session_id)
-        
-        st.markdown(f"### 📊 Analysis Session for: `{session['url']}`")
-        st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
+        # Cache comments for this active session to avoid redundant database calls
+        current_sess_id = st.session_state.current_session_id
+        if "comments_cache" not in st.session_state or st.session_state.get("comments_cache_session_id") != current_sess_id:
+            st.session_state.comments_cache = get_session_comments(current_sess_id)
+            st.session_state.comments_cache_session_id = current_sess_id
+            
+        comments_list = st.session_state.comments_cache
         
         if not comments_list:
+            st.markdown(f"### 📊 Analysis Session for: `{session['url']}`")
+            st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
             st.info("No comments found for this session.")
         else:
             df_user = pd.DataFrame(comments_list)
@@ -1296,149 +1320,13 @@ if not is_developer:
             neg_pct = neg_count / total_comments if total_comments > 0 else 0
             neu_pct = neu_count / total_comments if total_comments > 0 else 0
             
-            # Metrics
-            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-            with col_m1:
-                st.markdown(f"""
-                    <div class="metric-card" style="text-align: center;">
-                         <span style="font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Total Evaluated</span>
-                         <h2 style="margin: 8px 0 0 0; color: #1E293B; font-size: 2rem;">{total_comments}</h2>
-                    </div>
-                """, unsafe_allow_html=True)
-            with col_m2:
-                st.markdown(f"""
-                    <div class="metric-card" style="text-align: center; border-left: 5px solid #10B981;">
-                         <span style="font-size: 0.85rem; color: #065F46; font-weight: 600; text-transform: uppercase;">Positive Sentiment</span>
-                         <h2 style="margin: 8px 0 0 0; color: #065F46; font-size: 2rem;">{pos_count} <span style="font-size: 1rem; color: #34D399;">({pos_pct:.1%})</span></h2>
-                    </div>
-                """, unsafe_allow_html=True)
-            with col_m3:
-                st.markdown(f"""
-                    <div class="metric-card" style="text-align: center; border-left: 5px solid #F59E0B;">
-                         <span style="font-size: 0.85rem; color: #92400E; font-weight: 600; text-transform: uppercase;">Neutral Sentiment</span>
-                         <h2 style="margin: 8px 0 0 0; color: #92400E; font-size: 2rem;">{neu_count} <span style="font-size: 1rem; color: #FBBF24;">({neu_pct:.1%})</span></h2>
-                    </div>
-                """, unsafe_allow_html=True)
-            with col_m4:
-                st.markdown(f"""
-                    <div class="metric-card" style="text-align: center; border-left: 5px solid #EF4444;">
-                         <span style="font-size: 0.85rem; color: #991B1B; font-weight: 600; text-transform: uppercase;">Negative Sentiment</span>
-                         <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
-                    </div>
-                """, unsafe_allow_html=True)
-            
-            # Time-Series Trend Visualizer
-            st.markdown("### 📈 Time-Series Sentiment Trend")
-            df_user["created_time_dt"] = pd.to_datetime(df_user["created_time"], errors="coerce")
-            valid_times = df_user["created_time_dt"].notna()
-            
-            if valid_times.sum() == 0:
-                st.info("🕒 No comment creation timestamps available for this session to render a time-series.")
-            else:
-                df_ts = df_user[valid_times].copy()
-                ts_res = st.radio(
-                    "Aggregation Resolution",
-                    ["Hour", "Day"],
-                    horizontal=True,
-                    key=f"ts_res_{session['session_id']}",
-                    help="Choose how comments are grouped over time"
-                )
-                if ts_res == "Day":
-                    df_ts["time_group"] = df_ts["created_time_dt"].dt.date
-                else:
-                    df_ts["time_group"] = df_ts["created_time_dt"].dt.floor("h")
-                    
-                trend_raw = df_ts.groupby(["time_group", "sentiment_label_clean"]).size().reset_index(name="count")
-                trend_pivot = trend_raw.pivot(index="time_group", columns="sentiment_label_clean", values="count").fillna(0)
-                for label in ["positive", "neutral", "negative"]:
-                    if label not in trend_pivot.columns:
-                        trend_pivot[label] = 0.0
-                trend_pivot = trend_pivot[["positive", "neutral", "negative"]]
-                trend_pivot.columns = ["Positive", "Neutral", "Negative"]
-                trend_pivot = trend_pivot.sort_index()
-                st.line_chart(trend_pivot, use_container_width=True)
-                
-            # Aggregated Summaries
-            col1, col2 = st.columns([1, 1])
-            labels = ['Positive', 'Neutral', 'Negative']
-            sizes = [pos_count, neu_count, neg_count]
-            filtered_labels = [l for l, s in zip(labels, sizes) if s > 0]
-            filtered_sizes = [s for s in sizes if s > 0]
-            colors = ['#10B981', '#F59E0B', '#EF4444']
-            filtered_colors = [c for c, s in zip(colors, sizes) if s > 0]
-            
-            with col1:
-                st.markdown("#### Sentiment Distribution (3D-like Pie Chart)")
-                if filtered_sizes:
-                    import matplotlib.pyplot as plt
-                    fig, ax = plt.subplots(figsize=(6, 5))
-                    explode = [0.05] * len(filtered_sizes)
-                    wedges, texts, autotexts = ax.pie(
-                        filtered_sizes, 
-                        explode=explode,
-                        labels=filtered_labels, 
-                        autopct='%1.1f%%',
-                        shadow=True, 
-                        startangle=140, 
-                        colors=filtered_colors,
-                        textprops=dict(color="#1E293B", weight="bold", size=10),
-                        wedgeprops=dict(edgecolor='white', linewidth=1.5)
-                    )
-                    for autotext in autotexts:
-                        autotext.set_color('white')
-                        autotext.set_fontsize(11)
-                    ax.axis('equal')  
-                    plt.tight_layout()
-                    st.pyplot(fig)
-                    plt.close(fig)
-                else:
-                    st.info("No sentiments to display.")
-                    
-            with col2:
-                st.markdown("#### Sentiment Category Counts (Bar Chart)")
-                if filtered_sizes:
-                    import matplotlib.pyplot as plt
-                    import seaborn as sns
-                    fig_bar, ax_bar = plt.subplots(figsize=(6, 5))
-                    sentiment_df = pd.DataFrame({
-                        'Sentiment': filtered_labels,
-                        'Count': filtered_sizes
-                    })
-                    sns.barplot(
-                        x='Count', 
-                        y='Sentiment', 
-                        data=sentiment_df, 
-                        palette=filtered_colors,
-                        ax=ax_bar,
-                        hue='Sentiment',
-                        legend=False
-                    )
-                    ax_bar.spines['top'].set_visible(False)
-                    ax_bar.spines['right'].set_visible(False)
-                    ax_bar.spines['left'].set_color('#CBD5E1')
-                    ax_bar.spines['bottom'].set_color('#CBD5E1')
-                    ax_bar.tick_params(colors='#475569', labelsize=11)
-                    ax_bar.set_ylabel('', color='#475569', fontsize=12)
-                    ax_bar.set_xlabel('Count', color='#475569', fontsize=12)
-                    for container in ax_bar.containers:
-                        ax_bar.bar_label(container, fmt='%d', padding=5, color='#1E293B', weight='bold', fontsize=11)
-                    plt.tight_layout()
-                    st.pyplot(fig_bar)
-                    plt.close(fig_bar)
-                else:
-                    st.info("No sentiments to display.")
-                    
-            # Preview Data Table
-            st.markdown("#### Prediction Preview")
-            render_styled_predictions_df(df_user, "comment_text", "sentiment_label", "model_confidence")
-            
-            col_dl1, col_dl2 = st.columns(2)
-            with col_dl1:
-                if st.button("➕ Analyze New URL", key="history_back_btn", use_container_width=True):
-                    st.session_state.view_mode = "new"
-                    st.session_state.current_session_id = None
-                    st.rerun()
-            with col_dl2:
+            # Action/Export section at the top of the view
+            col_hdr1, col_hdr2 = st.columns([0.75, 0.25])
+            with col_hdr1:
+                st.markdown(f"### 📊 Analysis Session for: `{session['url']}`")
+                st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
+            with col_hdr2:
+                st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
                 if st.button("📥 Generate PDF Report", key="hist_pdf_btn", use_container_width=True):
                     with st.spinner("Preparing your report..."):
                         try:
@@ -1458,6 +1346,162 @@ if not is_developer:
                             )
                         except Exception as pdf_ex:
                             st.error(f"Could not generate PDF report: {pdf_ex}")
+            
+            # Tab partition for a clean non-scroll user experience
+            tab_analytics, tab_records = st.tabs(["📊 Overview Analytics", "📋 Detailed Records"])
+            
+            with tab_analytics:
+                # Metrics KPI cards
+                col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+                with col_m1:
+                    st.markdown(f"""
+                        <div class="metric-card" style="text-align: center;">
+                             <span style="font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Total Evaluated</span>
+                             <h2 style="margin: 8px 0 0 0; color: #1E293B; font-size: 2rem;">{total_comments}</h2>
+                        </div>
+                    """, unsafe_allow_html=True)
+                with col_m2:
+                    st.markdown(f"""
+                        <div class="metric-card" style="text-align: center; border-left: 5px solid #10B981;">
+                             <span style="font-size: 0.85rem; color: #065F46; font-weight: 600; text-transform: uppercase;">Positive Sentiment</span>
+                             <h2 style="margin: 8px 0 0 0; color: #065F46; font-size: 2rem;">{pos_count} <span style="font-size: 1rem; color: #34D399;">({pos_pct:.1%})</span></h2>
+                        </div>
+                    """, unsafe_allow_html=True)
+                with col_m3:
+                    st.markdown(f"""
+                        <div class="metric-card" style="text-align: center; border-left: 5px solid #F59E0B;">
+                             <span style="font-size: 0.85rem; color: #92400E; font-weight: 600; text-transform: uppercase;">Neutral Sentiment</span>
+                             <h2 style="margin: 8px 0 0 0; color: #92400E; font-size: 2rem;">{neu_count} <span style="font-size: 1rem; color: #FBBF24;">({neu_pct:.1%})</span></h2>
+                        </div>
+                    """, unsafe_allow_html=True)
+                with col_m4:
+                    st.markdown(f"""
+                        <div class="metric-card" style="text-align: center; border-left: 5px solid #EF4444;">
+                             <span style="font-size: 0.85rem; color: #991B1B; font-weight: 600; text-transform: uppercase;">Negative Sentiment</span>
+                             <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
+                        </div>
+                    """, unsafe_allow_html=True)
+                
+                # Time-Series Trend Visualizer
+                st.markdown("### 📈 Time-Series Sentiment Trend")
+                df_user["created_time_dt"] = pd.to_datetime(df_user["created_time"], errors="coerce")
+                valid_times = df_user["created_time_dt"].notna()
+                
+                if valid_times.sum() == 0:
+                    st.info("🕒 No comment creation timestamps available for this session to render a time-series.")
+                else:
+                    df_ts = df_user[valid_times].copy()
+                    ts_res = st.radio(
+                        "Aggregation Resolution",
+                        ["Hour", "Day"],
+                        horizontal=True,
+                        key=f"ts_res_{session['session_id']}",
+                        help="Choose how comments are grouped over time"
+                    )
+                    if ts_res == "Day":
+                        df_ts["time_group"] = df_ts["created_time_dt"].dt.date
+                    else:
+                        df_ts["time_group"] = df_ts["created_time_dt"].dt.floor("h")
+                        
+                    trend_raw = df_ts.groupby(["time_group", "sentiment_label_clean"]).size().reset_index(name="count")
+                    trend_pivot = trend_raw.pivot(index="time_group", columns="sentiment_label_clean", values="count").fillna(0)
+                    for label in ["positive", "neutral", "negative"]:
+                        if label not in trend_pivot.columns:
+                            trend_pivot[label] = 0.0
+                    trend_pivot = trend_pivot[["positive", "neutral", "negative"]]
+                    trend_pivot.columns = ["Positive", "Neutral", "Negative"]
+                    trend_pivot = trend_pivot.sort_index()
+                    st.line_chart(trend_pivot, use_container_width=True)
+                    
+                # Aggregated Summaries
+                col1, col2 = st.columns([1, 1])
+                labels = ['Positive', 'Neutral', 'Negative']
+                sizes = [pos_count, neu_count, neg_count]
+                filtered_labels = [l for l, s in zip(labels, sizes) if s > 0]
+                filtered_sizes = [s for s in sizes if s > 0]
+                colors = ['#10B981', '#F59E0B', '#EF4444']
+                filtered_colors = [c for c, s in zip(colors, sizes) if s > 0]
+                
+                with col1:
+                    st.markdown("#### Sentiment Distribution (Flat Pie Chart)")
+                    if filtered_sizes:
+                        import matplotlib.pyplot as plt
+                        fig, ax = plt.subplots(figsize=(6, 5))
+                        wedges, texts, autotexts = ax.pie(
+                            filtered_sizes, 
+                            labels=filtered_labels, 
+                            autopct='%1.1f%%',
+                            shadow=False, 
+                            startangle=140, 
+                            colors=filtered_colors,
+                            textprops=dict(color="#1E293B", weight="bold", size=10),
+                            wedgeprops=dict(edgecolor='white', linewidth=1.0)
+                        )
+                        for autotext in autotexts:
+                            autotext.set_color('white')
+                            autotext.set_fontsize(11)
+                        ax.axis('equal')  
+                        plt.tight_layout()
+                        st.pyplot(fig)
+                        plt.close(fig)
+                    else:
+                        st.info("No sentiments to display.")
+                        
+                with col2:
+                    st.markdown("#### Sentiment Category Counts (Bar Chart)")
+                    if filtered_sizes:
+                        import matplotlib.pyplot as plt
+                        import seaborn as sns
+                        fig_bar, ax_bar = plt.subplots(figsize=(6, 5))
+                        sentiment_df = pd.DataFrame({
+                            'Sentiment': filtered_labels,
+                            'Count': filtered_sizes
+                        })
+                        sns.barplot(
+                            x='Count', 
+                            y='Sentiment', 
+                            data=sentiment_df, 
+                            palette=filtered_colors,
+                            ax=ax_bar,
+                            hue='Sentiment',
+                            legend=False
+                        )
+                        ax_bar.spines['top'].set_visible(False)
+                        ax_bar.spines['right'].set_visible(False)
+                        ax_bar.spines['left'].set_color('#CBD5E1')
+                        ax_bar.spines['bottom'].set_color('#CBD5E1')
+                        ax_bar.tick_params(colors='#475569', labelsize=11)
+                        ax_bar.set_ylabel('', color='#475569', fontsize=12)
+                        ax_bar.set_xlabel('Count', color='#475569', fontsize=12)
+                        for container in ax_bar.containers:
+                            ax_bar.bar_label(container, fmt='%d', padding=5, color='#1E293B', weight='bold', fontsize=11)
+                        plt.tight_layout()
+                        st.pyplot(fig_bar)
+                        plt.close(fig_bar)
+                    else:
+                        st.info("No sentiments to display.")
+
+                # ── Word Clouds ────────────────────────────────────────────────
+                st.markdown("#### 🌥️ Sentiment Word Clouds")
+                _hist_wc = st.session_state.get("batch_wordclouds", {})
+                if any(v is not None for v in _hist_wc.values()):
+                    _wc_tab_labels = ["All", "Positive", "Negative", "Neutral"]
+                    _wc_tabs_hist = st.tabs(_wc_tab_labels)
+                    for _wct, _wcl in zip(_wc_tabs_hist, _wc_tab_labels):
+                        with _wct:
+                            _img = _hist_wc.get(_wcl)
+                            if _img is not None:
+                                st.image(_img, use_container_width=True)
+                            else:
+                                st.info(f"No '{_wcl}' comments to visualise.")
+                else:
+                    st.info("Word clouds are not available for this session.")
+
+                        
+            with tab_records:
+                # Preview Data Table
+                st.markdown("#### Prediction Preview")
+                render_styled_predictions_df(df_user, "comment_text", "sentiment_label", "model_confidence")
                 
         st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
@@ -1599,6 +1643,8 @@ if not is_developer:
                                 st.session_state.current_session_id = session["session_id"]
                                 st.session_state.view_mode = "history"
                                 st.session_state.user_active_url = None
+                                st.session_state.sessions_cache_dirty = True
+                                st.session_state.comments_cache_session_id = None
                                 st.success("Analysis saved to database!")
                             except Exception as e:
                                 st.error(f"[ERR] Error during predictions: {e}")
@@ -1652,6 +1698,8 @@ if not is_developer:
                         st.session_state.current_session_id = session["session_id"]
                         st.session_state.view_mode = "history"
                         st.session_state.user_active_file = None
+                        st.session_state.sessions_cache_dirty = True
+                        st.session_state.comments_cache_session_id = None
                         st.rerun()
             except Exception as e:
                 st.error(f"Error loading CSV file: {e}")
@@ -2072,12 +2120,11 @@ with tab_analysis_scrape:
                 if filtered_sizes_c:
                     import matplotlib.pyplot as plt
                     fig_pie_d, ax_pie_d = plt.subplots(figsize=(5, 4))
-                    explode_d = [0.05] * len(filtered_sizes_c)
                     wedges_d, texts_d, autotexts_d = ax_pie_d.pie(
-                        filtered_sizes_c, explode=explode_d, labels=filtered_labels_c,
-                        autopct='%1.1f%%', shadow=True, startangle=140, colors=filtered_colors_c,
+                        filtered_sizes_c, labels=filtered_labels_c,
+                        autopct='%1.1f%%', shadow=False, startangle=140, colors=filtered_colors_c,
                         textprops=dict(color="#1E293B", weight="bold", size=10),
-                        wedgeprops=dict(edgecolor='white', linewidth=1.5)
+                        wedgeprops=dict(edgecolor='white', linewidth=1.0)
                     )
                     for at_d in autotexts_d:
                         at_d.set_color('white')

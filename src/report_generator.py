@@ -125,14 +125,13 @@ def create_report_pdf(
 
         ax1.pie(
             f_sizes,
-            explode=[0.05] * len(f_sizes),
             labels=f_labels,
             autopct="%1.1f%%",
-            shadow=True,
+            shadow=False,
             startangle=140,
             colors=f_colors,
             textprops=dict(color="#1E293B", weight="bold", size=10),
-            wedgeprops=dict(edgecolor="white", linewidth=1.5),
+            wedgeprops=dict(edgecolor="white", linewidth=1.0),
         )
         ax1.axis("equal")
         ax1.set_title("Sentiment Distribution", fontsize=12, pad=10, weight="bold")

@@ -151,12 +151,15 @@ Initialized automatically by `src/database.py -> init_db()` on dashboard startup
 - Batch sentiment scoring (Negative / Neutral / Positive) using the model API.
 - Results persisted into `dashboard.sessions` and `dashboard.comments` using `psycopg2.extras.execute_values` for high-throughput batch inserts.
 - Historical view loads stored results from PostgreSQL without re-scoring.
+- **Model Confidence Scores & Highlights**: The model outputs a `(label, confidence_score)` tuple calculated using softmax on model logits. Tables show the **Model Confidence** column, and rows with low confidence (`< 0.60`) are styled in light-red.
+- **Language Toggle for Translation**: A toggle in the single comment classifier enables/disables Chichewa-to-English translation of incoming comments.
+- **Professional PDF Reports**: A downloadable PDF report generated on-demand containing summary metrics, visualizations, and a predictions log table.
 
 ### Visualisations
 - Pie chart of sentiment distribution.
 - Grouped bar chart comparing sentiment counts.
 - Time-series line chart of hourly sentiment trends.
-- Word cloud of most frequent comment terms.
+- **Sentiment-Specific Word Clouds**: Supports generating word clouds for specific sentiments (All, Positive, Negative, Neutral) using customized colormaps and Chichewa stopword filtering loaded from `stopwords_chichewa.txt`.
 - Top-5 positive and negative comment highlights.
 
 ---
