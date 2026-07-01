@@ -6,6 +6,8 @@ so they work transparently both in local dev and inside Docker containers.
 
 from __future__ import annotations
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # PostgreSQL connection
@@ -23,3 +25,11 @@ DB_PASSWORD: str = os.getenv("DB_PASSWORD", "changeme")
 JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")
 JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_MINUTES: int = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
+
+# ---------------------------------------------------------------------------
+# Groq LLM Insight Engine
+# ---------------------------------------------------------------------------
+# Set GROQ_API_KEY in your .env file or environment variables.
+# Get a free key at: https://console.groq.com/keys
+GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+

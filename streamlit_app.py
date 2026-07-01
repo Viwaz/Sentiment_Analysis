@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 import json
 import os
-
+from src.db.users import create_user, authenticate_user
 import subprocess
 import time
 from pathlib import Path
@@ -462,6 +462,108 @@ st.markdown("""
         cursor: pointer !important;
     }
 
+
+    /* ── AI Insights Panel ── */
+    .ai-insights-panel {
+        background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%);
+        border: 1px solid rgba(139,92,246,0.35);
+        border-radius: 20px;
+        padding: 28px 32px;
+        margin: 28px 0 20px;
+        box-shadow: 0 8px 40px rgba(79,70,229,0.18);
+    }
+    .ai-insights-panel h3 {
+        color: #C4B5FD !important;
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 1.25rem !important;
+        margin-bottom: 4px !important;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .ai-insights-panel .ai-meta {
+        color: #6366F1;
+        font-size: 0.78rem;
+        margin-bottom: 18px;
+        letter-spacing: 0.04em;
+    }
+    .ai-summary-block {
+        background: rgba(255,255,255,0.06);
+        border-left: 4px solid #818CF8;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        color: #E0E7FF;
+        font-size: 0.97rem;
+        line-height: 1.65;
+    }
+    .ai-section-title {
+        color: #A5B4FC;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        margin: 16px 0 8px;
+    }
+    .ai-tag {
+        display: inline-block;
+        background: rgba(99,102,241,0.22);
+        color: #C7D2FE;
+        border: 1px solid rgba(99,102,241,0.4);
+        border-radius: 999px;
+        padding: 4px 14px;
+        font-size: 0.83rem;
+        margin: 4px 4px 4px 0;
+        font-weight: 500;
+    }
+    .ai-rec-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        color: #E0E7FF;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+    .ai-rec-num {
+        min-width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#4F46E5,#7C3AED);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .ai-cached-badge {
+        display: inline-block;
+        background: rgba(16,185,129,0.18);
+        color: #6EE7B7;
+        border: 1px solid rgba(16,185,129,0.3);
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 0.73rem;
+        font-weight: 600;
+        margin-left: 8px;
+        letter-spacing: 0.05em;
+    }
+    .ai-fresh-badge {
+        display: inline-block;
+        background: rgba(245,158,11,0.18);
+        color: #FCD34D;
+        border: 1px solid rgba(245,158,11,0.3);
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 0.73rem;
+        font-weight: 600;
+        margin-left: 8px;
+        letter-spacing: 0.05em;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -878,113 +980,6 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                                     )
                                 except Exception as pdf_ex:
                                     st.error(f"Could not generate PDF: {pdf_ex}")
-
-                # ── Tab partition: Overview Analytics / Detailed Records ───────
-                tab_analytics, tab_records = st.tabs(["📊 Overview Analytics", "📋 Detailed Records"])
-
-                with tab_analytics:
-                    # KPI summary cards
-                    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-                    with col_m1:
-                        st.markdown(f"""
-                            <div class="metric-card" style="text-align: center;">
-                                 <span style="font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Total Evaluated</span>
-                                 <h2 style="margin: 8px 0 0 0; color: #1E293B; font-size: 2rem;">{total_comments}</h2>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    with col_m2:
-                        st.markdown(f"""
-                            <div class="metric-card" style="text-align: center; border-left: 5px solid #10B981;">
-                                 <span style="font-size: 0.85rem; color: #065F46; font-weight: 600; text-transform: uppercase;">Positive Sentiment</span>
-                                 <h2 style="margin: 8px 0 0 0; color: #065F46; font-size: 2rem;">{pos_count} <span style="font-size: 1rem; color: #34D399;">({pos_pct:.1%})</span></h2>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    with col_m3:
-                        st.markdown(f"""
-                            <div class="metric-card" style="text-align: center; border-left: 5px solid #F59E0B;">
-                                 <span style="font-size: 0.85rem; color: #92400E; font-weight: 600; text-transform: uppercase;">Neutral Sentiment</span>
-                                 <h2 style="margin: 8px 0 0 0; color: #92400E; font-size: 2rem;">{neu_count} <span style="font-size: 1rem; color: #FBBF24;">({neu_pct:.1%})</span></h2>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    with col_m4:
-                        st.markdown(f"""
-                            <div class="metric-card" style="text-align: center; border-left: 5px solid #EF4444;">
-                                 <span style="font-size: 0.85rem; color: #991B1B; font-weight: 600; text-transform: uppercase;">Negative Sentiment</span>
-                                 <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
-                            </div>
-                        """, unsafe_allow_html=True)
-
-                    # Flat charts side by side
-                    st.markdown("")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown("#### Sentiment Distribution")
-                        if filtered_sizes:
-                            import matplotlib.pyplot as plt
-                            fig, ax = plt.subplots(figsize=(6, 5))
-                            wedges, texts, autotexts = ax.pie(
-                                filtered_sizes,
-                                labels=filtered_labels,
-                                autopct='%1.1f%%',
-                                shadow=False,
-                                startangle=140,
-                                colors=filtered_colors,
-                                textprops=dict(color="#1E293B", weight="bold", size=10),
-                                wedgeprops=dict(edgecolor='white', linewidth=1.0)
-                            )
-                            for autotext in autotexts:
-                                autotext.set_color('white')
-                                autotext.set_fontsize(11)
-                            ax.axis('equal')
-                            plt.tight_layout()
-                            st.pyplot(fig)
-                            plt.close(fig)
-                        else:
-                            st.info("No sentiments to display.")
-
-                    with col2:
-                        st.markdown("#### Sentiment Counts")
-                        if filtered_sizes:
-                            import matplotlib.pyplot as plt
-                            import seaborn as sns
-                            fig_bar, ax_bar = plt.subplots(figsize=(6, 5))
-                            sentiment_df = pd.DataFrame({'Sentiment': filtered_labels, 'Count': filtered_sizes})
-                            sns.barplot(x='Count', y='Sentiment', data=sentiment_df,
-                                        palette=filtered_colors, ax=ax_bar, hue='Sentiment', legend=False)
-                            ax_bar.spines['top'].set_visible(False)
-                            ax_bar.spines['right'].set_visible(False)
-                            ax_bar.spines['left'].set_color('#CBD5E1')
-                            ax_bar.spines['bottom'].set_color('#CBD5E1')
-                            ax_bar.tick_params(colors='#475569', labelsize=11)
-                            ax_bar.set_ylabel('', color='#475569', fontsize=12)
-                            ax_bar.set_xlabel('Count', color='#475569', fontsize=12)
-                            for container in ax_bar.containers:
-                                ax_bar.bar_label(container, fmt='%d', padding=5,
-                                                 color='#1E293B', weight='bold', fontsize=11)
-                            plt.tight_layout()
-                            st.pyplot(fig_bar)
-                            plt.close(fig_bar)
-                        else:
-                            st.info("No sentiments to display.")
-
-                    # Word clouds in sub-tabs within Analytics
-                    st.markdown("#### 🌥️ Sentiment Word Clouds")
-                    _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
-                    _wc_tabs = st.tabs(_wc_sentiments)
-                    _wc_cache = st.session_state.get("batch_wordclouds", {})
-                    for _wc_tab, _wc_label in zip(_wc_tabs, _wc_sentiments):
-                        with _wc_tab:
-                            _cached_img = _wc_cache.get(_wc_label)
-                            if _cached_img is not None:
-                                st.image(_cached_img, use_container_width=True)
-                            else:
-                                st.info(f"No '{_wc_label}' comments to visualise.")
-
-                with tab_records:
-                    st.markdown("#### Prediction Preview")
-                    render_styled_predictions_df(df_results, text_col, "predicted_sentiment", "model_confidence")
-
-                
         except Exception as e:
             st.error(f"Error processing CSV file: {e}")
 
@@ -1348,9 +1343,9 @@ if not is_developer:
                             st.error(f"Could not generate PDF report: {pdf_ex}")
             
             # Tab partition for a clean non-scroll user experience
-            tab_analytics, tab_records = st.tabs(["📊 Overview Analytics", "📋 Detailed Records"])
+            tab_overview, tab_analytics, tab_insights = st.tabs(["📋Overview", " 📊 Analysis", "Insights"])
             
-            with tab_analytics:
+            with tab_overview:
                 # Metrics KPI cards
                 col_m1, col_m2, col_m3, col_m4 = st.columns(4)
                 with col_m1:
@@ -1381,37 +1376,12 @@ if not is_developer:
                              <h2 style="margin: 8px 0 0 0; color: #991B1B; font-size: 2rem;">{neg_count} <span style="font-size: 1rem; color: #F87171;">({neg_pct:.1%})</span></h2>
                         </div>
                     """, unsafe_allow_html=True)
-                
-                # Time-Series Trend Visualizer
-                st.markdown("### 📈 Time-Series Sentiment Trend")
-                df_user["created_time_dt"] = pd.to_datetime(df_user["created_time"], errors="coerce")
-                valid_times = df_user["created_time_dt"].notna()
-                
-                if valid_times.sum() == 0:
-                    st.info("🕒 No comment creation timestamps available for this session to render a time-series.")
-                else:
-                    df_ts = df_user[valid_times].copy()
-                    ts_res = st.radio(
-                        "Aggregation Resolution",
-                        ["Hour", "Day"],
-                        horizontal=True,
-                        key=f"ts_res_{session['session_id']}",
-                        help="Choose how comments are grouped over time"
-                    )
-                    if ts_res == "Day":
-                        df_ts["time_group"] = df_ts["created_time_dt"].dt.date
-                    else:
-                        df_ts["time_group"] = df_ts["created_time_dt"].dt.floor("h")
-                        
-                    trend_raw = df_ts.groupby(["time_group", "sentiment_label_clean"]).size().reset_index(name="count")
-                    trend_pivot = trend_raw.pivot(index="time_group", columns="sentiment_label_clean", values="count").fillna(0)
-                    for label in ["positive", "neutral", "negative"]:
-                        if label not in trend_pivot.columns:
-                            trend_pivot[label] = 0.0
-                    trend_pivot = trend_pivot[["positive", "neutral", "negative"]]
-                    trend_pivot.columns = ["Positive", "Neutral", "Negative"]
-                    trend_pivot = trend_pivot.sort_index()
-                    st.line_chart(trend_pivot, use_container_width=True)
+                # Preview Data Table
+                st.markdown("#### Prediction Preview")
+                render_styled_predictions_df(df_user, "comment_text", "sentiment_label", "model_confidence")
+                                  
+            with tab_analytics:
+
                     
                 # Aggregated Summaries
                 col1, col2 = st.columns([1, 1])
@@ -1478,30 +1448,187 @@ if not is_developer:
                         plt.tight_layout()
                         st.pyplot(fig_bar)
                         plt.close(fig_bar)
+                    
                     else:
                         st.info("No sentiments to display.")
 
-                # ── Word Clouds ────────────────────────────────────────────────
-                st.markdown("#### 🌥️ Sentiment Word Clouds")
-                _hist_wc = st.session_state.get("batch_wordclouds", {})
-                if any(v is not None for v in _hist_wc.values()):
-                    _wc_tab_labels = ["All", "Positive", "Negative", "Neutral"]
-                    _wc_tabs_hist = st.tabs(_wc_tab_labels)
-                    for _wct, _wcl in zip(_wc_tabs_hist, _wc_tab_labels):
-                        with _wct:
-                            _img = _hist_wc.get(_wcl)
-                            if _img is not None:
-                                st.image(_img, use_container_width=True)
-                            else:
-                                st.info(f"No '{_wcl}' comments to visualise.")
+                                                    # Time-Series Trend Visualizer
+                st.markdown("### 📈 Time-Series Sentiment Trend")
+                df_user["created_time_dt"] = pd.to_datetime(df_user["created_time"], errors="coerce")
+                valid_times = df_user["created_time_dt"].notna()
+                
+                if valid_times.sum() == 0:
+                    st.info("🕒 No comment creation timestamps available for this session to render a time-series.")
                 else:
-                    st.info("Word clouds are not available for this session.")
-
+                    df_ts = df_user[valid_times].copy()
+                    ts_res = st.radio(
+                        "Aggregation Resolution",
+                        ["Hour", "Day"],
+                        horizontal=True,
+                        key=f"ts_res_{session['session_id']}",
+                        help="Choose how comments are grouped over time"
+                    )
+                    if ts_res == "Day":
+                        df_ts["time_group"] = df_ts["created_time_dt"].dt.date
+                    else:
+                        df_ts["time_group"] = df_ts["created_time_dt"].dt.floor("h")
                         
-            with tab_records:
-                # Preview Data Table
-                st.markdown("#### Prediction Preview")
-                render_styled_predictions_df(df_user, "comment_text", "sentiment_label", "model_confidence")
+                    trend_raw = df_ts.groupby(["time_group", "sentiment_label_clean"]).size().reset_index(name="count")
+                    trend_pivot = trend_raw.pivot(index="time_group", columns="sentiment_label_clean", values="count").fillna(0)
+                    for label in ["positive", "neutral", "negative"]:
+                        if label not in trend_pivot.columns:
+                            trend_pivot[label] = 0.0
+                    trend_pivot = trend_pivot[["positive", "neutral", "negative"]]
+                    trend_pivot.columns = ["Positive", "Neutral", "Negative"]
+                    trend_pivot = trend_pivot.sort_index()
+                    st.line_chart(trend_pivot, use_container_width=True)
+
+                                        # Word clouds in sub-tabs within Analytics
+                st.markdown("#### 🌥️ Sentiment Word Clouds")
+                _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
+                _wc_tabs = st.tabs(_wc_sentiments)
+                _wc_cache = st.session_state.get("batch_wordclouds", {})
+                for _wc_tab, _wc_label in zip(_wc_tabs, _wc_sentiments):
+                    with _wc_tab:
+                        _cached_img = _wc_cache.get(_wc_label)
+                        if _cached_img is not None:
+                            st.image(_cached_img, use_container_width=True)
+                        else:
+                            st.info(f"No '{_wc_label}' comments to visualise.")
+
+            with tab_insights:
+             # ── AI Insights Panel (Groq) ──────────────────────────────────────────
+                st.markdown("---")
+
+                ai_col_head, ai_col_btn = st.columns([5, 1])
+                with ai_col_head:
+                    st.markdown(
+                        "<h3 style='margin-bottom:2px;font-family:Outfit,sans-serif;'>"
+                        "✨ Recommendations</h3>",
+                        unsafe_allow_html=True,
+                    )
+                with ai_col_btn:
+                    refresh_insights = st.button(
+                        "↺ Refresh",
+                        key="refresh_insights_btn",
+                        help="Regenerate ",
+                    )
+
+                # Cache key is (session_id, total_count) so switching sessions or
+                # loading a different result set always triggers a fresh generation.
+                _cache_key = (
+                    st.session_state.get("current_session_id"),
+                    pos_count + neg_count + neu_count,
+                )
+                _need_generate = (
+                    refresh_insights
+                    or "cached_insights" not in st.session_state
+                    or st.session_state.get("cached_insights_key") != _cache_key
+                )
+
+                if _need_generate:
+                    with st.spinner("✨ Compiling information… "):
+                        try:
+                            from src.llm_insights import generate_groq_insights
+                            _texts      = df_user["text"].tolist()
+                            _sentiments = df_user["predicted_sentiment"].tolist()
+                            _ai_data = generate_groq_insights(
+                                texts=_texts,
+                                sentiments=_sentiments,
+                                pos_count=pos_count,
+                                neg_count=neg_count,
+                                neu_count=neu_count,
+                            )
+                            if _ai_data is None:
+                                st.session_state.cached_insights = {"error": "unavailable"}
+                            else:
+                                _ai_data["_fresh"] = True
+                                st.session_state.cached_insights = _ai_data
+                            st.session_state.cached_insights_key = _cache_key
+                        except EnvironmentError as _env_err:
+                            st.session_state.cached_insights = {"error": "no_key", "detail": str(_env_err)}
+                            st.session_state.cached_insights_key = _cache_key
+                        except Exception as _exc:
+                            st.session_state.cached_insights = {"error": "failed", "detail": str(_exc)}
+                            st.session_state.cached_insights_key = _cache_key
+
+                ai_data = st.session_state.get("cached_insights", {})
+
+                # ── Render the panel ──────────────────────────────────────────────
+                if not ai_data:
+                    st.info(" Please try again.")
+
+                elif "error" in ai_data:
+                    _err_type = ai_data.get("error", "")
+                    if _err_type == "no_key":
+                        st.markdown(
+                            "<div class='ai-insights-panel'>"
+                            "<h3>✨ Recommendations</h3>"
+                            "<div class='ai-summary-block' style='color:#FCA5A5;'>"
+                            "⚠️ <strong>System unavailable, contact support.</strong><br><br>"
+                            "</div>",
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(
+                            "<div class='ai-insights-panel'>"
+                            "<h3>✨ AI-Powered Insights</h3>"
+                            "<div class='ai-summary-block' style='color:#FCA5A5;'>"
+                            "⚠️ <strong>System currently unavailable.</strong><br>"
+                            "Please check your internet connection, then click "
+                            "<em>↺ Refresh</em> to try again."
+                            "</div></div>",
+                            unsafe_allow_html=True,
+                        )
+
+                else:
+                    # Successful result — render all four sections
+                    _fresh_badge = (
+                        '<span class="ai-fresh-badge">fresh</span>'
+                        if ai_data.get("_fresh")
+                        else '<span class="ai-cached-badge">cached</span>'
+                    )
+
+                    # ── Overall Interpretation ────────────────────────────────────
+                    overall = ai_data.get("overall_interpretation", "")
+                    # ── Summary of Public Opinion ─────────────────────────────────
+                    summary = ai_data.get("summary_of_public_opinion", "")
+                    # ── Possible Reasons ──────────────────────────────────────────
+                    reasons = ai_data.get("possible_reasons", [])
+                    # ── Recommendations ───────────────────────────────────────────
+                    recs = ai_data.get("recommendations", [])
+
+                    # Build reasons tags HTML
+                    reasons_html = ""
+                    for reason in reasons:
+                        reasons_html += f"    <span class='ai-tag'>🔍 {reason}</span>\n"
+
+                    # Build recommendations items HTML
+                    recs_html = ""
+                    for idx_r, rec in enumerate(recs, 1):
+                        recs_html += (
+                            "<div class='ai-rec-item'>"
+                            f"<span class='ai-rec-num'>{idx_r}</span>"
+                            f"<span>{rec}</span>"
+                            "</div>"
+                        )
+
+                    _total = pos_count + neg_count + neu_count
+                    insights_html = (
+                        "<div class='ai-insights-panel'>"
+                        f"<h3>✨Recommendations {_fresh_badge}</h3>"
+                        f"<div class='ai-meta'>Powered by Groq &nbsp;&bull;&nbsp; Llama 3 &nbsp;&bull;&nbsp; Based on {_total} classified comments</div>"
+                        "<div class='ai-section-title'>Overall Interpretation</div>"
+                        f"<div class='ai-summary-block'>{overall}</div>"
+                        "<div class='ai-section-title'>Summary of Public Opinion</div>"
+                        f"<div class='ai-summary-block'>{summary}</div>"
+                        "<div class='ai-section-title'>Possible Reasons Behind the Sentiment</div>"
+                        f"<div style='margin-bottom:16px;'>{reasons_html}</div>"
+                        "<div class='ai-section-title'>Recommendations</div>"
+                        f"{recs_html}"
+                        "</div>"
+                    )
+                    st.markdown(insights_html, unsafe_allow_html=True)
                 
         st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
@@ -2158,7 +2285,8 @@ with tab_analysis_scrape:
                     plt.close(fig_bar_d)
                 else:
                     st.info("No sentiments to display.")
-            
+
+
             st.markdown("#### Scraped Results")
             render_styled_predictions_df(df_run, "text", "predicted_sentiment", "model_confidence")
             
