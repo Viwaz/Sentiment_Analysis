@@ -10,7 +10,7 @@ import os
 # ---------------------------------------------------------------------------
 # PostgreSQL connection
 # ---------------------------------------------------------------------------
-DB_HOST: str = os.getenv("DB_HOST", "localhost")
+DB_HOST: str = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT: int = int(os.getenv("DB_PORT", "5432"))
 DB_NAME: str = os.getenv("DB_NAME", "sentiment_db")
 DB_USER: str = os.getenv("DB_USER", "sentiment_user")

@@ -1,267 +1,351 @@
 # Low-Resource Facebook Sentiment Classifier
 
-This project builds and evaluates sentiment classifiers for code-switched Facebook comments in a low-resource language setting. The current prototype supports data preprocessing, baseline model training, transformer fine-tuning, external evaluation, active learning, and result reporting.
+A longitudinal sentiment analysis system for code-switched Facebook comments in low-resource language settings. The platform combines a pretrained **AfriBERTa Small** transformer model with a multi-user **Streamlit dashboard**, a **FastAPI model service**, and a **PostgreSQL** persistence layer for tracking public sentiment shifts over time.
 
-## Current Status
+---
 
-The latest processed dataset contains:
+## Architecture Overview
 
-- Raw rows loaded: `2393`
-- Rows after filtering: `1813`
-- Train/validation/test split: `1269 / 272 / 272`
-- Label distribution: `negative=1019`, `positive=410`, `neutral=384`
-- Rows containing emojis: `467`
+```
++-------------------------------------------------------------+
+|                    Streamlit Dashboard                      |
+|  * Login / Registration (bcrypt auth)                       |
+|  * Apify Facebook scraper integration                       |
+|  * Session history sidebar with context menus              |
+|  * Longitudinal time-series sentiment charts                |
++----------------------+--------------------------------------+
+                       | HTTP
++----------------------v--------------------------------------+
+|               FastAPI Model Service (src/model_api.py)      |
+|  * AfriBERTa Small / Logistic Regression baseline           |
+|  * /predict, /predict-batch, /predict-pipeline endpoints    |
+|  * PostgreSQL-backed comment & prediction storage           |
++----------------------+--------------------------------------+
+                       | psycopg2
++----------------------v--------------------------------------+
+|              PostgreSQL  (two schema namespaces)            |
+|  public.*    -> developer pipeline tables (comments, etc.) |
+|  dashboard.* -> app tables (users, sessions, comments)      |
++-------------------------------------------------------------+
+```
 
-Latest internal test results from the current saved metric files:
+---
 
-| Model | Feature/input | Test macro F1 | Test accuracy | Weighted F1 |
+## Current Model Performance
+
+| Model | Feature/Input | Test Macro F1 | Test Accuracy | Weighted F1 |
 |---|---|---:|---:|---:|
 | Logistic Regression | Character TF-IDF | `0.5463` | `0.6140` | `0.6124` |
 | AfriBERTa Small | Subword transformer | `0.4901` | `0.5368` | `0.5481` |
 | XLM-RoBERTa Base | Subword transformer | `0.2994` | `0.5439` | `0.5748` |
-| External baseline evaluation | Separate external dataset | `0.3572` | `0.3783` | `0.4254` |
+| External baseline | Separate external dataset | `0.3572` | `0.3783` | `0.4254` |
 
-The current strongest saved internal test result is the Logistic Regression baseline with character TF-IDF. AfriBERTa Small remains important because it tests transfer learning on an African-language model, but the current evidence does not justify replacing the baseline automatically.
+> The strongest saved test result is the Logistic Regression baseline with character TF-IDF. AfriBERTa Small is used as the default dashboard model because it tests cross-lingual transfer on African-language text.
 
-The XLM-RoBERTa metric file is an older saved transformer run. It is useful historical evidence that the team tried a multilingual transformer, but it should be rerun on the current processed split before being treated as a strict apples-to-apples comparison.
+---
+
+## Dataset Statistics
+
+- Raw rows loaded: `2393`
+- Rows after filtering: `1813`
+- Train / Validation / Test: `1269 / 272 / 272`
+- Label distribution: `negative=1019`, `positive=410`, `neutral=384`
+- Rows containing emojis: `467`
+
+---
 
 ## Project Layout
 
-```text
+```
 project/
-|-- data/
-|   |-- collected/
-|   |-- raw/
-|   |-- external_test/
-|   |-- interim/
-|   `-- processed/
-|-- docs/
-|   |-- COLAB_AFRIBERTA.md
-|   |-- GROUP_4_DS_SRS_V7.pdf
-|   `-- TEAM_PROJECT_STRUCTURE_AND_WORKFLOW_DOCUMENT.md
-|-- models/
-|   |-- baseline/
-|   `-- transformer/
-|-- notebooks/
-|   |-- 01_data_audit.ipynb
-|   |-- 02_preprocessing.ipynb
-|   |-- 03_baseline_models.ipynb
-|   |-- 04_transformer_training.ipynb
-|   |-- 05_error_analysis.ipynb
-|   |-- 06_external_evaluation.ipynb
-|   `-- 07_active_learning.ipynb
-|-- reports/
-|   |-- figures/
-|   `-- results/
-|-- src/
-|   |-- active_learning.py
-|   |-- collect_apify.py
-|   |-- compare_models.py
-|   |-- data_utils.py
-|   |-- evaluate.py
-|   |-- evaluate_external.py
-|   |-- features.py
-|   |-- model_service.py
-|   |-- predict.py
-|   |-- preprocess.py
-|   |-- train_baseline.py
-|   `-- train_transformer.py
-|-- requirements.txt
-`-- README.md
++-- data/
+|   +-- collected/          # Apify-scraped comments (CSV)
+|   +-- raw/                # Human-annotated source CSVs
+|   +-- external_test/      # Held-out evaluation datasets
+|   +-- interim/            # Merged, cleaned intermediate files
+|   +-- processed/          # Final train/val/test splits
++-- Database/
+|   +-- schema.sql          # Public schema DDL for model API tables
+|   +-- migrations/         # Incremental schema migrations
++-- docs/
+|   +-- COLAB_AFRIBERTA.md
+|   +-- GROUP_4_DS_SRS_V7.pdf
+|   +-- TEAM_PROJECT_STRUCTURE_AND_WORKFLOW_DOCUMENT.md
++-- models/
+|   +-- baseline/           # Saved LogReg + TF-IDF pipeline
+|   +-- transformer/        # AfriBERTa Small fine-tuned checkpoint
++-- notebooks/              # Audit, experiment, and reporting notebooks
++-- reports/
+|   +-- figures/            # Confusion matrices, learning curves, charts
+|   +-- results/            # Metrics JSON/CSV and prediction tables
++-- src/
+|   +-- auth.py             # JWT authentication helpers
+|   +-- collect_apify.py    # Apify Facebook scraper integration
+|   +-- compare_models.py   # Cross-model comparison table builder
+|   +-- config.py           # Environment config (DB, model paths)
+|   +-- data_utils.py       # Dataset loaders and split helpers
+|   +-- database.py         # Dashboard PostgreSQL layer (dashboard.*)
+|   +-- db/                 # Connection pool / connection factory
+|   +-- evaluate.py         # Internal test-set evaluator
+|   +-- evaluate_external.py# External dataset evaluator
+|   +-- features.py         # TF-IDF feature construction
+|   +-- model_api.py        # FastAPI model service
+|   +-- model_service.py    # Model loading and prediction contract
+|   +-- predict.py          # Batch CSV inference entry point
+|   +-- preprocess.py       # Full preprocessing pipeline
+|   +-- train_baseline.py   # Baseline model training
+|   +-- train_transformer.py# Transformer fine-tuning (AfriBERTa)
++-- tests/
+|   +-- test_api_db_pipeline_contract.py
+|   +-- test_collect_apify_db_persistence.py
+|   +-- test_db_integration.py
+|   +-- test_model_api_endpoints.py
+|   +-- test_new_database.py
+|   +-- test_preprocess_enrichment.py
++-- streamlit_app.py        # Multi-user Streamlit dashboard
++-- Dockerfile
++-- docker-compose.yml
++-- requirements.txt
 ```
 
-## Folder Responsibilities
+---
 
-- `data/raw/`: original annotation CSV files. These files are the source of truth for training data.
-- `data/collected/`: unlabeled comments collected from external sources such as Apify for prediction or annotation.
-- `data/external_test/`: separate evaluation-only CSV files. These are not used in training or model selection.
-- `data/interim/`: merged, audited, and cleaned intermediate files for inspection.
-- `data/processed/`: final train, validation, and test splits used by all models.
-- `src/`: reusable Python implementation of preprocessing, training, evaluation, comparison, and active learning.
-- `notebooks/`: human-facing audit, experiment, and reporting notebooks.
-- `models/`: saved model artifacts. Large transformer checkpoints should not be committed to Git.
-- `reports/results/`: metrics JSON/CSV files and prediction tables.
-- `reports/figures/`: confusion matrices, learning curves, and model comparison charts.
-- `docs/`: team-facing, Colab, SRS, and presentation-support documentation.
+## Database Schema
 
-## Expected Raw Data Format
+The project uses **two isolated PostgreSQL schema namespaces** to prevent table conflicts between the developer ML pipeline and the live dashboard.
 
-Place training annotation CSV files inside `data/raw/`. Each file should contain at least:
+### `public.*` — Model API Pipeline Tables
+Managed by `Database/schema.sql` and the FastAPI service. Includes `comments`, `preprocessed_comments`, `predictions`, and `activity_logs`.
 
-- `id`
-- `text`
-- `sentiment_label`
-- `include`
+### `dashboard.*` — Streamlit App Tables
+Initialized automatically by `src/database.py -> init_db()` on dashboard startup.
 
-Additional columns such as `topic_label`, `confidence`, `notes`, or `source_file` are preserved when possible.
+| Table | Key Columns |
+|---|---|
+| `dashboard.users` | `user_id`, `username`, `password` (bcrypt), `role`, `is_active` |
+| `dashboard.sessions` | `session_id`, `user_id` (FK), `url`, `timestamp`, `custom_title` |
+| `dashboard.comments` | `comment_id`, `session_id` (FK cascade), `text`, `sentiment`, `created_time` |
 
-Place any separate evaluation-only dataset inside `data/external_test/`. It should use labels that can be normalized to:
+> **Important**: Never modify `public.*` tables from dashboard code. All dashboard CRUD targets `dashboard.*` only.
 
-- `negative`
-- `neutral`
-- `positive`
+---
 
-## Recommended Workflow
+## Streamlit Dashboard Features
 
-Run preprocessing:
+### Authentication
+- Login and registration tabs with bcrypt password hashing.
+- SHA-256 fallback for legacy password compatibility.
+- Session state persists across page reruns via `st.session_state`.
+
+### Session Management Sidebar
+- **History Sessions list**: all past scraping sessions for the logged-in user, labelled using `COALESCE(custom_title, timestamp)`.
+- **Context menu (gear popover)** per session:
+  - **Original Post** — hyperlink to the scraped Facebook source.
+  - **Rename** — conditional state-driven text input (hidden until clicked, revealed by toggle flag `show_rename_{session_id}`).
+  - **Share** — sets `st.query_params["session_id"]` for shareable URL routing.
+  - **Delete** — cascading deletion of session and all associated comments.
+- Shareable URL support: opening `?session_id=N` automatically loads that session.
+
+### Analysis Dashboard
+- Scrape Facebook comments live via Apify with configurable post URL and comment limit.
+- Batch sentiment scoring (Negative / Neutral / Positive) using the model API.
+- Results persisted into `dashboard.sessions` and `dashboard.comments` using `psycopg2.extras.execute_values` for high-throughput batch inserts.
+- Historical view loads stored results from PostgreSQL without re-scoring.
+- **Model Confidence Scores & Highlights**: The model outputs a `(label, confidence_score)` tuple calculated using softmax on model logits. Tables show the **Model Confidence** column, and rows with low confidence (`< 0.60`) are styled in light-red.
+- **Language Toggle for Translation**: A toggle in the single comment classifier enables/disables Chichewa-to-English translation of incoming comments.
+- **Professional PDF Reports**: A downloadable PDF report generated on-demand containing summary metrics, visualizations, and a predictions log table.
+
+### Visualisations
+- Pie chart of sentiment distribution.
+- Grouped bar chart comparing sentiment counts.
+- Time-series line chart of hourly sentiment trends.
+- **Sentiment-Specific Word Clouds**: Supports generating word clouds for specific sentiments (All, Positive, Negative, Neutral) using customized colormaps and Chichewa stopword filtering loaded from `stopwords_chichewa.txt`.
+- Top-5 positive and negative comment highlights.
+
+---
+
+## Setup and Installation
+
+### Prerequisites
+- Python 3.10+
+- PostgreSQL 14+
+- Docker (optional, for containerised Postgres)
+
+### Install Dependencies
 
 ```powershell
-python -m src.preprocess
+pip install -r requirements.txt
 ```
 
-Train baseline models:
+### Environment Variables
 
-```powershell
-python -m src.train_baseline
+Create a `.env` file or set the following:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=sentiment_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+APIFY_API_TOKEN=your_apify_token
+MODEL_REFERENCE=afriberta_small
 ```
 
-This compares Logistic Regression, Linear SVM, Multinomial Naive Bayes, and Complement Naive Bayes across word, character, and combined TF-IDF feature sets.
-
-Train AfriBERTa Small:
-
-```powershell
-python -m src.train_transformer --model_name castorini/afriberta_small --run_name afriberta_small
-```
-
-Evaluate the baseline on the external test dataset:
-
-```powershell
-python -m src.evaluate_external
-```
-
-Evaluate a trained transformer on the external test dataset:
-
-```powershell
-python -m src.evaluate_external --model_type transformer --model_name castorini/afriberta_small --run_name afriberta_small
-```
-
-Rebuild the model comparison table:
-
-```powershell
-python -m src.compare_models
-```
-
-Run batch inference on a CSV of new comments:
-
-```powershell
-python -m src.predict --input_path path/to/new_comments.csv --output_path reports/results/batch_predictions.csv --reference_model baseline
-```
-
-Use `--reference_model afriberta_small` to score the same CSV with the transformer reference run.
-
-The model loading and prediction contract lives in `src/model_service.py`. The CSV command in `src/predict.py` is only the file adapter: it reads comments, applies preprocessing, calls the selected model service, and writes prediction results. This keeps the model module replaceable without changing preprocessing, database writing, or dashboard code later.
-
-Run the hosted model service locally:
-
-```powershell
-uvicorn src.model_api:app --host 0.0.0.0 --port 8000
-```
-
-The hosted API loads the selected model once at startup. By default it loads `afriberta_small`; use `MODEL_REFERENCE=baseline` to run the lighter baseline service. Prediction requests must provide `cleaned_text`, because preprocessing is intentionally owned by a separate module.
-
-Hosted endpoints:
-
-- `GET /health`
-- `GET /model-info`
-- `POST /comments`
-- `GET /comments/{comment_id}`
-- `POST /predict`
-- `POST /predict-batch`
-- `POST /predict-pipeline`
-- `GET /dashboard/predictions`
-
-The database-backed API flow is:
-
-```text
-POST /predict-pipeline
-  raw comment -> comments
-  cleaned text -> preprocessed_comments
-  model output -> predictions
-  audit events -> activity_logs
-
-GET /dashboard/predictions
-  predictions joined with raw comment text and cleaned text
-```
-
-Run Postgres locally before using the DB-backed endpoints:
+### Start PostgreSQL
 
 ```powershell
 docker compose up -d db
 ```
 
-The container applies `Database/schema.sql` on first initialization. If an existing `db_data` volume was created from an older schema, apply the SQL migration under `Database/migrations/` or recreate the local development volume after backing up any data you need.
+The container applies `Database/schema.sql` on first start. For existing volumes with an older schema, run migrations under `Database/migrations/` or recreate the volume.
 
-Collect Facebook comments through Apify and feed them into the prediction pipeline:
+---
 
-```powershell
-python -m src.collect_apify --token-file secrets/apify_token.txt --url "https://www.facebook.com/..." --limit 50 --output data/collected/apify_facebook_comments.csv --predict-output reports/results/apify_predictions.csv --reference-model afriberta_small
-```
-
-If the Apify actor has already run and you have the dataset ID, fetch that dataset directly without scraping again:
+## Running the Dashboard
 
 ```powershell
-python -m src.collect_apify --token-file secrets/apify_token.txt --dataset-id "YOUR_DATASET_ID" --output data/collected/apify_existing_dataset.csv --predict-output reports/results/apify_predictions.csv --reference-model afriberta_small
+streamlit run streamlit_app.py
 ```
 
-The default collection mode runs the Apify actor, fetches the actor dataset, normalizes comments into a `text` column, and then optionally calls the existing prediction pipeline. Put the Apify token in `secrets/apify_token.txt` or set `APIFY_API_TOKEN`; never commit the token. Use `--dataset-id` when the data already exists in Apify storage. Use `--mode sync` only for small demo runs where the Apify synchronous endpoint can finish before timing out.
+On startup the dashboard will:
+1. Connect to PostgreSQL and call `init_db()` to create the `dashboard` schema and tables if they do not exist.
+2. Present a Login / Register gate before loading any content.
+3. Load the authenticated user's session history into the sidebar.
 
-For GPU-based Colab training, use `docs/COLAB_AFRIBERTA.md`.
+---
 
-## Preprocessing Behavior
+## Running the Model API
 
-The preprocessing pipeline:
+```powershell
+uvicorn src.model_api:app --host 0.0.0.0 --port 8000
+```
 
-- loads each raw CSV and records `source_file`
-- normalizes labels to `negative`, `neutral`, and `positive`
-- filters rows where `include` is not approved
-- audits missing labels, missing text, excluded rows, duplicates, and very short comments
-- applies light text normalization
-- preserves sentiment-bearing punctuation such as `!` and `?`
-- preserves emojis and appends readable emoji alias tokens to `cleaned_text`
-- exports fixed train/validation/test splits and metadata
+Loads the selected model once at startup. Prediction requests must supply `cleaned_text` because preprocessing is owned by a separate module.
 
-Generated preprocessing outputs:
+### API Endpoints
 
-- `data/interim/merged_comments.csv`
-- `data/interim/label_audit.csv`
-- `data/interim/cleaned_comments.csv`
-- `data/processed/train.csv`
-- `data/processed/val.csv`
-- `data/processed/test.csv`
-- `data/processed/metadata.json`
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Liveness check |
+| `GET` | `/model-info` | Active model metadata |
+| `POST` | `/predict` | Single comment prediction |
+| `POST` | `/predict-batch` | Batch prediction |
+| `POST` | `/predict-pipeline` | Raw comment -> preprocess -> predict -> DB |
+| `POST` | `/comments` | Insert a raw comment |
+| `GET` | `/comments/{comment_id}` | Fetch stored comment |
+| `GET` | `/dashboard/predictions` | Predictions joined with comment text |
+
+---
+
+## ML Pipeline Workflow
+
+### Preprocessing
+
+```powershell
+python -m src.preprocess
+```
+
+Outputs: `data/interim/merged_comments.csv`, `data/interim/cleaned_comments.csv`, `data/processed/train.csv`, `val.csv`, `test.csv`, `data/processed/metadata.json`.
+
+### Train Baseline
+
+```powershell
+python -m src.train_baseline
+```
+
+Compares Logistic Regression, Linear SVM, Multinomial NB, and Complement NB across word, character, and combined TF-IDF feature sets.
+
+### Fine-tune AfriBERTa Small
+
+```powershell
+python -m src.train_transformer --model_name castorini/afriberta_small --run_name afriberta_small
+```
+
+For GPU training on Google Colab, see `docs/COLAB_AFRIBERTA.md`.
+
+### Evaluate on External Dataset
+
+```powershell
+python -m src.evaluate_external
+python -m src.evaluate_external --model_type transformer --model_name castorini/afriberta_small --run_name afriberta_small
+```
+
+### Rebuild Model Comparison Table
+
+```powershell
+python -m src.compare_models
+```
+
+### Batch Inference from CSV
+
+```powershell
+python -m src.predict --input_path path/to/comments.csv --output_path reports/results/predictions.csv --reference_model baseline
+```
+
+### Scrape Facebook via Apify
+
+```powershell
+python -m src.collect_apify --token-file secrets/apify_token.txt --url "https://www.facebook.com/..." --limit 50 --output data/collected/apify_comments.csv --predict-output reports/results/apify_predictions.csv --reference-model afriberta_small
+```
+
+To fetch an already-collected Apify dataset:
+
+```powershell
+python -m src.collect_apify --token-file secrets/apify_token.txt --dataset-id "YOUR_DATASET_ID" --output data/collected/apify_existing.csv --predict-output reports/results/apify_predictions.csv --reference-model afriberta_small
+```
+
+---
+
+## Testing
+
+All tests target the `dashboard.*` schema and the API contract; they do **not** modify `public.*` tables.
+
+```powershell
+$env:PYTHONPATH="."; pytest
+```
+
+**Current status: 41 / 41 tests passing.**
+
+| Test File | Coverage Area |
+|---|---|
+| `test_new_database.py` | bcrypt auth, session save, title rename, cascade delete |
+| `test_db_integration.py` | Full CRUD across `dashboard.*` tables |
+| `test_api_db_pipeline_contract.py` | FastAPI <-> PostgreSQL contract |
+| `test_collect_apify_db_persistence.py` | Apify scraper -> DB persistence |
+| `test_model_api_endpoints.py` | Model API endpoint responses |
+| `test_preprocess_enrichment.py` | Preprocessor text normalization |
+
+---
 
 ## Reporting Outputs
 
-The most useful files for presentation and review are:
+| File | Description |
+|---|---|
+| `reports/results/model_comparison.csv` | Cross-model performance table |
+| `reports/results/baseline_metrics.json` | Logistic Regression test metrics |
+| `reports/results/afriberta_small_metrics.json` | AfriBERTa Small test metrics |
+| `reports/results/external_baseline_metrics.json` | External evaluation metrics |
+| `reports/figures/model_comparison_macro_f1.png` | Bar chart of macro F1 scores |
+| `reports/figures/baseline_confusion_matrix.png` | Baseline confusion matrix |
+| `reports/figures/afriberta_small_confusion_matrix.png` | Transformer confusion matrix |
+| `reports/figures/afriberta_small_learning_curves.png` | Training loss / eval curves |
 
-- `reports/results/model_comparison.csv`
-- `reports/results/model_comparison_ppt_table.csv`
-- `reports/results/baseline_metrics.json`
-- `reports/results/afriberta_small_metrics.json`
-- `reports/results/external_baseline_metrics.json`
-- `models/baseline/model_metadata.json`
-- `models/transformer/afriberta_small/model_metadata.json`
-- `reports/figures/model_comparison_macro_f1.png`
-- `reports/figures/baseline_confusion_matrix.png`
-- `reports/figures/afriberta_small_confusion_matrix.png`
-- `reports/figures/afriberta_small_learning_curves.png`
+---
 
-## Notes For Low-Resource, Code-Switched Text
+## Notes for Low-Resource Code-Switched Text
 
-- Avoid generic English stopword removal unless the team has evidence it helps.
+- Avoid generic English stopword removal — it strips meaningful local-language tokens.
 - Avoid English stemming or lemmatization for local-language text.
 - Preserve negations, hashtags, emojis, and expressive punctuation.
-- Prefer character n-grams and multilingual/subword transformer models over a manually fixed vocabulary.
-- Treat external evaluation as a generalization check, not as another training split.
+- Prefer character n-grams and multilingual/subword transformer models over a fixed vocabulary.
+- Treat external evaluation as a generalization check only, never as a training split.
+
+---
 
 ## Documentation
 
-Team and submission-facing documentation is kept in `docs/`.
-
-Use:
-
-- `docs/TEAM_PROJECT_STRUCTURE_AND_WORKFLOW_DOCUMENT.md` for team alignment.
-- `docs/COLAB_AFRIBERTA.md` for remote GPU training.
-- `docs/GROUP_4_DS_SRS_V7.pdf` for the current SRS PDF copy.
-
-The original SRS PDF may still exist at the repository root on some machines if Windows or OneDrive blocks moving the file. The preferred documentation location is `docs/`.
+| File | Purpose |
+|---|---|
+| `docs/TEAM_PROJECT_STRUCTURE_AND_WORKFLOW_DOCUMENT.md` | Team alignment and workflow guide |
+| `docs/COLAB_AFRIBERTA.md` | Remote GPU training on Google Colab |
+| `docs/GROUP_4_DS_SRS_V7.pdf` | Software Requirements Specification |
