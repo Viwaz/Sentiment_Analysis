@@ -985,6 +985,39 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
 
 # ----------------- UI Sidebar -----------------
 
+def get_password_requirements(password):
+    password = password or ""
+    return {
+        "At least 8 characters": len(password) >= 8,
+        "Contains at least one number": any(char.isdigit() for char in password),
+        "Contains at least one special character": any(not char.isalnum() for char in password),
+    }
+
+
+def render_password_requirements(password):
+    requirements = get_password_requirements(password)
+    rows = []
+    for label, is_met in requirements.items():
+        icon = "&#10003;" if is_met else "&#9675;"
+        color = "#16A34A" if is_met else "#DC2626"
+        status = "met" if is_met else "not met"
+        rows.append(
+            f"<li style='color:{color}; margin: 4px 0;'>"
+            f"<strong>{icon}</strong> {label} <span style='font-size: 0.85em;'>({status})</span>"
+            "</li>"
+        )
+
+    st.markdown(
+        "<div style='margin: 0.35rem 0 0.85rem 0;'>"
+        "<p style='margin-bottom: 0.25rem; font-weight: 700;'>Password requirements</p>"
+        "<ul style='padding-left: 1.15rem; margin-top: 0;'>"
+        + "".join(rows)
+        + "</ul></div>",
+        unsafe_allow_html=True,
+    )
+    return all(requirements.values())
+
+
 # ── Session state defaults ──────────────────────────────────────────────────
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -1033,25 +1066,32 @@ if not st.session_state.logged_in:
                         st.error("Invalid username or password.")
                         
     with auth_tabs[1]:
-        with st.form("register_form"):
-            reg_username = st.text_input("Choose Username", key="register_username_input")
-            reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
-            reg_confirm = st.text_input("Confirm Password", type="password", key="register_confirm_input")
-            submit_reg = st.form_submit_button("Create Account", use_container_width=True)
-            if submit_reg:
-                if not reg_username or not reg_password or not reg_confirm:
-                    st.error("Please fill out all fields.")
-                elif reg_password != reg_confirm:
-                    st.error("Passwords do not match.")
-                else:
-                    from src.database import create_user
-                    try:
-                        create_user(reg_username, reg_password)
-                        st.success("Account created successfully! Please sign in using the 'Sign In' tab.")
-                    except ValueError as ve:
-                        st.error(str(ve))
-                    except Exception as e:
-                        st.error(f"Failed to create account: {e}")
+        reg_username = st.text_input("Choose Username", key="register_username_input")
+        reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
+        password_is_valid = render_password_requirements(reg_password)
+        reg_confirm = st.text_input("Confirm Password", type="password", key="register_confirm_input")
+        submit_reg = st.button(
+            "Create Account",
+            use_container_width=True,
+            disabled=not password_is_valid,
+            key="register_submit_btn",
+        )
+        if submit_reg:
+            if not reg_username or not reg_password or not reg_confirm:
+                st.error("Please fill out all fields.")
+            elif not password_is_valid:
+                st.error("Please meet all password requirements before creating an account.")
+            elif reg_password != reg_confirm:
+                st.error("Passwords do not match.")
+            else:
+                from src.database import create_user
+                try:
+                    create_user(reg_username, reg_password)
+                    st.success("Account created successfully! Please sign in using the 'Sign In' tab.")
+                except ValueError as ve:
+                    st.error(str(ve))
+                except Exception as e:
+                    st.error(f"Failed to create account: {e}")
                         
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
@@ -1688,7 +1728,7 @@ if not is_developer:
                 st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
                 u_col1, u_col2 = st.columns(2)
                 with u_col1:
-                    user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=1000, value=50, key="user_scrape_limit")
+                    user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=10000, value=50, key="user_scrape_limit")
                 with u_col2:
                     user_token_path = Path("secret/token.txt")
                     default_user_token = user_token_path.read_text(encoding="utf-8").strip() if user_token_path.exists() else (os.getenv("APIFY_API_TOKEN") or "")
