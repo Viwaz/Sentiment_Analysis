@@ -1530,8 +1530,23 @@ if not is_developer:
                     with st.spinner("✨ Compiling information… "):
                         try:
                             from src.llm_insights import generate_groq_insights
-                            _texts      = df_user["text"].tolist()
-                            _sentiments = df_user["predicted_sentiment"].tolist()
+
+                            if "text" in df_user.columns:
+                                _texts = df_user["text"].fillna("").astype(str).tolist()
+                            elif "comment_text" in df_user.columns:
+                                _texts = df_user["comment_text"].fillna("").astype(str).tolist()
+                            else:
+                                _texts = []
+
+                            if "predicted_sentiment" in df_user.columns:
+                                _sentiments = df_user["predicted_sentiment"].fillna("neutral").astype(str).tolist()
+                            elif "sentiment_label_clean" in df_user.columns:
+                                _sentiments = df_user["sentiment_label_clean"].fillna("neutral").astype(str).tolist()
+                            elif "sentiment_label" in df_user.columns:
+                                _sentiments = df_user["sentiment_label"].fillna("neutral").astype(str).str.lower().tolist()
+                            else:
+                                _sentiments = ["neutral"] * len(_texts)
+
                             _ai_data = generate_groq_insights(
                                 texts=_texts,
                                 sentiments=_sentiments,
