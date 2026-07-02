@@ -8,6 +8,9 @@ import os
 import subprocess
 import time
 from pathlib import Path
+import base64
+from streamlit_oauth import OAuth2Component
+from streamlit_cookies_controller import CookieController
 
 # Set up page configurations
 st.set_page_config(
@@ -15,6 +18,41 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Read active URL query parameters (used by the Google OAuth redirect handshake below)
+url_params = st.query_params
+
+# Fix A: If a Google OAuth handshake is in progress, drop any stale local session
+# hooks immediately so they can't clash with the incoming OAuth callback.
+if "code" in url_params or "state" in url_params:
+    if "logged_in" not in st.session_state or st.session_state.logged_in == False:
+        st.session_state.logged_in = False
+        st.session_state.user_id = None
+        st.session_state.username = None
+        if "user" in url_params:
+            del st.query_params["user"]
+
+# Google OAuth client credentials (falls back to secrets.toml if not set below)
+REDIRECT_URI = st.secrets.get("REDIRECT_URI", "http://localhost:8501")
+GOOGLE_CLIENT_ID = st.secrets.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = st.secrets.get("GOOGLE_CLIENT_SECRET", "")
+
+cookie_controller = CookieController()
+
+# Initialise OAuth component
+oauth2 = OAuth2Component(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    "https://accounts.google.com/o/oauth2/v2/auth",
+    "https://oauth2.googleapis.com/token",
+    "https://oauth2.googleapis.com/token",
+    "https://oauth2.googleapis.com/revoke"
+)
+
+# Helper function to render the Google Sign-In button
+def login_button(client_id: str, client_secret: str, redirect_uri: str):
+    """Render the Google Sign-In button and return the auth result."""
+    return oauth2.authorize_button("Sign in with Google", redirect_uri, scope="openid email profile")
 
 # Initialize database
 from src.database import init_db
@@ -419,24 +457,93 @@ st.markdown("""
         fill: #4F46E5 !important;
     }
 
-    /* ── Auth Card ── */
-    .auth-card {
-        background: white;
-        padding: 36px 32px 28px;
-        border-radius: 20px;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-        border: 1px solid #E2E8F0;
-    }
-    .auth-card h1, .auth-card h2, .auth-card h3 {
-        margin-top: 0 !important;
-        text-align: center;
-    }
-    .auth-card .subtitle {
-        text-align: center;
-        color: #64748B;
-        margin-bottom: 24px;
-    }
+/* ── Main Container / Auth Card ── */
+.auth-card {
+    background: #ffffff;
+    padding: 32px 28px;
+    border-radius: 12px; /* Subtle, formal rounding instead of overly bubbly corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Soft, clean shadow */
+    border: 1px solid #E2E8F0;
+    max-width: 440px; /* Constrains the width so fields don't stretch indefinitely */
+    margin: 40px auto;
+}
 
+/* ── Dashboard Header ── */
+.auth-card h1 {
+    font-size: 24px; /* Reduced from massive display sizes */
+    font-weight: 700;
+    color: #0F172A; /* Slate 900 for executive readability */
+    margin: 0 0 6px 0;
+    text-align: center;
+    letter-spacing: -0.3px;
+}
+
+.auth-card .subtitle {
+    text-align: center;
+    color: #64748B; /* Neutral slate subtext */
+    font-size: 13px;
+    margin-bottom: 24px;
+}
+
+/* ── Formal Tab Switcher ── */
+.tab-container {
+    display: flex;
+    border-bottom: 1px solid #E2E8F0;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.tab-btn {
+    padding: 8px 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748B;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    color: #2563EB; /* Clean corporate blue anchor */
+    border-bottom-color: #2563EB;
+    font-weight: 600;
+}
+
+/* ── Form Fields & Labels ── */
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155; /* Slate 700 */
+    margin-bottom: 6px;
+}
+
+.form-group input {
+    width: 100%;
+    height: 38px; /* Standard professional input height */
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #1E293B;
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1; /* Clean grey border */
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Form Interactivity */
+.form-group input:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
     /* ── Footer ── */
     .footer {
         text-align: center;
@@ -851,7 +958,32 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
 
 # ── Session state defaults ──────────────────────────────────────────────────
 if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+    # First check native Streamlit context, fallback to the cookie controller
+    saved_user = None
+    if hasattr(st, "context") and hasattr(st.context, "cookies"):
+        saved_user = st.context.cookies.get("logged_in_user")
+    if not saved_user:
+        saved_user = cookie_controller.get("logged_in_user")
+
+    if saved_user:
+        from src.database import get_user_by_username
+        user = get_user_by_username(saved_user)
+        if user:
+            st.session_state.logged_in = True
+            st.session_state.user_id = user["user_id"]
+            st.session_state.username = user["username"]
+            st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
+            st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
+        else:
+            st.session_state.logged_in = False
+    else:
+        st.session_state.logged_in = False
+
+# Clean up any leftover query params that might re-trigger a login after a cookie restore
+if st.session_state.get("logged_in") and st.session_state.get("user_id"):
+    if "user" in st.query_params:
+        st.query_params.clear()
+
 if "user_id" not in st.session_state:
     st.session_state.user_id = None
 if "username" not in st.session_state:
@@ -871,9 +1003,9 @@ if not st.session_state.logged_in:
     st.markdown("<h2 style='text-align: center;'>🔐 Sentiment Analysis Dashboard</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: #64748B;'>Please sign in or create an account to proceed.</p>", unsafe_allow_html=True)
     
-    auth_tabs = st.tabs(["🔑 Sign In", "📝 Create Account"])
+    auth_tabs = st.tabs(["📝 Create Account", "🔑 Sign In"])
     
-    with auth_tabs[0]:
+    with auth_tabs[1]:
         with st.form("login_form"):
             username = st.text_input("Username", key="login_username_input")
             password = st.text_input("Password", type="password", key="login_password_input")
@@ -885,6 +1017,7 @@ if not st.session_state.logged_in:
                     from src.database import authenticate_user
                     user = authenticate_user(username, password)
                     if user:
+                        cookie_controller.set("logged_in_user", user["username"])
                         st.session_state.logged_in = True
                         st.session_state.user_id = user["user_id"]
                         st.session_state.username = user["username"]
@@ -892,11 +1025,37 @@ if not st.session_state.logged_in:
                         st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
                         st.session_state.view_mode = "new"
                         st.success(f"Welcome back, {user['username']}!")
+                        st.query_params.clear()
                         st.rerun()
                     else:
                         st.error("Invalid username or password.")
+
+        st.markdown("<hr style='margin: 8px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+        if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+            st.caption("Google Sign-In is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in secrets.toml to enable it.")
+        else:
+            result = login_button(client_id=GOOGLE_CLIENT_ID, client_secret=GOOGLE_CLIENT_SECRET, redirect_uri=REDIRECT_URI)
+            if result and "token" in result:
+                id_token = result["token"].get("id_token")
+                if id_token:
+                    payload = id_token.split(".")[1]
+                    payload += "=" * ((4 - len(payload) % 4) % 4)
+                    user_info = json.loads(base64.urlsafe_b64decode(payload).decode("utf-8"))
+                    email = user_info.get("email")
+                    if email:
+                        from src.database import create_or_get_google_user
+                        user = create_or_get_google_user(email)
+                        cookie_controller.set("logged_in_user", user["username"])
+                        st.session_state.logged_in = True
+                        st.session_state.user_id = user["user_id"]
+                        st.session_state.username = user["username"]
+                        st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
+                        st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
+                        st.session_state.view_mode = "new"
+                        st.query_params.clear()
+                        st.rerun()
                         
-    with auth_tabs[1]:
+    with auth_tabs[0]:
         with st.form("register_form"):
             reg_username = st.text_input("Choose Username", key="register_username_input")
             reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
@@ -953,6 +1112,7 @@ if st.sidebar.button("➕ Analyze New URL", type="primary", use_container_width=
     st.session_state.view_mode = "new"
     st.session_state.current_session_id = None
     st.session_state.user_scrape_results = None
+    st.query_params.clear()
     st.rerun()
 
 st.sidebar.subheader("History Sessions")
@@ -982,6 +1142,7 @@ if sessions:
                     st.session_state.current_session_id = session_id
                     st.session_state.view_mode = "history"
                     st.session_state.user_scrape_results = None
+                    st.query_params["session_id"] = str(session_id)
                     st.rerun()
                     
             with col_menu:
@@ -1013,6 +1174,7 @@ if sessions:
                             if st.session_state.current_session_id == session_id:
                                 st.session_state.current_session_id = None
                                 st.session_state.view_mode = "new"
+                                st.query_params.clear()
                             st.success("Deleted!")
                             st.rerun()
                     else:
@@ -1093,6 +1255,7 @@ if is_developer:
 
 # Secure log out button at bottom of sidebar
 if st.sidebar.button("🔓 Log Out", use_container_width=True, key="logout_sidebar_btn"):
+    cookie_controller.remove("logged_in_user")
     st.session_state.logged_in = False
     st.session_state.user_id = None
     st.session_state.username = None
@@ -1283,6 +1446,7 @@ if not is_developer:
             if st.button("➕ Analyze New URL", key="history_back_btn"):
                 st.session_state.view_mode = "new"
                 st.session_state.current_session_id = None
+                st.query_params.clear()
                 st.rerun()
                 
         st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
@@ -1293,8 +1457,8 @@ if not is_developer:
         st.markdown("### Analyze a Facebook Post or Upload CSV")
         
         # URL scrape inputs
-        if "user_active_url" not in st.session_state:
-            st.session_state.user_active_url = None
+        if "user_active_urls" not in st.session_state:
+            st.session_state.user_active_urls = None
         if "user_active_file" not in st.session_state:
             st.session_state.user_active_file = None
         if "user_processing" not in st.session_state:
@@ -1312,20 +1476,27 @@ if not is_developer:
             st.session_state.user_scrape_phase = None
             st.session_state.user_cancel_requested = False
             
-        # Chat-like input for URL
+        # Chat-like input for URL(s) - supports one or many, separated by comma/newline/whitespace
         if not st.session_state.user_processing and not st.session_state.get("batch_processing", False):
-            prompt = st.chat_input("Paste Facebook Post URL here...", accept_file=True, file_type=["csv"], key="user_chat")
+            prompt = st.chat_input("Paste one or more Facebook Post URLs (separate with commas)...", accept_file=True, file_type=["csv"], key="user_chat")
             if prompt:
                 if prompt.text:
-                    st.session_state.user_active_url = prompt.text
+                    import re as _re_user_urls
+                    parsed_urls = [u.strip() for u in _re_user_urls.split(r"[,\n]+|\s+", prompt.text) if u.strip()]
+                    st.session_state.user_active_urls = parsed_urls or None
                     st.session_state.user_active_file = None
                 if prompt.get("files"):
                     st.session_state.user_active_file = prompt["files"][0]
-                    st.session_state.user_active_url = None
+                    st.session_state.user_active_urls = None
                     
-        if st.session_state.user_active_url:
+        if st.session_state.user_active_urls:
             if not st.session_state.user_processing:
-                st.markdown(f"**Target URL:** `{st.session_state.user_active_url}`")
+                if len(st.session_state.user_active_urls) == 1:
+                    st.markdown(f"**Target URL:** `{st.session_state.user_active_urls[0]}`")
+                else:
+                    st.markdown(f"**Target URLs ({len(st.session_state.user_active_urls)}):**")
+                    for _u in st.session_state.user_active_urls:
+                        st.markdown(f"- `{_u}`")
                 u_col1, u_col2 = st.columns(2)
                 with u_col1:
                     user_scrape_limit = st.number_input("Max Comments to Collect", min_value=1, max_value=500, value=50, key="user_scrape_limit")
@@ -1373,12 +1544,21 @@ if not is_developer:
                         st.rerun()
                     user_scrape_limit_val = st.session_state.user_scrape_limit_val
                     user_scrape_token_val = st.session_state.user_scrape_token_val
+                    user_urls_val = st.session_state.user_active_urls
                     from src.collect_apify import collect_facebook_comments
-                    with st.spinner("Scraping comments from Facebook via Apify... (this may take a minute)"):
+                    n_urls = len(user_urls_val)
+                    spinner_msg = (
+                        "Scraping comments from Facebook via Apify... (this may take a minute)"
+                        if n_urls == 1
+                        else f"Scraping {n_urls} Facebook posts in parallel via Apify... (this may take a minute)"
+                    )
+                    with st.spinner(spinner_msg):
                         try:
-                            collected_df = collect_facebook_comments(urls=[st.session_state.user_active_url], limit=user_scrape_limit_val, token=user_scrape_token_val, mode="sync")
+                            # Passing all URLs in a single startUrls list lets the Apify actor
+                            # crawl them concurrently instead of one run per URL.
+                            collected_df = collect_facebook_comments(urls=user_urls_val, limit=user_scrape_limit_val, token=user_scrape_token_val, mode="sync")
                             st.session_state.user_collected_df = collected_df
-                            st.success(f"[OK] Scraped {len(collected_df)} comments!")
+                            st.success(f"[OK] Scraped {len(collected_df)} comments from {n_urls} URL(s)!")
                         except Exception as e:
                             st.error(f"[ERR] Scraping failed: {e}")
                             st.session_state.user_collected_df = None
@@ -1406,15 +1586,16 @@ if not is_developer:
                                 else:
                                     df_user["predicted_sentiment"] = "neutral"
                                     
-                                # Save using new save_analysis
+                                # Save using new save_analysis (join multiple source URLs for the session record)
                                 session = save_analysis(
                                     user_id=st.session_state.user_id,
-                                    url=st.session_state.user_active_url,
+                                    url=", ".join(st.session_state.user_active_urls),
                                     df=df_user
                                 )
                                 st.session_state.current_session_id = session["session_id"]
                                 st.session_state.view_mode = "history"
-                                st.session_state.user_active_url = None
+                                st.session_state.user_active_urls = None
+                                st.query_params["session_id"] = str(session["session_id"])
                                 st.success("Analysis saved to database!")
                             except Exception as e:
                                 st.error(f"[ERR] Error during predictions: {e}")
@@ -1458,6 +1639,7 @@ if not is_developer:
                         st.session_state.current_session_id = session["session_id"]
                         st.session_state.view_mode = "history"
                         st.session_state.user_active_file = None
+                        st.query_params["session_id"] = str(session["session_id"])
                         st.rerun()
             except Exception as e:
                 st.error(f"Error loading CSV file: {e}")
@@ -1466,6 +1648,7 @@ if not is_developer:
                 st.session_state.user_active_file = None
                 st.rerun()
                 
+
         st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
 

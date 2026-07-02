@@ -152,6 +152,58 @@ def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
     return None
 
 
+def get_user_by_username(username: str) -> dict[str, Any] | None:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT user_id, username, password, email, role, created_at, is_active "
+                "FROM dashboard.users WHERE username = %s",
+                (username,),
+            )
+            row = cur.fetchone()
+    if row is None:
+        return None
+    user = _user_row_to_dict(row)
+    return {
+        "user_id": user["user_id"],
+        "username": user["username"],
+        "role": user.get("role", "general"),
+    }
+
+
+def create_or_get_google_user(email: str) -> dict[str, Any]:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            # Check if user exists by username (email)
+            cur.execute(
+                "SELECT user_id, username, password, email, role, created_at, is_active "
+                "FROM dashboard.users WHERE username = %s",
+                (email,)
+            )
+            row = cur.fetchone()
+            if row is not None:
+                user = _user_row_to_dict(row)
+                return {
+                    "user_id": user["user_id"],
+                    "username": user["username"],
+                    "role": user.get("role", "general"),
+                }
+            
+            # If not, create a new one
+            cur.execute(
+                "INSERT INTO dashboard.users (username, password, email, role) "
+                "VALUES (%s, 'google_oauth', %s, 'general') RETURNING user_id",
+                (email, email)
+            )
+            new_user_id = cur.fetchone()[0]
+            return {
+                "user_id": new_user_id,
+                "username": email,
+                "role": "general"
+            }
+
+
+
 # ── Session helpers ──────────────────────────────────────────────────────────
 
 def _session_row_to_dict(row: tuple) -> dict[str, Any]:
