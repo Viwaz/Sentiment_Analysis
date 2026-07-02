@@ -344,6 +344,22 @@ st.markdown("""
         box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
     }
 
+    /* ── Fix: wrapper around the input + show/hide-password eye icon ──
+       The input element above is painted white, but its parent
+       div[data-baseweb="input"] (which also holds the reveal-password
+       button) was never styled, so it kept Streamlit's dark theme
+       background — showing as a black strip on every password field. */
+    [data-testid="stTextInput"] div[data-baseweb="input"] {
+        background: #FFFFFF !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stTextInput"] div[data-baseweb="input"] button {
+        background: #FFFFFF !important;
+    }
+    [data-testid="stTextInput"] div[data-baseweb="input"] button svg {
+        fill: #1E293B !important;
+    }
+
     /* ── Number Input ── */
     [data-testid="stNumberInput"] input {
         background: #FFFFFF !important;
@@ -457,33 +473,164 @@ st.markdown("""
         fill: #4F46E5 !important;
     }
 
-/* ── Main Container / Auth Card ── */
-.auth-card {
-    background: #ffffff;
-    padding: 32px 28px;
-    border-radius: 12px; /* Subtle, formal rounding instead of overly bubbly corners */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Soft, clean shadow */
-    border: 1px solid #E2E8F0;
-    max-width: 440px; /* Constrains the width so fields don't stretch indefinitely */
-    margin: 40px auto;
+/* ══════════════════════════════════════
+   LANDING PAGE — Full-screen layout
+══════════════════════════════════════ */
+
+/* Hide Streamlit chrome on login page */
+.landing-active [data-testid="stHeader"],
+.landing-active [data-testid="stToolbar"],
+.landing-active [data-testid="stDecoration"] { display: none !important; }
+
+/* Wrapper that fills the whole viewport */
+/* ── Left hero panel (now a standalone column card, not a full-bleed flex child) ── */
+.landing-hero {
+    background: linear-gradient(145deg, #0F172A 0%, #1E1B4B 55%, #312E81 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 48px 44px;
+    min-height: 560px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.18), 0 2px 8px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+}
+.landing-hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(139,92,246,0.28) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.landing-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.landing-hero .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139,92,246,0.18);
+    border: 1px solid rgba(139,92,246,0.4);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #C4B5FD;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+}
+.landing-hero h1 {
+    font-size: 2.8rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.15 !important;
+    margin: 0 0 20px !important;
+    letter-spacing: -1px;
+}
+.landing-hero h1 span {
+    background: linear-gradient(90deg, #818CF8, #C084FC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.landing-hero .hero-desc {
+    font-size: 1rem;
+    color: #94A3B8;
+    line-height: 1.7;
+    max-width: 380px;
+    margin-bottom: 40px;
+}
+.landing-hero .hero-features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.landing-hero .hero-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #CBD5E1;
+    font-size: 0.92rem;
+}
+.landing-hero .hero-feature .feat-icon {
+    width: 34px; height: 34px;
+    background: rgba(99,102,241,0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* ── Login card ──
+   The card is a real st.container(border=True, key="auth_card"), so its
+   header + tabs + forms render inside ONE box in normal document flow —
+   which is what keeps it aligned on the same row as the hero column.
+   Target both selectors for compatibility across Streamlit versions. */
+.st-key-auth_card,
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.1), 0 2px 8px rgba(0,0,0,0.06) !important;
+    border: 1px solid #E2E8F0 !important;
+    padding: 32px 32px 24px !important;
+    min-height: 560px;
+    position: relative;
+}
+.st-key-auth_card::before,
+[data-testid="stVerticalBlockBorderWrapper"]::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6366F1, #8B5CF6, #EC4899);
+    border-radius: 20px 20px 0 0;
+}
+
+/* Card header */
+.auth-card-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+.auth-card-header .auth-icon {
+    font-size: 2.4rem;
+    display: block;
+    margin-bottom: 12px;
+    line-height: 1;
+}
+.auth-card-header h2 {
+    font-size: 1.45rem !important;
+    font-weight: 800 !important;
+    color: #0F172A !important;
+    margin: 0 0 6px !important;
+    letter-spacing: -0.3px;
+}
+.auth-card-header p {
+    color: #64748B;
+    font-size: 0.84rem;
+    margin: 0;
+}
+.landing-login-footer {
+    margin-top: 24px;
+    font-size: 0.78rem;
+    color: #94A3B8;
+    text-align: center;
 }
 
 /* ── Dashboard Header ── */
-.auth-card h1 {
-    font-size: 24px; /* Reduced from massive display sizes */
-    font-weight: 700;
-    color: #0F172A; /* Slate 900 for executive readability */
-    margin: 0 0 6px 0;
-    text-align: center;
-    letter-spacing: -0.3px;
-}
 
-.auth-card .subtitle {
-    text-align: center;
-    color: #64748B; /* Neutral slate subtext */
-    font-size: 13px;
-    margin-bottom: 24px;
-}
 
 /* ── Formal Tab Switcher ── */
 .tab-container {
@@ -555,7 +702,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
 
 # ----------------- Helper Functions -----------------
 
@@ -997,86 +1143,129 @@ if "current_user" not in st.session_state:
 if "logged_in_as_dev" not in st.session_state:
     st.session_state.logged_in_as_dev = False
 
-# Gating: block dashboard views for unauthenticated users
+# ════════════════════════════════════════
+# LANDING PAGE — full-screen split layout
+# ════════════════════════════════════════
 if not st.session_state.logged_in:
-    st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align: center;'>🔐 Sentiment Analysis Dashboard</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748B;'>Please sign in or create an account to proceed.</p>", unsafe_allow_html=True)
-    
-    auth_tabs = st.tabs(["📝 Create Account", "🔑 Sign In"])
-    
-    with auth_tabs[1]:
-        with st.form("login_form"):
-            username = st.text_input("Username", key="login_username_input")
-            password = st.text_input("Password", type="password", key="login_password_input")
-            submit = st.form_submit_button("Log In", use_container_width=True)
-            if submit:
-                if not username or not password:
-                    st.error("Please fill out all fields.")
-                else:
-                    from src.database import authenticate_user
-                    user = authenticate_user(username, password)
-                    if user:
-                        cookie_controller.set("logged_in_user", user["username"])
-                        st.session_state.logged_in = True
-                        st.session_state.user_id = user["user_id"]
-                        st.session_state.username = user["username"]
-                        st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
-                        st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
-                        st.session_state.view_mode = "new"
-                        st.success(f"Welcome back, {user['username']}!")
-                        st.query_params.clear()
-                        st.rerun()
-                    else:
-                        st.error("Invalid username or password.")
+    # Hero and login card are rendered as two columns in a SINGLE st.columns()
+    # call so they share one row and stay aligned side-by-side.
+    hero_col, card_col = st.columns([1.1, 0.9], gap="large")
 
-        st.markdown("<hr style='margin: 8px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-        if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-            st.caption("Google Sign-In is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in secrets.toml to enable it.")
-        else:
-            result = login_button(client_id=GOOGLE_CLIENT_ID, client_secret=GOOGLE_CLIENT_SECRET, redirect_uri=REDIRECT_URI)
-            if result and "token" in result:
-                id_token = result["token"].get("id_token")
-                if id_token:
-                    payload = id_token.split(".")[1]
-                    payload += "=" * ((4 - len(payload) % 4) % 4)
-                    user_info = json.loads(base64.urlsafe_b64decode(payload).decode("utf-8"))
-                    email = user_info.get("email")
-                    if email:
-                        from src.database import create_or_get_google_user
-                        user = create_or_get_google_user(email)
-                        cookie_controller.set("logged_in_user", user["username"])
-                        st.session_state.logged_in = True
-                        st.session_state.user_id = user["user_id"]
-                        st.session_state.username = user["username"]
-                        st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
-                        st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
-                        st.session_state.view_mode = "new"
-                        st.query_params.clear()
-                        st.rerun()
-                        
-    with auth_tabs[0]:
-        with st.form("register_form"):
-            reg_username = st.text_input("Choose Username", key="register_username_input")
-            reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
-            reg_confirm = st.text_input("Confirm Password", type="password", key="register_confirm_input")
-            submit_reg = st.form_submit_button("Create Account", use_container_width=True)
-            if submit_reg:
-                if not reg_username or not reg_password or not reg_confirm:
-                    st.error("Please fill out all fields.")
-                elif reg_password != reg_confirm:
-                    st.error("Passwords do not match.")
+    with hero_col:
+        st.markdown("""
+        <div class="landing-hero">
+    
+          <h1>Facebook<br><span>Sentiment</span><br>Classifier</h1>
+          <p class="hero-desc">
+            A low-resource NLP dashboard for analysing sentiment in
+            Facebook posts — powered by transformer models trained on
+            Malawian social media data.
+          </p>
+          <div class="hero-features">
+            <div class="hero-feature">
+              <div class="feat-icon">📊</div>
+              Real-time sentiment analysis &amp; visualisations
+            </div>
+            <div class="hero-feature">
+              <div class="feat-icon">🤖</div>
+              Baseline &amp; transformer model comparisons
+            </div>
+            <div class="hero-feature">
+              <div class="feat-icon">💬</div>
+              AI chatbot assistant for result exploration
+            </div>
+            <div class="hero-feature">
+              <div class="feat-icon">🗄️</div>
+              Session history &amp; database export
+            </div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with card_col:
+        # A real Streamlit bordered container IS the card, so the header and
+        # the form widgets render inside the same box instead of two blocks.
+        with st.container(border=True, key="auth_card"):
+            st.markdown("""
+            <div class="auth-card-header">
+                <span class="auth-icon">🔒</span>
+                <h2>Facebook Sentiment Classifier Dashboard</h2>
+            </div>
+            """, unsafe_allow_html=True)
+
+            auth_tabs = st.tabs(["Sign In", "Create Account"])
+
+            with auth_tabs[0]:
+                with st.form("login_form"):
+                    username = st.text_input("Username", key="login_username_input")
+                    password = st.text_input("Password", type="password", key="login_password_input")
+                    submit = st.form_submit_button("Log In", use_container_width=True)
+                    if submit:
+                        if not username or not password:
+                            st.error("Please fill out all fields.")
+                        else:
+                            from src.database import authenticate_user
+                            user = authenticate_user(username, password)
+                            if user:
+                                cookie_controller.set("logged_in_user", user["username"])
+                                st.session_state.logged_in = True
+                                st.session_state.user_id = user["user_id"]
+                                st.session_state.username = user["username"]
+                                st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
+                                st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
+                                st.session_state.view_mode = "new"
+                                st.success(f"Welcome back, {user['username']}!")
+                                st.query_params.clear()
+                                st.rerun()
+                            else:
+                                st.error("Invalid username or password.")
+
+                st.markdown("<hr style='margin: 8px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+                if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+                    st.caption("Google Sign-In is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in secrets.toml to enable it.")
                 else:
-                    from src.database import create_user
-                    try:
-                        create_user(reg_username, reg_password)
-                        st.success("Account created successfully! Please sign in using the 'Sign In' tab.")
-                    except ValueError as ve:
-                        st.error(str(ve))
-                    except Exception as e:
-                        st.error(f"Failed to create account: {e}")
-                        
-    st.markdown("</div>", unsafe_allow_html=True)
+                    result = login_button(client_id=GOOGLE_CLIENT_ID, client_secret=GOOGLE_CLIENT_SECRET, redirect_uri=REDIRECT_URI)
+                    if result and "token" in result:
+                        id_token = result["token"].get("id_token")
+                        if id_token:
+                            payload = id_token.split(".")[1]
+                            payload += "=" * ((4 - len(payload) % 4) % 4)
+                            user_info = json.loads(base64.urlsafe_b64decode(payload).decode("utf-8"))
+                            email = user_info.get("email")
+                            if email:
+                                from src.database import create_or_get_google_user
+                                user = create_or_get_google_user(email)
+                                cookie_controller.set("logged_in_user", user["username"])
+                                st.session_state.logged_in = True
+                                st.session_state.user_id = user["user_id"]
+                                st.session_state.username = user["username"]
+                                st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
+                                st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
+                                st.session_state.view_mode = "new"
+                                st.query_params.clear()
+                                st.rerun()
+
+            with auth_tabs[1]:
+                with st.form("register_form"):
+                    reg_username = st.text_input("Choose Username", key="register_username_input")
+                    reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
+                    reg_confirm = st.text_input("Confirm Password", type="password", key="register_confirm_input")
+                    submit_reg = st.form_submit_button("Create Account", use_container_width=True)
+                    if submit_reg:
+                        if not reg_username or not reg_password or not reg_confirm:
+                            st.error("Please fill out all fields.")
+                        elif reg_password != reg_confirm:
+                            st.error("Passwords do not match.")
+                        else:
+                            from src.database import create_user
+                            try:
+                                create_user(reg_username, reg_password)
+                                st.success("Account created successfully! Please sign in using the 'Sign In' tab.")
+                            except ValueError as ve:
+                                st.error(str(ve))
+                            except Exception as e:
+                                st.error(f"Failed to create account: {e}")
+
     st.stop()
 
 # Handle shareable URL query parameter redirect
