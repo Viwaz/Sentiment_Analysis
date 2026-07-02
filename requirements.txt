@@ -26,4 +26,9 @@ pytest>=9.0
 httpx2>=2.4
 fpdf2
 wordcloud
-
+streamlit-cookies-controller
+streamlit-oauth
+extra-streamlit-components>=0.1.71
+beautifulsoup4>=4.12
+requests>=2.31
+python-jose[cryptography]>=3.3

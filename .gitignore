@@ -15,10 +15,11 @@ venv/
 .env
 secrets/
 secret/token.txt
+.streamlit\secrets.toml
 
 # Transformer training artifacts
 models/transformer/*
-!models/transformer/.gitkeep
+models/transformer/.gitkeep
 models/transformer/*/
 models/transformer/*/model_metadata.json
 models/transformer/checkpoint-*/
