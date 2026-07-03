@@ -55,8 +55,14 @@ def generate_wordcloud(
     Returns:
         A :class:`wordcloud.WordCloud` object, or ``None`` if there are no words.
     """
-    from wordcloud import WordCloud, STOPWORDS
-
+    from wordcloud import WordCloud, STOPWORDS, get_single_color_func
+    # 1. Define the exact Hex color sets matching your charts and tables
+    WORDCLOUD_PALETTES = {
+        "All": "#1E293B",       # Slate Blue
+        "Positive": "#10B981",  # Emerald Green
+        "Neutral": "#F59E0B",   # Amber / Orange
+        "Negative": "#EF4444"   # Crimson Red
+    }
     # Optional external stopwords (e.g. Chichewa)
     extra_stopwords: set[str] = set()
     if stopwords_path:
@@ -81,6 +87,9 @@ def generate_wordcloud(
     corpus = " ".join(str(t) for t in filtered if t)
     if not corpus.strip():
         return None
+    # Get the target color code; default to Slate Blue if not found
+    palette_key = sentiment_filter.capitalize() if sentiment_filter else "All"
+    target_hex = WORDCLOUD_PALETTES.get(palette_key, "#1E293B")
 
     wc = WordCloud(
         background_color=background_color,
@@ -91,4 +100,8 @@ def generate_wordcloud(
         max_words=max_words,
         collocations=False,
     ).generate(corpus)
+
+     # 3. Force the generator to use the exact Hex palette match
+    color_func = get_single_color_func(target_hex)
+    wc.recolor(color_func=color_func)
     return wc

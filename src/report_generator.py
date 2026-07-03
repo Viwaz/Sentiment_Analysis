@@ -1,5 +1,10 @@
+import ast
 import os
+import re
 import tempfile
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -26,6 +31,36 @@ def sanitize_for_pdf(text: str) -> str:
     for src, dst in _replacements.items():
         text = text.replace(src, dst)
     return text.encode("latin-1", "replace").decode("latin-1")
+
+
+def _normalize_insight_points(value) -> list[str]:
+    """Return insight list fields as clean vertical bullet/number items."""
+    if value is None:
+        return []
+
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+
+        if text.startswith("[") and text.endswith("]"):
+            try:
+                parsed = ast.literal_eval(text)
+                if isinstance(parsed, (list, tuple, set)):
+                    items = [str(item).strip() for item in parsed if str(item).strip()]
+                    return [re.sub(r"^\d+[\).\s-]+", "", item).strip() for item in items]
+            except (SyntaxError, ValueError):
+                pass
+
+        lines = [line.strip(" \t-*\u2022") for line in text.splitlines()]
+        lines = [re.sub(r"^\d+[\).\s-]+", "", line).strip() for line in lines]
+        return [line for line in lines if line]
+
+    if isinstance(value, (list, tuple, set)):
+        items = [str(item).strip() for item in value if str(item).strip()]
+        return [re.sub(r"^\d+[\).\s-]+", "", item).strip() for item in items]
+
+    return [str(value).strip()]
 
 
 class SentimentReportPDF(FPDF):
@@ -77,6 +112,7 @@ def create_report_pdf(
     timestamp: str,
     df: pd.DataFrame,
     wordclouds: dict | None = None,
+    insights: dict | None = None,
 ) -> bytes:
     """Generate a professional multi-page PDF report.
 
@@ -210,7 +246,7 @@ def create_report_pdf(
         pdf.image(temp_chart_path, x=10, y=pdf.get_y(), w=190)
         pdf.ln(92)
 
-    # ── 4. Word Cloud page ────────────────────────────────────────────────────
+        # ── 4. Word Cloud page ────────────────────────────────────────────────────
     if wordclouds:
         wc_temp_paths: list[str | None] = []
         wc_items = [
@@ -219,27 +255,153 @@ def create_report_pdf(
             ("Negative Comments Cloud",  wordclouds.get("Negative")),
             ("Neutral Comments Cloud",   wordclouds.get("Neutral")),
         ]
+        # Strip out empty sentiment groups safely
         available = [(title, img) for title, img in wc_items if img is not None]
 
         if available:
+            # Add the initial visualization page
             pdf.add_page()
             pdf.set_text_color(30, 41, 59)
             pdf.set_font("helvetica", "B", 14)
             pdf.cell(0, 10, "Sentiment Word Cloud Visualisations", border=0)
             pdf.ln(10)
 
-            for title, pil_img in available:
+            for idx, (title, pil_img) in enumerate(available):
                 tp = _save_pil_to_temp(pil_img)
                 wc_temp_paths.append(tp)
+
                 if tp:
+                    # Trigger a clean page break every 2 items to ensure proper stacking
+                    if idx > 0 and idx % 2 == 0:
+                        pdf.add_page()
+                        pdf.set_text_color(30, 41, 59)
+                        pdf.set_font("helvetica", "B", 14)
+                        pdf.cell(0, 10, "Sentiment Word Cloud Visualisations (Cont.)", border=0)
+                        pdf.ln(10)
+
+                    # Render localized title header
                     pdf.set_font("helvetica", "B", 11)
                     pdf.set_text_color(71, 85, 105)
                     pdf.cell(0, 7, title, border=0)
                     pdf.ln(7)
+
+                    # Render the image within full body margins
+                    # Height is auto-scaled proportionally to prevent vertical squishing
                     pdf.image(tp, x=10, y=pdf.get_y(), w=190)
-                    pdf.ln(62)
+
+                    # Drop the line position down by 95mm to clear space for the next item
+                    pdf.ln(95)
 
             _cleanup(*wc_temp_paths)
+
+    if insights and "error" not in insights:
+        # Check layout bounding height. If chart pushed us too far down, start on a fresh page
+        if pdf.get_y() > 180:
+            pdf.add_page()
+        else:
+            pdf.ln(10)
+
+        # Section Header
+        pdf.set_text_color(30, 41, 59)
+        pdf.set_font("helvetica", "B", 14)
+        pdf.cell(0, 10, "Analysis & Public Opinion Insights", border=0, align="L")
+        pdf.ln(10)
+
+        # Reset text color to standard deep report slate/black for standard editorial text
+        pdf.set_text_color(15, 23, 42)
+
+        # 1. Overall Interpretation
+        overall = insights.get("overall_interpretation", "")
+        if overall:
+            pdf.set_font("helvetica", "B", 11)
+            pdf.cell(0, 6, "1. Executive Interpretation", border=0, ln=1)
+            pdf.ln(2)
+            pdf.set_font("helvetica", "", 10)
+            # 1.6x line spacing creates an elegant editorial layout
+            pdf.multi_cell(190, 6, sanitize_for_pdf(overall), border=0, align="L")
+            pdf.ln(6)
+
+        # 2. Summary of Public Opinion
+        summary = insights.get("summary_of_public_opinion", "")
+        if summary:
+            pdf.set_font("helvetica", "B", 11)
+            pdf.cell(0, 6, "2. Summary of Public Sentiment", border=0, ln=1)
+            pdf.ln(2)
+            pdf.set_font("helvetica", "", 10)
+            pdf.multi_cell(190, 6, sanitize_for_pdf(summary), border=0, align="L")
+            pdf.ln(6)
+
+        # 3. Thematic Sentiment Breakdown
+        pos_txt = insights.get("positive_themes", "")
+        neu_txt = insights.get("neutral_themes", "")
+        neg_txt = insights.get("negative_themes", "")
+
+        if pos_txt or neu_txt or neg_txt:
+            pdf.set_font("helvetica", "B", 11)
+            pdf.cell(0, 6, "3. Core Thematic Perspectives", border=0, ln=1)
+            pdf.ln(2)
+            pdf.set_font("helvetica", "", 10)
+
+            # Render each sentiment theme as a clean paragraph with a bold anchor
+            if pos_txt:
+                pdf.set_font("helvetica", "B", 10)
+                pdf.write(6, "Positive Dynamics: ")
+                pdf.set_font("helvetica", "", 10)
+                pdf.write(6, sanitize_for_pdf(pos_txt) + "\n\n")
+
+            if neu_txt:
+                pdf.set_font("helvetica", "B", 10)
+                pdf.write(6, "Neutral Observations: ")
+                pdf.set_font("helvetica", "", 10)
+                pdf.write(6, sanitize_for_pdf(neu_txt) + "\n\n")
+
+            if neg_txt:
+                pdf.set_font("helvetica", "B", 10)
+                pdf.write(6, "Negative Criticisms: ")
+                pdf.set_font("helvetica", "", 10)
+                pdf.write(6, sanitize_for_pdf(neg_txt) + "\n\n")
+
+            pdf.ln(4)
+
+        # 4. Possible Reasons Behind the Sentiment
+        reasons = _normalize_insight_points(insights.get("possible_reasons", []))
+
+        if reasons:
+            if pdf.get_y() > 245:
+                pdf.add_page()
+            pdf.set_x(10)
+            pdf.set_font("helvetica", "B", 11)
+            pdf.cell(0, 6, "4. Possible Causes Behind the Sentiment", border=0, ln=1)
+            pdf.ln(2)
+            pdf.set_font("helvetica", "", 10)
+            for idx, reason in enumerate(reasons, 1):
+                if pdf.get_y() > 260:
+                    pdf.add_page()
+                pdf.set_x(10)
+                pdf.multi_cell(0, 6, f"{idx}. {sanitize_for_pdf(reason)}", border=0, align="L")
+                pdf.set_x(10)
+                pdf.ln(1)
+            pdf.ln(6)
+
+        # 5. Recommendations
+        recommendations = _normalize_insight_points(insights.get("recommendations", []))
+
+        if recommendations:
+            if pdf.get_y() > 245:
+                pdf.add_page()
+            pdf.set_x(10)
+            pdf.set_font("helvetica", "B", 11)
+            pdf.cell(0, 6, "5. Recommendations", border=0, ln=1)
+            pdf.ln(2)
+            pdf.set_font("helvetica", "", 10)
+            for idx, recommendation in enumerate(recommendations, 1):
+                if pdf.get_y() > 260:
+                    pdf.add_page()
+                pdf.set_x(10)
+                pdf.multi_cell(0, 6, f"{idx}. {sanitize_for_pdf(recommendation)}", border=0, align="L")
+                pdf.set_x(10)
+                pdf.ln(1)
+            pdf.ln(4)
 
     # ── 5. Comment predictions log ────────────────────────────────────────────
     pdf.add_page()
@@ -265,33 +427,57 @@ def create_report_pdf(
     fill_row = False
 
     for _, row in df.head(45).iterrows():
-        pdf.set_fill_color(248, 250, 252) if fill_row else pdf.set_fill_color(255, 255, 255)
-
+        if fill_row:
+            pdf.set_fill_color(240, 244, 248) # Crisp, light gray-blue accent row
+        else:
+            pdf.set_fill_color(255, 255, 255) # Clean white base row
+        # (Keep your existing text extraction and sanitization lines here)
         raw_txt = str(row.get(text_col_name, "")) if text_col_name else ""
-        txt = sanitize_for_pdf(raw_txt)
-        if len(txt) > 65:
-            txt = txt[:62] + "..."
+        txt = sanitize_for_pdf(raw_txt)  # Remove the character truncation clip!
+
+        # 1. Calculate how many lines the text needs in a 115mm wide space
+        # This prevents text overlap or breaking the table layout
+        current_x = pdf.get_x()
+        current_y = pdf.get_y()
+        
+        # 2. Render the comment using multi_cell so it automatically wraps
+        # A4 page height is 297mm. If near the bottom, break cleanly first
+        if current_y > 250:
+            pdf.add_page()
+            current_x = pdf.get_x()
+            current_y = pdf.get_y()
+
+        # 3. Print the wrapped comment cell
+        pdf.set_text_color(15, 23, 42)
+        pdf.multi_cell(115, 7, f" {txt}", border=1, fill=True)
+        next_y = pdf.get_y()
+        row_height = next_y - current_y # Dynamically find the row height
+        
+        # 3. Move back up to draw the parallel columns at the exact same height
+        pdf.set_xy(current_x + 115, current_y)
 
         sent_raw = str(row.get(sent_col, "neutral")) if sent_col else "neutral"
         sent = sanitize_for_pdf(sent_raw).upper()
-
+	
         conf_val = row.get(conf_col) if conf_col else None
         conf_str = f"{float(conf_val):.1%}" if conf_val is not None and pd.notna(conf_val) else "N/A"
-
-        pdf.set_text_color(15, 23, 42)
-        pdf.cell(115, 7, f" {txt}", border=1, fill=True)
-
+        
+        # 4. Render matching sentiment cell
         if sent == "POSITIVE":
             pdf.set_text_color(22, 163, 74)
         elif sent == "NEGATIVE":
             pdf.set_text_color(220, 38, 38)
         else:
             pdf.set_text_color(217, 119, 6)
-
-        pdf.cell(35, 7, f" {sent}", border=1, fill=True, align="C")
+            
+        pdf.cell(35, row_height, f" {sent}", border=1, fill=True, align="C")
+        
+        # 5. Render matching confidence cell
         pdf.set_text_color(15, 23, 42)
-        pdf.cell(40, 7, f" {conf_str}", border=1, fill=True, align="C")
-        pdf.ln(7)
+        pdf.cell(40, row_height, f" {conf_str}", border=1, fill=True, align="C")
+        
+        # 6. Reset position down to the bottom of this completed row
+        pdf.ln(row_height)
         fill_row = not fill_row
 
     # ── 6. Cleanup temp files ─────────────────────────────────────────────────

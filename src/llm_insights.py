@@ -116,6 +116,9 @@ def _build_prompt(
         "{\n"
         '  "overall_interpretation": "<one-paragraph interpretation of public opinion>",\n'
         '  "summary_of_public_opinion": "<concise summary of what the distribution means in context>",\n'
+        '  "positive_themes": "<one or two sentences explicitly explaining what the positive comments are praising, supporting, or happy about>",\n'
+        '  "negative_themes": "<one or two sentences explicitly explaining what the negative comments are criticizing, complaining about, or angry about>",\n'
+        '  "neutral_themes": "<one or two sentences explaining what the neutral comments are discussing, questioning, or expressing indifference towards>",\n'
         '  "possible_reasons": ["<reason 1>", "<reason 2>", ...],\n'
         '  "recommendations": ["<actionable recommendation 1>", "<recommendation 2>", ...]\n'
         "}"
@@ -176,6 +179,9 @@ def _parse_response(raw: str) -> dict[str, Any]:
     required_keys = {
         "overall_interpretation",
         "summary_of_public_opinion",
+        "positive_themes",  # <-- Added
+        "negative_themes",  # <-- Added
+        "neutral_themes",   # <-- Added
         "possible_reasons",
         "recommendations",
     }

@@ -818,6 +818,14 @@ st.markdown("""
         margin-left: 8px;
         letter-spacing: 0.05em;
     }
+                /* Append the new tab scaling rule: */
+    div[data-testid="stTabs"] button {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+    }
+    div[data-testid="stTabs"] button p {
+        font-size: 1.2rem !important;
     </style>
 """, unsafe_allow_html=True)
 
@@ -1212,27 +1220,32 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                             mime="text/csv",
                             use_container_width=True,
                         )
-                        if st.button("Generate PDF", key="batch_pdf_btn", use_container_width=True):
-                            with st.spinner("Preparing your report..."):
-                                try:
-                                    from src.report_generator import create_report_pdf
-                                    import datetime
-                                    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                                    pdf_data = create_report_pdf(
-                                        url=uploaded_file.name,
-                                        timestamp=now_str,
-                                        df=df_results,
-                                        wordclouds=st.session_state.get("batch_wordclouds"),
-                                    )
-                                    st.download_button(
-                                        label="📄 Download PDF",
-                                        data=pdf_data,
-                                        file_name="sentiment_report.pdf",
-                                        mime="application/pdf",
-                                        use_container_width=True,
-                                    )
-                                except Exception as pdf_ex:
-                                    st.error(f"Could not generate PDF: {pdf_ex}")
+                    from src.report_generator import create_report_pdf
+                    import datetime
+
+                    # 1. Define a clean data acquisition function to build bytes on demand
+                    def get_pdf_bytes():
+                        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                        return create_report_pdf(
+                            url=uploaded_file.name,
+                            timestamp=now_str,
+                            df=df_results,
+                            wordclouds=st.session_state.get("batch_wordclouds"),
+                        )
+
+                    # 2. Render ONLY the single action button
+                    # Streamlit will evaluate the function and stream the file immediately upon invocation
+                    try:
+                        st.download_button(
+                            label="🚀 Generate & Download PDF Report",
+                            data=get_pdf_bytes(),  # Triggers generation instantly when clicked
+                            file_name=f"sentiment_report_{datetime.date.today()}.pdf",
+                            mime="application/pdf",
+                            key="batch_pdf_direct_download",
+                            use_container_width=True,
+                        )
+                    except Exception as pdf_ex:
+                        st.error(f"Could not process download execution: {pdf_ex}")
         except Exception as e:
             st.error(f"Error processing CSV file: {e}")
 
@@ -1706,6 +1719,17 @@ if not is_developer:
             pos_pct = pos_count / total_comments if total_comments > 0 else 0
             neg_pct = neg_count / total_comments if total_comments > 0 else 0
             neu_pct = neu_count / total_comments if total_comments > 0 else 0
+            current_insights_key = (
+                st.session_state.get("current_session_id"),
+                pos_count + neg_count + neu_count,
+            )
+            current_insights = st.session_state.get("cached_insights")
+            if (
+                st.session_state.get("cached_insights_key") != current_insights_key
+                or not current_insights
+                or "error" in current_insights
+            ):
+                current_insights = None
             
             # Action/Export section at the top of the view
             col_hdr1, col_hdr2 = st.columns([0.75, 0.25])
@@ -1723,6 +1747,7 @@ if not is_developer:
                                 timestamp=session["timestamp"],
                                 df=df_user,
                                 wordclouds=st.session_state.get("batch_wordclouds"),
+                                insights=current_insights,
                             )
                             st.download_button(
                                 label="📄 Download PDF Report",
@@ -1889,6 +1914,9 @@ if not is_developer:
                             st.info(f"No '{_wc_label}' comments to visualise.")
 
             with tab_insights:
+    
+                # Isolate the print configurations within an clear layout container
+
              # ── AI Insights Panel (Groq) ──────────────────────────────────────────
                 st.markdown("---")
 
@@ -1908,10 +1936,7 @@ if not is_developer:
 
                 # Cache key is (session_id, total_count) so switching sessions or
                 # loading a different result set always triggers a fresh generation.
-                _cache_key = (
-                    st.session_state.get("current_session_id"),
-                    pos_count + neg_count + neu_count,
-                )
+                _cache_key = current_insights_key
                 _need_generate = (
                     refresh_insights
                     or "cached_insights" not in st.session_state
@@ -1979,7 +2004,7 @@ if not is_developer:
                     else:
                         st.markdown(
                             "<div class='ai-insights-panel'>"
-                            "<h3>✨ AI-Powered Insights</h3>"
+                            "<h3>✨Insights</h3>"
                             "<div class='ai-summary-block' style='color:#FCA5A5;'>"
                             "⚠️ <strong>System currently unavailable.</strong><br>"
                             "Please check your internet connection, then click "
@@ -1989,22 +2014,25 @@ if not is_developer:
                         )
 
                 else:
-                    # Successful result — render all four sections
+                    # Successful result — render all sections
                     _fresh_badge = (
                         '<span class="ai-fresh-badge">fresh</span>'
                         if ai_data.get("_fresh")
                         else '<span class="ai-cached-badge">cached</span>'
                     )
 
-                    # ── Overall Interpretation ────────────────────────────────────
+                    # ── 1. Fetch Variables from ai_data ───────────────────────────────────────────
                     overall = ai_data.get("overall_interpretation", "")
-                    # ── Summary of Public Opinion ─────────────────────────────────
                     summary = ai_data.get("summary_of_public_opinion", "")
-                    # ── Possible Reasons ──────────────────────────────────────────
                     reasons = ai_data.get("possible_reasons", [])
-                    # ── Recommendations ───────────────────────────────────────────
                     recs = ai_data.get("recommendations", [])
 
+                    # New Breakdown Extractions
+                    pos_talk = ai_data.get("positive_themes", "")
+                    neu_talk = ai_data.get("neutral_themes", "")
+                    neg_talk = ai_data.get("negative_themes", "")
+
+                    # ── 2. Build Component Sub-blocks ─────────────────────────────────────────────
                     # Build reasons tags HTML
                     reasons_html = ""
                     for reason in reasons:
@@ -2020,17 +2048,31 @@ if not is_developer:
                             "</div>"
                         )
 
+                    # ── 3. Assemble Master HTML Block ─────────────────────────────────────────────
                     _total = pos_count + neg_count + neu_count
                     insights_html = (
                         "<div class='ai-insights-panel'>"
-                        f"<h3>✨Recommendations {_fresh_badge}</h3>"
+                        f"<h3>✨ Recommendations {_fresh_badge}</h3>"
                         f"<div class='ai-meta'>Powered by Groq &nbsp;&bull;&nbsp; Llama 3 &nbsp;&bull;&nbsp; Based on {_total} classified comments</div>"
+                        
                         "<div class='ai-section-title'>Overall Interpretation</div>"
                         f"<div class='ai-summary-block'>{overall}</div>"
+                        
                         "<div class='ai-section-title'>Summary of Public Opinion</div>"
                         f"<div class='ai-summary-block'>{summary}</div>"
+                        
+                        # ── New Sentiment Thematic Breakdown Section ──────────────────────────────────
+                        "<div class='ai-section-title'>Thematic Sentiment Breakdown</div>"
+                        f"<div class='ai-summary-block' style='padding-top:12px; padding-bottom:12px;'>"
+                        f"  <div style='margin-bottom:10px;'><strong style='color:#10B981;'>🟢 Positive Discussion:</strong> {pos_talk}</div>"
+                        f"  <div style='margin-bottom:10px;'><strong style='color:#F59E0B;'>🟡 Neutral / Indifferent:</strong> {neu_talk}</div>"
+                        f"  <div><strong style='color:#EF4444;'>🔴 Negative Criticism:</strong> {neg_talk}</div>"
+                        f"</div>"
+                        # ─────────────────────────────────────────────────────────────────────────────
+                        
                         "<div class='ai-section-title'>Possible Reasons Behind the Sentiment</div>"
                         f"<div style='margin-bottom:16px;'>{reasons_html}</div>"
+                        
                         "<div class='ai-section-title'>Recommendations</div>"
                         f"{recs_html}"
                         "</div>"
