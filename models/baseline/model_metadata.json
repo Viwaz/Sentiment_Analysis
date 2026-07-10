@@ -75,5 +75,21 @@
     "input_column": "cleaned_text",
     "label_column": "label",
     "preserve_emoji_aliases": true
+  },
+  "diagnostic_figures": {
+    "learning_curves_comparison": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curves_comparison.png",
+    "learning_curve_logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_logistic_regression.png",
+    "learning_curve_linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_linear_svm.png",
+    "learning_curve_multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_multinomial_nb.png",
+    "learning_curve_complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_complement_nb.png",
+    "confusion_matrix_logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_logistic_regression.png",
+    "confusion_matrix_linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_linear_svm.png",
+    "confusion_matrix_multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_multinomial_nb.png",
+    "confusion_matrix_complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_complement_nb.png",
+    "roc_curve_logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_logistic_regression.png",
+    "roc_curve_linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_linear_svm.png",
+    "roc_curve_multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_multinomial_nb.png",
+    "roc_curve_complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_complement_nb.png",
+    "pr_curves": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\pr_curves.png"
   }
 }

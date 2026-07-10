@@ -850,5 +850,526 @@
         }
       }
     }
-  ]
+  ],
+  "diagnostics": {
+    "learning_curve": {
+      "per_model": {
+        "logistic_regression": {
+          "train_sizes": [
+            101,
+            232,
+            362,
+            493,
+            623,
+            754,
+            884,
+            1015
+          ],
+          "train_score_mean": [
+            0.9727467118469508,
+            0.9636088169513153,
+            0.9591650690445175,
+            0.9546907338923074,
+            0.9378799106077584,
+            0.93031210702576,
+            0.9142285427006105,
+            0.9096845245542411
+          ],
+          "train_score_std": [
+            0.03604591965495117,
+            0.02013375395876911,
+            0.018816723860648706,
+            0.011495048931777942,
+            0.00880747099309577,
+            0.009171728801351284,
+            0.005840551609464872,
+            0.008998094251307818
+          ],
+          "val_score_mean": [
+            0.4559307946079304,
+            0.5152676691363239,
+            0.543926352796816,
+            0.546722557119534,
+            0.5391044553661354,
+            0.5520995640476037,
+            0.5541043077738144,
+            0.5501971345824156
+          ],
+          "val_score_std": [
+            0.02981263383403516,
+            0.027831508441156363,
+            0.0348568813020723,
+            0.02008356797792965,
+            0.007178045633144834,
+            0.020553238430778973,
+            0.01739904548094985,
+            0.012502672401788742
+          ],
+          "scoring": "f1_macro",
+          "cv": 5
+        },
+        "linear_svm": {
+          "train_sizes": [
+            101,
+            232,
+            362,
+            493,
+            623,
+            754,
+            884,
+            1015
+          ],
+          "train_score_mean": [
+            0.9981529581529582,
+            0.9972783477740474,
+            0.995957868254154,
+            0.9950850106386447,
+            0.9932056911582545,
+            0.9926509864383991,
+            0.9915613292586289,
+            0.9881044456718477
+          ],
+          "train_score_std": [
+            0.003694083694083661,
+            0.0022248491884016594,
+            0.0028429985575736437,
+            0.003074312879860865,
+            0.0014298975784798457,
+            0.002725947585152831,
+            0.0005592758933313961,
+            0.002324137554239901
+          ],
+          "val_score_mean": [
+            0.4423905536052043,
+            0.49941856600418283,
+            0.5263500892117283,
+            0.5434531081711175,
+            0.5375830671892338,
+            0.5461420311239069,
+            0.536719761232962,
+            0.5494846376699212
+          ],
+          "val_score_std": [
+            0.04897583452789382,
+            0.046164655558372486,
+            0.04307820583243507,
+            0.0140009640637878,
+            0.01598276855847069,
+            0.0166481920736301,
+            0.025968290281695512,
+            0.020570804247983535
+          ],
+          "scoring": "f1_macro",
+          "cv": 5
+        },
+        "multinomial_nb": {
+          "train_sizes": [
+            101,
+            232,
+            362,
+            493,
+            623,
+            754,
+            884,
+            1015
+          ],
+          "train_score_mean": [
+            0.38265028417214325,
+            0.2881302015301099,
+            0.31426961524065883,
+            0.32634272333124403,
+            0.3411590102863191,
+            0.3502936210028579,
+            0.379225031119314,
+            0.403475505690308
+          ],
+          "train_score_std": [
+            0.16862419315090177,
+            0.028253502693280957,
+            0.03765854752505722,
+            0.01653529275390009,
+            0.012746225172852002,
+            0.014607422453407992,
+            0.00875582379423261,
+            0.0055582614992959875
+          ],
+          "val_score_mean": [
+            0.2561258011349195,
+            0.2541902226299645,
+            0.26341587792186705,
+            0.2678511161102119,
+            0.27656017091972646,
+            0.28325328282469603,
+            0.30425373292730323,
+            0.3311632218230167
+          ],
+          "val_score_std": [
+            0.026796215989819665,
+            0.004898671661010488,
+            0.0071617513946510055,
+            0.011264876519565627,
+            0.017449868776175843,
+            0.016000648510024126,
+            0.014685655528760555,
+            0.02476819427888135
+          ],
+          "scoring": "f1_macro",
+          "cv": 5
+        },
+        "complement_nb": {
+          "train_sizes": [
+            101,
+            232,
+            362,
+            493,
+            623,
+            754,
+            884,
+            1015
+          ],
+          "train_score_mean": [
+            0.8419069070564419,
+            0.6847291874335484,
+            0.6274321262681845,
+            0.617987466702792,
+            0.599259130084084,
+            0.5907917568713483,
+            0.5903839213182025,
+            0.588538960462397
+          ],
+          "train_score_std": [
+            0.06255983981744762,
+            0.032906158864029894,
+            0.02983103609988731,
+            0.010361037645990548,
+            0.01128413475529278,
+            0.005795958174461151,
+            0.005022719344246518,
+            0.0067854755040657015
+          ],
+          "val_score_mean": [
+            0.37575468047443994,
+            0.37245528066091915,
+            0.39559791666208066,
+            0.41324510101406675,
+            0.4234486053120466,
+            0.4291390406730004,
+            0.4538043407118245,
+            0.45986906178082076
+          ],
+          "val_score_std": [
+            0.06064140368683702,
+            0.02660348753122546,
+            0.02678551601022854,
+            0.027536263014570916,
+            0.030046960687786995,
+            0.03759483206605161,
+            0.03438896301358101,
+            0.026150369183089748
+          ],
+          "scoring": "f1_macro",
+          "cv": 5
+        }
+      },
+      "comparison_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curves_comparison.png",
+      "per_model_figures": {
+        "logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_logistic_regression.png",
+        "linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_linear_svm.png",
+        "multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_multinomial_nb.png",
+        "complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_complement_nb.png"
+      }
+    },
+    "per_model_evaluations": {
+      "logistic_regression": {
+        "test_metrics": {
+          "accuracy": 0.6066176470588235,
+          "macro_f1": 0.542447443649936,
+          "per_class": {
+            "negative": {
+              "precision": 0.7236842105263158,
+              "recall": 0.7189542483660131,
+              "f1": 0.7213114754098361,
+              "support": 153
+            },
+            "neutral": {
+              "precision": 0.2631578947368421,
+              "recall": 0.25862068965517243,
+              "f1": 0.2608695652173913,
+              "support": 58
+            },
+            "positive": {
+              "precision": 0.6349206349206349,
+              "recall": 0.6557377049180327,
+              "f1": 0.6451612903225806,
+              "support": 61
+            }
+          },
+          "classification_report": {
+            "negative": {
+              "precision": 0.7236842105263158,
+              "recall": 0.7189542483660131,
+              "f1-score": 0.7213114754098361,
+              "support": 153.0
+            },
+            "neutral": {
+              "precision": 0.2631578947368421,
+              "recall": 0.25862068965517243,
+              "f1-score": 0.2608695652173913,
+              "support": 58.0
+            },
+            "positive": {
+              "precision": 0.6349206349206349,
+              "recall": 0.6557377049180327,
+              "f1-score": 0.6451612903225806,
+              "support": 61.0
+            },
+            "accuracy": 0.6066176470588235,
+            "macro avg": {
+              "precision": 0.5405875800612643,
+              "recall": 0.5444375476464062,
+              "f1-score": 0.542447443649936,
+              "support": 272.0
+            },
+            "weighted avg": {
+              "precision": 0.6055772089537569,
+              "recall": 0.6066176470588235,
+              "f1-score": 0.6060512104043787,
+              "support": 272.0
+            }
+          }
+        },
+        "roc_auc": {
+          "negative": 0.776844070961718,
+          "neutral": 0.5816145665485015,
+          "positive": 0.8408049102633828,
+          "micro_average": 0.7965911548442907
+        },
+        "confusion_matrix_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_logistic_regression.png",
+        "roc_curve_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_logistic_regression.png"
+      },
+      "linear_svm": {
+        "test_metrics": {
+          "accuracy": 0.6691176470588235,
+          "macro_f1": 0.5818176004969465,
+          "per_class": {
+            "negative": {
+              "precision": 0.712707182320442,
+              "recall": 0.8431372549019608,
+              "f1": 0.7724550898203593,
+              "support": 153
+            },
+            "neutral": {
+              "precision": 0.3783783783783784,
+              "recall": 0.2413793103448276,
+              "f1": 0.29473684210526313,
+              "support": 58
+            },
+            "positive": {
+              "precision": 0.7222222222222222,
+              "recall": 0.639344262295082,
+              "f1": 0.6782608695652174,
+              "support": 61
+            }
+          },
+          "classification_report": {
+            "negative": {
+              "precision": 0.712707182320442,
+              "recall": 0.8431372549019608,
+              "f1-score": 0.7724550898203593,
+              "support": 153.0
+            },
+            "neutral": {
+              "precision": 0.3783783783783784,
+              "recall": 0.2413793103448276,
+              "f1-score": 0.29473684210526313,
+              "support": 58.0
+            },
+            "positive": {
+              "precision": 0.7222222222222222,
+              "recall": 0.639344262295082,
+              "f1-score": 0.6782608695652174,
+              "support": 61.0
+            },
+            "accuracy": 0.6691176470588235,
+            "macro avg": {
+              "precision": 0.6044359276403476,
+              "recall": 0.5746202758472901,
+              "f1-score": 0.5818176004969465,
+              "support": 272.0
+            },
+            "weighted avg": {
+              "precision": 0.6435503691048865,
+              "recall": 0.6691176470588235,
+              "f1-score": 0.6494642596621268,
+              "support": 272.0
+            }
+          }
+        },
+        "roc_auc": {
+          "negative": 0.7642115669797331,
+          "neutral": 0.5999838865613923,
+          "positive": 0.8450003884702043,
+          "micro_average": 0.8117701124567476
+        },
+        "confusion_matrix_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_linear_svm.png",
+        "roc_curve_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_linear_svm.png"
+      },
+      "multinomial_nb": {
+        "test_metrics": {
+          "accuracy": 0.6102941176470589,
+          "macro_f1": 0.3637307380373074,
+          "per_class": {
+            "negative": {
+              "precision": 0.5930232558139535,
+              "recall": 1.0,
+              "f1": 0.7445255474452555,
+              "support": 153
+            },
+            "neutral": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 58
+            },
+            "positive": {
+              "precision": 0.9285714285714286,
+              "recall": 0.21311475409836064,
+              "f1": 0.3466666666666667,
+              "support": 61
+            }
+          },
+          "classification_report": {
+            "negative": {
+              "precision": 0.5930232558139535,
+              "recall": 1.0,
+              "f1-score": 0.7445255474452555,
+              "support": 153.0
+            },
+            "neutral": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 58.0
+            },
+            "positive": {
+              "precision": 0.9285714285714286,
+              "recall": 0.21311475409836064,
+              "f1-score": 0.3466666666666667,
+              "support": 61.0
+            },
+            "accuracy": 0.6102941176470589,
+            "macro avg": {
+              "precision": 0.5071982281284607,
+              "recall": 0.40437158469945356,
+              "f1-score": 0.3637307380373074,
+              "support": 272.0
+            },
+            "weighted avg": {
+              "precision": 0.5418213797146766,
+              "recall": 0.6102941176470589,
+              "f1-score": 0.4965407184771719,
+              "support": 272.0
+            }
+          }
+        },
+        "roc_auc": {
+          "negative": 0.7312572087658593,
+          "neutral": 0.5985336770866903,
+          "positive": 0.7766296325071866,
+          "micro_average": 0.770896410034602
+        },
+        "confusion_matrix_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_multinomial_nb.png",
+        "roc_curve_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_multinomial_nb.png"
+      },
+      "complement_nb": {
+        "test_metrics": {
+          "accuracy": 0.6470588235294118,
+          "macro_f1": 0.43576356681596123,
+          "per_class": {
+            "negative": {
+              "precision": 0.635593220338983,
+              "recall": 0.9803921568627451,
+              "f1": 0.7712082262210797,
+              "support": 153
+            },
+            "neutral": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "support": 58
+            },
+            "positive": {
+              "precision": 0.7222222222222222,
+              "recall": 0.4262295081967213,
+              "f1": 0.5360824742268041,
+              "support": 61
+            }
+          },
+          "classification_report": {
+            "negative": {
+              "precision": 0.635593220338983,
+              "recall": 0.9803921568627451,
+              "f1-score": 0.7712082262210797,
+              "support": 153.0
+            },
+            "neutral": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 58.0
+            },
+            "positive": {
+              "precision": 0.7222222222222222,
+              "recall": 0.4262295081967213,
+              "f1-score": 0.5360824742268041,
+              "support": 61.0
+            },
+            "accuracy": 0.6470588235294118,
+            "macro avg": {
+              "precision": 0.45260514752040176,
+              "recall": 0.4688738883531554,
+              "f1-score": 0.43576356681596123,
+              "support": 272.0
+            },
+            "weighted avg": {
+              "precision": 0.519490140689044,
+              "recall": 0.6470588235294118,
+              "f1-score": 0.5540290056605156,
+              "support": 272.0
+            }
+          }
+        },
+        "roc_auc": {
+          "negative": 0.7392761025979019,
+          "neutral": 0.6001450209474702,
+          "positive": 0.7965970010100226,
+          "micro_average": 0.7885623918685121
+        },
+        "confusion_matrix_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_complement_nb.png",
+        "roc_curve_figure": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_complement_nb.png"
+      }
+    },
+    "pr_auc": {
+      "negative": 0.7628862963080691,
+      "neutral": 0.27859804729751336,
+      "positive": 0.7198644264422822,
+      "micro_average": 0.6687293240499388
+    },
+    "figures": {
+      "learning_curves_comparison": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curves_comparison.png",
+      "learning_curve_logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_logistic_regression.png",
+      "learning_curve_linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_linear_svm.png",
+      "learning_curve_multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_multinomial_nb.png",
+      "learning_curve_complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\learning_curve_complement_nb.png",
+      "confusion_matrix_logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_logistic_regression.png",
+      "confusion_matrix_linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_linear_svm.png",
+      "confusion_matrix_multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_multinomial_nb.png",
+      "confusion_matrix_complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\confusion_matrix_complement_nb.png",
+      "roc_curve_logistic_regression": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_logistic_regression.png",
+      "roc_curve_linear_svm": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_linear_svm.png",
+      "roc_curve_multinomial_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_multinomial_nb.png",
+      "roc_curve_complement_nb": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\roc_curve_complement_nb.png",
+      "pr_curves": "C:\\Users\\vdchi\\OneDrive\\Documents\\DATA SCIENCE\\Sem5\\Group Project\\Prototyping 2\\reports\\figures\\pr_curves.png"
+    }
+  }
 }

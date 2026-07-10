@@ -1,5 +1,5 @@
 {
-  "model_name": "castorini/afriberta_small",
+  "model_name": "afriberta_small",
   "run_id": "afriberta_small",
   "test_metrics": {
     "accuracy": 0.5294117647058824,

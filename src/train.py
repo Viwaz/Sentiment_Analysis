@@ -1,0 +1,165 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import joblib
+import pandas as pd
+from sklearn.base import clone
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import ComplementNB, MultinomialNB
+from sklearn.svm import LinearSVC
+
+from .data_utils import build_paths, ensure_project_dirs
+from .diagnostics import generate_diagnostics
+from .evaluate import compute_metrics, save_confusion_matrix, save_metrics
+from .features import build_feature_sets
+
+LABELS = ["negative", "neutral", "positive"]
+
+
+def load_splits(root: Path | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    paths = build_paths(root)
+    train_df = pd.read_csv(paths.processed_dir / "train.csv")
+    val_df = pd.read_csv(paths.processed_dir / "val.csv")
+    test_df = pd.read_csv(paths.processed_dir / "test.csv")
+    return train_df, val_df, test_df
+
+
+def train_and_score_models(root: Path | None = None) -> dict:
+    paths = build_paths(root)
+    ensure_project_dirs(paths)
+    train_df, val_df, test_df = load_splits(root)
+
+    feature_sets = build_feature_sets(
+        train_df["cleaned_text"],
+        val_df["cleaned_text"],
+        test_df["cleaned_text"],
+    )
+
+    model_specs = {
+        "logistic_regression": LogisticRegression(
+            max_iter=2000,
+            class_weight="balanced",
+            solver="lbfgs",
+        ),
+        "linear_svm": LinearSVC(class_weight="balanced"),
+        "multinomial_nb": MultinomialNB(),
+        "complement_nb": ComplementNB(),
+    }
+
+    all_results = []
+    best_bundle = None
+    best_model = None
+    best_result = None
+
+    for bundle in feature_sets:
+        for model_name, estimator_template in model_specs.items():
+            estimator = clone(estimator_template)
+            estimator.fit(bundle.X_train, train_df["label"])
+            val_pred = estimator.predict(bundle.X_val)
+            val_metrics = compute_metrics(val_df["label"], val_pred, LABELS)
+
+            result = {
+                "feature_set": bundle.name,
+                "model_name": model_name,
+                "validation_metrics": val_metrics,
+            }
+            all_results.append(result)
+
+            if best_result is None or val_metrics["macro_f1"] > best_result["validation_metrics"]["macro_f1"]:
+                best_result = result
+                best_bundle = bundle
+                best_model = estimator
+
+    test_pred = best_model.predict(best_bundle.X_test)
+    test_metrics = compute_metrics(test_df["label"], test_pred, LABELS)
+
+    # --- Diagnostics for the final presentation: learning curve + ROC/PR ---
+    model_label = f"{best_result['model_name']} ({best_result['feature_set']})"
+    diagnostics = generate_diagnostics(
+        best_model=best_model,
+        best_bundle=best_bundle,
+        train_df=train_df,
+        test_df=test_df,
+        labels=LABELS,
+        figures_dir=paths.figures_dir,
+        model_label=model_label,
+        model_specs=model_specs,
+    )
+
+    summary = {
+        "best_validation_run": best_result,
+        "test_metrics": test_metrics,
+        "all_runs": all_results,
+        "diagnostics": diagnostics,
+    }
+
+    model_dir = paths.models_dir / "baseline"
+    result_dir = paths.results_dir
+    figure_dir = paths.figures_dir
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    joblib.dump(best_model, model_dir / "best_baseline_model.joblib")
+    joblib.dump(best_bundle.vectorizer, model_dir / "best_baseline_vectorizer.joblib")
+    (model_dir / "model_metadata.json").write_text(
+        json.dumps(
+            {
+                "model_family": "classical_ml",
+                "reference_name": "baseline",
+                "best_validation_run": best_result,
+                "label_mapping": LABELS,
+                "artifact_paths": {
+                    "model": "models/baseline/best_baseline_model.joblib",
+                    "vectorizer": "models/baseline/best_baseline_vectorizer.joblib",
+                },
+                "preprocessing": {
+                    "input_column": "cleaned_text",
+                    "label_column": "label",
+                    "preserve_emoji_aliases": True,
+                },
+                "diagnostic_figures": diagnostics["figures"],
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    save_metrics(summary, result_dir / "baseline_metrics.json")
+    save_confusion_matrix(
+        test_df["label"],
+        test_pred,
+        LABELS,
+        figure_dir / "baseline_confusion_matrix.png",
+        "Baseline Model Confusion Matrix",
+    )
+    (result_dir / "baseline_predictions.csv").write_text(
+        pd.DataFrame(
+            {
+                "text": test_df["text"],
+                "cleaned_text": test_df["cleaned_text"],
+                "true_label": test_df["label"],
+                "predicted_label": test_pred,
+            }
+        ).to_csv(index=False),
+        encoding="utf-8",
+    )
+    return summary
+
+
+def main() -> None:
+    summary = train_and_score_models()
+    best = summary["best_validation_run"]
+    print("Baseline training complete.")
+    print(
+        f"Best run: {best['model_name']} + {best['feature_set']} "
+        f"(macro_f1={best['validation_metrics']['macro_f1']:.4f})"
+    )
+    figures = summary["diagnostics"]["figures"]
+    print("Presentation figures written to:")
+    for name, path in figures.items():
+        print(f"  - {name}: {path}")
+
+
+if __name__ == "__main__":
+    main()

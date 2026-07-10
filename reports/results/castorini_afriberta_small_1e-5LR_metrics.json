@@ -1,0 +1,69 @@
+{
+  "model_name": "castorini/afriberta_small",
+  "run_id": "castorini_afriberta_small",
+  "test_metrics": {
+    "accuracy": 0.5813397129186603,
+    "macro_f1": 0.5385912698412698,
+    "per_class": {
+      "negative": {
+        "precision": 0.6474358974358975,
+        "recall": 0.6158536585365854,
+        "f1": 0.63125,
+        "support": 164
+      },
+      "neutral": {
+        "precision": 0.2903225806451613,
+        "recall": 0.3103448275862069,
+        "f1": 0.3,
+        "support": 87
+      },
+      "positive": {
+        "precision": 0.6804733727810651,
+        "recall": 0.688622754491018,
+        "f1": 0.6845238095238095,
+        "support": 167
+      }
+    },
+    "classification_report": {
+      "negative": {
+        "precision": 0.6474358974358975,
+        "recall": 0.6158536585365854,
+        "f1-score": 0.63125,
+        "support": 164.0
+      },
+      "neutral": {
+        "precision": 0.2903225806451613,
+        "recall": 0.3103448275862069,
+        "f1-score": 0.3,
+        "support": 87.0
+      },
+      "positive": {
+        "precision": 0.6804733727810651,
+        "recall": 0.688622754491018,
+        "f1-score": 0.6845238095238095,
+        "support": 167.0
+      },
+      "accuracy": 0.5813397129186603,
+      "macro avg": {
+        "precision": 0.5394106169540414,
+        "recall": 0.53827374687127,
+        "f1-score": 0.5385912698412698,
+        "support": 418.0
+      },
+      "weighted avg": {
+        "precision": 0.586307667344627,
+        "recall": 0.5813397129186603,
+        "f1-score": 0.583589655958077,
+        "support": 418.0
+      }
+    }
+  },
+  "trainer_metrics": {
+    "test_loss": 0.9156668186187744,
+    "test_accuracy": 0.5813397129186603,
+    "test_macro_f1": 0.5385912698412698,
+    "test_runtime": 28.5157,
+    "test_samples_per_second": 14.659,
+    "test_steps_per_second": 0.947
+  }
+}
