@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import secrets
 from typing import Any
 
@@ -130,7 +131,11 @@ def _user_row_to_dict(row: tuple) -> dict[str, Any]:
     }
 
 
-def create_user(username: str, password: str) -> dict[str, Any]:
+def create_user(email: str, password: str, username: str | None = None) -> dict[str, Any]:
+    email = (email or "").strip().lower()
+    if not email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        raise ValueError("Please enter a valid email address.")
+    username = (username or email).strip().lower()
     hashed = hash_password(password)
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -138,21 +143,22 @@ def create_user(username: str, password: str) -> dict[str, Any]:
                 cur.execute(
                     "INSERT INTO dashboard.users (username, password, email, role) "
                     "VALUES (%s, %s, %s, %s) RETURNING user_id, username, password, email, role, created_at, is_active",
-                    (username, hashed, f"{username}@local", "general"),
+                    (username, hashed, email, "general"),
                 )
                 row = cur.fetchone()
                 return _user_row_to_dict(row)
             except psycopg2.errors.UniqueViolation:
-                raise ValueError("Username already exists.")
+                raise ValueError("An account with this email already exists.")
 
 
-def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
+def authenticate_user(identifier: str, password: str) -> dict[str, Any] | None:
+    identifier = (identifier or "").strip().lower()
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT user_id, username, password, email, role, created_at, is_active "
-                "FROM dashboard.users WHERE username = %s",
-                (username,),
+                "FROM dashboard.users WHERE LOWER(username) = %s OR LOWER(email) = %s",
+                (identifier, identifier),
             )
             row = cur.fetchone()
     if row is None:
@@ -169,12 +175,13 @@ def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
 
 
 def get_user_by_username(username: str) -> dict[str, Any] | None:
+    username = (username or "").strip().lower()
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT user_id, username, password, email, role, created_at, is_active "
-                "FROM dashboard.users WHERE username = %s",
-                (username,),
+                "FROM dashboard.users WHERE LOWER(username) = %s OR LOWER(email) = %s",
+                (username, username),
             )
             row = cur.fetchone()
     if row is None:

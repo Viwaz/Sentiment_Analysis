@@ -7,6 +7,8 @@ import os
 from src.db.users import create_user, authenticate_user
 import subprocess
 import time
+import re
+from urllib.parse import urlparse
 from pathlib import Path
 import base64
 from streamlit_oauth import OAuth2Component
@@ -826,10 +828,251 @@ st.markdown("""
     }
     div[data-testid="stTabs"] button p {
         font-size: 1.2rem !important;
+    }
+
+    /* Phase 1: unified Sentilytics brand system */
+    :root {
+        --brand-ink: #10233F;
+        --brand-muted: #5B6B82;
+        --brand-primary: #2563EB;
+        --brand-primary-dark: #1D4ED8;
+        --brand-accent: #14B8A6;
+        --brand-warm: #F59E0B;
+        --brand-danger: #EF4444;
+        --brand-surface: #FFFFFF;
+        --brand-soft: #F7FAFC;
+        --brand-line: #DCE5F2;
+        --brand-shadow: 0 18px 45px rgba(16, 35, 63, 0.10);
+    }
+
+    .stApp {
+        background:
+            linear-gradient(180deg, rgba(255,255,255,0.94), rgba(247,250,252,0.96)),
+            radial-gradient(circle at top left, rgba(37,99,235,0.12), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(20,184,166,0.12), transparent 30%) !important;
+    }
+
+    .ui-icon,
+    .material-symbols-rounded.ui-icon {
+        font-family: 'Material Symbols Rounded' !important;
+        font-weight: normal !important;
+        font-style: normal !important;
+        font-size: 1.05em;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: -0.16em;
+        font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 6px 18px;
+    }
+    .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+        color: #FFFFFF !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 12px 28px rgba(37,99,235,0.26);
+    }
+    .brand-mark .ui-icon {
+        color: #FFFFFF !important;
+        font-size: 24px;
+    }
+    .brand-title {
+        color: #FFFFFF !important;
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 1.18rem;
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: 0;
+    }
+    .brand-subtitle {
+        color: #A9B7CC !important;
+        font-size: 0.76rem;
+        margin-top: 4px;
+    }
+    .sidebar-user-card,
+    .sidebar-panel {
+        background: rgba(255,255,255,0.075);
+        border: 1px solid rgba(220,229,242,0.12);
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin: 10px 0 14px;
+    }
+    .sidebar-user-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sidebar-user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: rgba(37,99,235,0.22);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .sidebar-user-avatar .ui-icon {
+        color: #BFDBFE !important;
+    }
+    .sidebar-kicker {
+        color: #94A3B8 !important;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+    .sidebar-value {
+        color: #FFFFFF !important;
+        font-size: 0.92rem;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+    .sidebar-section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #DCEBFF !important;
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 0.88rem;
+        font-weight: 800;
+        margin: 16px 0 8px;
+    }
+
+    .page-shell {
+        background: rgba(255,255,255,0.72);
+        border: 1px solid rgba(220,229,242,0.85);
+        border-radius: 18px;
+        padding: clamp(18px, 3vw, 30px);
+        box-shadow: var(--brand-shadow);
+        margin-bottom: 18px;
+    }
+    .page-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+    .page-heading h2,
+    .page-heading h3 {
+        margin: 0 !important;
+        color: var(--brand-ink) !important;
+    }
+    .page-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--brand-primary);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+    .page-subtitle {
+        color: var(--brand-muted);
+        font-size: 0.95rem;
+        line-height: 1.55;
+        margin-top: 6px;
+    }
+
+    .landing-hero {
+        background:
+            linear-gradient(145deg, rgba(16,35,63,0.97) 0%, rgba(29,78,216,0.88) 58%, rgba(20,184,166,0.78) 100%),
+            linear-gradient(45deg, #10233F, #2563EB) !important;
+        border-radius: 18px !important;
+    }
+    .landing-hero::before,
+    .landing-hero::after {
+        display: none !important;
+    }
+    .landing-hero .hero-badge {
+        background: rgba(255,255,255,0.12) !important;
+        border-color: rgba(255,255,255,0.24) !important;
+        color: #DBEAFE !important;
+    }
+    .landing-hero h1 {
+        letter-spacing: 0 !important;
+    }
+    .landing-hero h1 span {
+        background: linear-gradient(90deg, #DBEAFE, #99F6E4) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+    .landing-hero .hero-feature .feat-icon {
+        background: rgba(255,255,255,0.12) !important;
+        border: 1px solid rgba(255,255,255,0.14);
+        color: #DDF8F4 !important;
+    }
+    .auth-card-header .auth-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        margin: 0 auto 14px;
+        background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 14px 28px rgba(37,99,235,0.22);
+    }
+    .auth-card-header .auth-icon .ui-icon {
+        color: #FFFFFF !important;
+        font-size: 24px;
+    }
+
+    @media (max-width: 900px) {
+        .landing-hero,
+        .st-key-auth_card,
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            min-height: auto !important;
+        }
+        .landing-hero {
+            padding: 34px 26px !important;
+        }
+        .landing-hero h1 {
+            font-size: 2.2rem !important;
+        }
+        .page-heading {
+            flex-direction: column;
+        }
     </style>
 """, unsafe_allow_html=True)
 
 # ----------------- Helper Functions -----------------
+
+def ms_icon(name: str, class_name: str = "ui-icon") -> str:
+    """Render a Material Symbols icon for HTML snippets."""
+    return f"<span class='material-symbols-rounded {class_name}' aria-hidden='true'>{name}</span>"
+
+
+def section_title(icon_name: str, eyebrow: str, title: str, subtitle: str = "") -> None:
+    subtitle_html = f"<div class='page-subtitle'>{subtitle}</div>" if subtitle else ""
+    st.markdown(
+        f"""
+        <div class="page-heading">
+            <div>
+                <div class="page-eyebrow">{ms_icon(icon_name)} {eyebrow}</div>
+                <h2>{title}</h2>
+                {subtitle_html}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def render_styled_predictions_df(df: pd.DataFrame, text_col: str, sentiment_col: str, confidence_col: str | None = None) -> None:
     # Build display frame
@@ -1208,9 +1451,9 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                 st.markdown("---")
                 col_res_hdr, col_res_export = st.columns([0.7, 0.3])
                 with col_res_hdr:
-                    st.markdown("### 📊 Results Panel")
+                    st.markdown(f"### {ms_icon('analytics')} Results Panel", unsafe_allow_html=True)
                 with col_res_export:
-                    _export_tabs = st.tabs(["📥 Export"])
+                    _export_tabs = st.tabs(["Export"])
                     with _export_tabs[0]:
                         csv_data = df_results.to_csv(index=False).encode("utf-8")
                         st.download_button(
@@ -1237,7 +1480,7 @@ def render_batch_analysis(baseline_model, baseline_vec, transformers, paths, upl
                     # Streamlit will evaluate the function and stream the file immediately upon invocation
                     try:
                         st.download_button(
-                            label="🚀 Generate & Download PDF Report",
+                            label="Generate & Download PDF Report",
                             data=get_pdf_bytes(),  # Triggers generation instantly when clicked
                             file_name=f"sentiment_report_{datetime.date.today()}.pdf",
                             mime="application/pdf",
@@ -1255,6 +1498,7 @@ def get_password_requirements(password):
     password = password or ""
     return {
         "At least 8 characters": len(password) >= 8,
+        "Contains uppercase and lowercase letters": any(char.isupper() for char in password) and any(char.islower() for char in password),
         "Contains at least one number": any(char.isdigit() for char in password),
         "Contains at least one special character": any(not char.isalnum() for char in password),
     }
@@ -1262,16 +1506,29 @@ def get_password_requirements(password):
 
 def render_password_requirements(password):
     requirements = get_password_requirements(password)
+    met_count = sum(requirements.values())
+    strength_pct = int((met_count / len(requirements)) * 100)
+    strength_label = "Strong" if met_count == len(requirements) else "Almost there" if met_count >= 3 else "Weak"
+    strength_color = "#16A34A" if met_count == len(requirements) else "#D97706" if met_count >= 3 else "#DC2626"
     rows = []
     for label, is_met in requirements.items():
-        icon = "&#10003;" if is_met else "&#9675;"
+        icon_name = "check_circle" if is_met else "radio_button_unchecked"
         color = "#16A34A" if is_met else "#DC2626"
         status = "met" if is_met else "not met"
         rows.append(
-            f"<li style='color:{color}; margin: 4px 0;'>"
-            f"<strong>{icon}</strong> {label} <span style='font-size: 0.85em;'>({status})</span>"
+            f"<li style='color:{color}; margin: 6px 0; display:flex; align-items:center; gap:8px;'>"
+            f"{ms_icon(icon_name)} <span>{label} <span style='font-size: 0.85em;'>({status})</span></span>"
             "</li>"
         )
+    rows.insert(
+        0,
+        "<li style='list-style:none; margin: 8px 0 10px;'>"
+        f"<div style='display:flex; justify-content:space-between; color:#334155; font-size:0.82rem; font-weight:700;'>"
+        f"<span>Password strength</span><span style='color:{strength_color};'>{strength_label}</span></div>"
+        "<div style='height:7px; border-radius:999px; background:#E2E8F0; overflow:hidden; margin-top:6px;'>"
+        f"<div style='height:100%; width:{strength_pct}%; background:{strength_color}; border-radius:999px;'></div>"
+        "</div></li>",
+    )
     return rows
     st.markdown(
         "<div style='margin: 0.35rem 0 0.85rem 0;'>"
@@ -1282,6 +1539,68 @@ def render_password_requirements(password):
         unsafe_allow_html=True,
     )
     return all(requirements.values())
+
+
+def is_valid_email(value: str) -> bool:
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", (value or "").strip()))
+
+
+def split_url_input(value: str) -> list[str]:
+    return [u.strip() for u in re.split(r"[,\n]+|\s+", value or "") if u.strip()]
+
+
+def is_facebook_url(value: str) -> bool:
+    try:
+        parsed = urlparse(value.strip())
+    except Exception:
+        return False
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        return False
+    host = parsed.netloc.lower()
+    return host == "facebook.com" or host.endswith(".facebook.com") or host == "fb.watch"
+
+
+def invalid_facebook_urls(urls: list[str]) -> list[str]:
+    return [url for url in urls if not is_facebook_url(url)]
+
+
+def reset_user_scoped_state(clear_widget_keys: bool = True) -> None:
+    """Clear session-state values that must not cross user accounts."""
+    keys_to_clear = [
+        "sessions_cache",
+        "sessions_cache_user_id",
+        "comments_cache",
+        "comments_cache_session_id",
+        "cached_insights",
+        "cached_insights_key",
+        "batch_wordclouds",
+        "_hist_wc_session",
+        "user_scrape_results",
+        "user_active_urls",
+        "user_active_file",
+        "user_processing",
+        "trigger_user_scrape",
+        "user_scrape_phase",
+        "user_cancel_requested",
+        "dev_active_url",
+        "dev_active_file",
+        "dev_processing",
+        "trigger_dev_scrape",
+        "dev_scrape_results",
+        "dev_cancel_requested",
+        "dev_scrape_phase",
+        "batch_df",
+    ]
+    if clear_widget_keys:
+        keys_to_clear.extend([
+            "history_session_selectbox",
+            "sidebar_workspace_nav",
+        ])
+    for key in keys_to_clear:
+        st.session_state.pop(key, None)
+    st.session_state.view_mode = "new"
+    st.session_state.current_session_id = None
+    st.session_state.sessions_cache_dirty = True
 
 
 # ── Session state defaults ──────────────────────────────────────────────────
@@ -1334,8 +1653,9 @@ if not st.session_state.logged_in:
     hero_col, card_col = st.columns([1.1, 0.9], gap="large")
 
     with hero_col:
-        st.markdown("""
+        st.markdown(f"""
         <div class="landing-hero">
+          <div class="hero-badge">{ms_icon("verified")} Sentilytics Intelligence</div>
     
           <h1>Facebook<br><span>Sentiment</span><br>Classifier</h1>
           <p class="hero-desc">
@@ -1345,19 +1665,19 @@ if not st.session_state.logged_in:
           </p>
           <div class="hero-features">
             <div class="hero-feature">
-              <div class="feat-icon">📊</div>
+              <div class="feat-icon">{ms_icon("monitoring")}</div>
               Real-time sentiment analysis &amp; visualisations
             </div>
             <div class="hero-feature">
-              <div class="feat-icon">🤖</div>
+              <div class="feat-icon">{ms_icon("model_training")}</div>
               Baseline &amp; transformer model comparisons
             </div>
             <div class="hero-feature">
-              <div class="feat-icon">💬</div>
+              <div class="feat-icon">{ms_icon("forum")}</div>
               AI chatbot assistant for result exploration
             </div>
             <div class="hero-feature">
-              <div class="feat-icon">🗄️</div>
+              <div class="feat-icon">{ms_icon("database")}</div>
               Session history &amp; database export
             </div>
           </div>
@@ -1368,10 +1688,11 @@ if not st.session_state.logged_in:
         # A real Streamlit bordered container IS the card, so the header and
         # the form widgets render inside the same box instead of two blocks.
         with st.container(border=True, key="auth_card"):
-            st.markdown("""
+            st.markdown(f"""
             <div class="auth-card-header">
-                <span class="auth-icon">🔒</span>
-                <h2>Facebook Sentiment Classifier Dashboard</h2>
+                <span class="auth-icon">{ms_icon("lock")}</span>
+                <h2>Sentilytics Dashboard</h2>
+                <p>Sign in to analyse public conversation with one consistent workspace.</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1379,15 +1700,17 @@ if not st.session_state.logged_in:
 
             with auth_tabs[0]:
                 with st.form("login_form"):
-                    username = st.text_input("Username", key="login_username_input")
+                    login_email = st.text_input("Email address", key="login_email_input", placeholder="you@example.com")
                     password = st.text_input("Password", type="password", key="login_password_input")
-                    submit = st.form_submit_button("Log In", use_container_width=True)
+                    submit = st.form_submit_button("Sign In", use_container_width=True)
                     if submit:
-                        if not username or not password:
+                        if not login_email or not password:
                             st.error("Please fill out all fields.")
+                        elif not is_valid_email(login_email):
+                            st.error("Please enter a valid email address.")
                         else:
                             from src.database import authenticate_user
-                            user = authenticate_user(username, password)
+                            user = authenticate_user(login_email, password)
                             if user:
                                 cookie_controller.set("logged_in_user", user["username"])
                                 st.session_state.logged_in = True
@@ -1395,12 +1718,12 @@ if not st.session_state.logged_in:
                                 st.session_state.username = user["username"]
                                 st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
                                 st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
-                                st.session_state.view_mode = "new"
+                                reset_user_scoped_state()
                                 st.success(f"Welcome back, {user['username']}!")
                                 st.query_params.clear()
                                 st.rerun()
                             else:
-                                st.error("Invalid username or password.")
+                                st.error("Invalid email or password.")
 
                 st.markdown("<hr style='margin: 8px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
                 if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
@@ -1423,39 +1746,37 @@ if not st.session_state.logged_in:
                                 st.session_state.username = user["username"]
                                 st.session_state.current_user = {"user_id": user["user_id"], "username": user["username"], "role": user.get("role", "general")}
                                 st.session_state.logged_in_as_dev = user.get("role") in ("developer", "admin")
-                                st.session_state.view_mode = "new"
+                                reset_user_scoped_state()
                                 st.query_params.clear()
                                 st.rerun()
 
             with auth_tabs[1]:
-                with st.form("register_form"):
-                    reg_username = st.text_input("Choose Username", key="register_username_input")
-                    reg_password = st.text_input("Choose Password", type="password", key="register_password_input")
-                    reg_confirm = st.text_input("Confirm Password", type="password", key="register_confirm_input")
-                            # 1. Dynamically render requirements below the password field
-                    # HTML is rendered safely using st.markdown with unsafe_html enabled
-                    rows = render_password_requirements(reg_password)
-                    html_rows = " ".join(rows)
-                    st.markdown(f"<ul style='list-style:none; padding-left:0;'>{html_rows}</ul>", unsafe_allow_html=True)
-                    
-                    submit_reg = st.form_submit_button("Create Account", use_container_width=True)  
-                    if submit_reg:
-                        if not reg_username or not reg_password or not reg_confirm:
-                            st.error("Please fill out all fields.")
-                        elif reg_password != reg_confirm:
-                            st.error("Passwords do not match.")
-                        # 2. Check if all required conditions return True before proceeding
-                        elif not all(get_password_requirements(reg_password).values()):
-                            st.error("Your password does not meet all security requirements.")
-                        else:
-                            from src.database import create_user
-                            try:
-                                create_user(reg_username, reg_password)
-                                st.success("Account created successfully! Please sign in using the 'Sign In' tab.")
-                            except ValueError as ve:
-                                st.error(str(ve))
-                            except Exception as e:
-                                st.error(f"Failed to create account: {e}")
+                reg_email = st.text_input("Email address", key="register_email_input", placeholder="you@example.com")
+                reg_password = st.text_input("Create password", type="password", key="register_password_input")
+                rows = render_password_requirements(reg_password)
+                html_rows = " ".join(rows)
+                st.markdown(f"<ul style='list-style:none; padding-left:0; margin-top:0.35rem;'>{html_rows}</ul>", unsafe_allow_html=True)
+                reg_confirm = st.text_input("Confirm password", type="password", key="register_confirm_input")
+
+                submit_reg = st.button("Create Account", use_container_width=True, key="register_submit_btn")
+                if submit_reg:
+                    if not reg_email or not reg_password or not reg_confirm:
+                        st.error("Please fill out all fields.")
+                    elif not is_valid_email(reg_email):
+                        st.error("Please enter a valid email address.")
+                    elif reg_password != reg_confirm:
+                        st.error("Passwords do not match.")
+                    elif not all(get_password_requirements(reg_password).values()):
+                        st.error("Your password does not meet all security requirements.")
+                    else:
+                        from src.database import create_user
+                        try:
+                            create_user(reg_email, reg_password)
+                            st.success("Account created successfully. Please sign in using your email.")
+                        except ValueError as ve:
+                            st.error(str(ve))
+                        except Exception as e:
+                            st.error(f"Failed to create account: {e}")
 
     st.stop()
 
@@ -1475,35 +1796,83 @@ is_developer = st.session_state.logged_in_as_dev
 
 # ── Sidebar ──
 st.sidebar.markdown(
-    """
-    <div style='text-align: center; margin-bottom: 20px;'>
-        <h1 style='font-size: 2.2rem; margin-bottom: 0px;'>MW</h1>
-        <h2 style='font-size: 1.3rem; margin-top: 5px; color:#4F46E5;'>Sentiment Classifier</h2>
-        <span style='color: #64748B; font-size: 0.8rem;'>Facebook Code-Switched Low-Resource App</span>
+    f"""
+    <div class="brand-lockup">
+        <div class="brand-mark">{ms_icon("analytics")}</div>
+        <div>
+            <div class="brand-title">Sentilytics</div>
+            <div class="brand-subtitle">Facebook sentiment intelligence</div>
+        </div>
+    </div>
+    <div class="sidebar-user-card">
+        <div class="sidebar-user-avatar">{ms_icon("person")}</div>
+        <div>
+            <div class="sidebar-kicker">Signed in</div>
+            <div class="sidebar-value">{st.session_state.username}</div>
+        </div>
     </div>
     """,
     unsafe_allow_html=True
 )
-st.sidebar.markdown(f"👤 Logged in as: **{st.session_state.username}**")
-st.sidebar.markdown("---")
 
-# 1. "Analyze New URL" button fixed at the top
-if st.sidebar.button("➕ Analyze New URL", type="primary", use_container_width=True, key="new_analysis_sidebar_btn"):
+workspace_choice = st.sidebar.radio(
+    "Workspace",
+    ["New Analysis", "Session History"],
+    index=0 if st.session_state.view_mode != "history" else 1,
+    key="sidebar_workspace_nav",
+)
+history_nav_requested = workspace_choice == "Session History"
+if workspace_choice == "New Analysis" and st.session_state.view_mode == "history":
     st.session_state.view_mode = "new"
     st.session_state.current_session_id = None
     st.session_state.user_scrape_results = None
     st.query_params.clear()
     st.rerun()
 
-st.sidebar.subheader("History Sessions")
+# 1. "Analyze New URL" button fixed at the top
+if st.sidebar.button("Analyze New URL", type="primary", use_container_width=True, key="new_analysis_sidebar_btn"):
+    st.session_state.view_mode = "new"
+    st.session_state.current_session_id = None
+    st.session_state.user_scrape_results = None
+    st.query_params.clear()
+    st.rerun()
 
-# Cache sessions in session state to improve page performance
-if "sessions_cache" not in st.session_state or st.session_state.get("sessions_cache_dirty", True):
+st.sidebar.markdown(f"<div class='sidebar-section-title'>{ms_icon('history')} History Sessions</div>", unsafe_allow_html=True)
+
+# Cache sessions in session state to improve page performance, keyed by logged-in user
+if (
+    "sessions_cache" not in st.session_state
+    or st.session_state.get("sessions_cache_dirty", True)
+    or st.session_state.get("sessions_cache_user_id") != st.session_state.user_id
+):
     from src.database import get_user_sessions
     st.session_state.sessions_cache = get_user_sessions(st.session_state.user_id)
+    st.session_state.sessions_cache_user_id = st.session_state.user_id
     st.session_state.sessions_cache_dirty = False
 
 sessions = st.session_state.sessions_cache
+owned_session_ids = {s["session_id"] for s in sessions}
+
+if (
+    st.session_state.view_mode == "history"
+    and st.session_state.current_session_id is not None
+    and st.session_state.current_session_id not in owned_session_ids
+):
+    st.warning("That analysis session is not available for this account.")
+    st.session_state.view_mode = "new"
+    st.session_state.current_session_id = None
+    st.session_state.comments_cache_session_id = None
+    if "session_id" in st.query_params:
+        st.query_params.clear()
+    st.rerun()
+
+if history_nav_requested and sessions and st.session_state.view_mode != "history":
+    st.session_state.view_mode = "history"
+    if st.session_state.current_session_id is None:
+        st.session_state.current_session_id = sessions[0]["session_id"]
+    st.rerun()
+elif history_nav_requested and not sessions:
+    st.sidebar.info("No sessions yet. Start a new analysis first.")
 
 if sessions:
     # Build dictionary for dropdown selection options
@@ -1549,7 +1918,7 @@ if sessions:
         if rename_flag_key not in st.session_state:
             st.session_state[rename_flag_key] = False
 
-        with st.sidebar.popover("⚙️ Session Settings", use_container_width=True):
+        with st.sidebar.popover("Session Settings", use_container_width=True):
             if not st.session_state[rename_flag_key]:
                 url_val = active_s.get("url") or "#"
                 st.markdown(
@@ -1645,14 +2014,14 @@ if is_developer:
         st.sidebar.warning("[WARN] Transformers: None found locally")
 
 # Secure log out button at bottom of sidebar
-if st.sidebar.button("🔓 Log Out", use_container_width=True, key="logout_sidebar_btn"):
+if st.sidebar.button("Log Out", use_container_width=True, key="logout_sidebar_btn"):
     cookie_controller.remove("logged_in_user")
+    reset_user_scoped_state(clear_widget_keys=False)
     st.session_state.logged_in = False
     st.session_state.user_id = None
     st.session_state.username = None
-    st.session_state.view_mode = "new"
-    st.session_state.current_session_id = None
-    st.session_state.user_scrape_results = None
+    st.session_state.current_user = {"user_id": "guest", "username": "Guest", "role": "general"}
+    st.session_state.logged_in_as_dev = False
     st.query_params.clear()
     st.rerun()
 
@@ -1671,6 +2040,13 @@ if not is_developer:
             st.session_state.view_mode = "new"
             st.session_state.current_session_id = None
             st.rerun()
+        if session.get("user_id") != st.session_state.user_id:
+            st.error("Selected session is not available for this account.")
+            st.session_state.view_mode = "new"
+            st.session_state.current_session_id = None
+            st.session_state.comments_cache_session_id = None
+            st.query_params.clear()
+            st.rerun()
             
         # Cache comments for this active session to avoid redundant database calls
         current_sess_id = st.session_state.current_session_id
@@ -1681,7 +2057,7 @@ if not is_developer:
         comments_list = st.session_state.comments_cache
         
         if not comments_list:
-            st.markdown(f"### 📊 Analysis Session for: `{session['url']}`")
+            section_title("analytics", "Session", "Analysis Session", f"Source: `{session['url']}`")
             st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
             st.info("No comments found for this session.")
         else:
@@ -1734,11 +2110,11 @@ if not is_developer:
             # Action/Export section at the top of the view
             col_hdr1, col_hdr2 = st.columns([0.75, 0.25])
             with col_hdr1:
-                st.markdown(f"### 📊 Analysis Session for: `{session['url']}`")
+                section_title("analytics", "Session", "Analysis Session", f"Source: `{session['url']}`")
                 st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
             with col_hdr2:
                 st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-                if st.button("📥 Generate PDF Report", key="hist_pdf_btn", use_container_width=True):
+                if st.button("Generate PDF Report", key="hist_pdf_btn", use_container_width=True):
                     with st.spinner("Preparing your report..."):
                         try:
                             from src.report_generator import create_report_pdf
@@ -1750,7 +2126,7 @@ if not is_developer:
                                 insights=current_insights,
                             )
                             st.download_button(
-                                label="📄 Download PDF Report",
+                                label="Download PDF Report",
                                 data=pdf_data,
                                 file_name="sentiment_report.pdf",
                                 mime="application/pdf",
@@ -1760,7 +2136,7 @@ if not is_developer:
                             st.error(f"Could not generate PDF report: {pdf_ex}")
             
             # Tab partition for a clean non-scroll user experience
-            tab_overview, tab_analytics, tab_insights = st.tabs(["📋Overview", " 📊 Analysis", "Insights"])
+            tab_overview, tab_analytics, tab_insights = st.tabs(["Overview", "Analysis", "Insights"])
             
             with tab_overview:
                 # Metrics KPI cards
@@ -1870,12 +2246,12 @@ if not is_developer:
                         st.info("No sentiments to display.")
 
                                                     # Time-Series Trend Visualizer
-                st.markdown("### 📈 Time-Series Sentiment Trend")
+                st.markdown(f"### {ms_icon('timeline')} Time-Series Sentiment Trend", unsafe_allow_html=True)
                 df_user["created_time_dt"] = pd.to_datetime(df_user["created_time"], errors="coerce")
                 valid_times = df_user["created_time_dt"].notna()
                 
                 if valid_times.sum() == 0:
-                    st.info("🕒 No comment creation timestamps available for this session to render a time-series.")
+                    st.info("No comment creation timestamps available for this session to render a time-series.")
                 else:
                     df_ts = df_user[valid_times].copy()
                     ts_res = st.radio(
@@ -1901,7 +2277,7 @@ if not is_developer:
                     st.line_chart(trend_pivot, use_container_width=True)
 
                                         # Word clouds in sub-tabs within Analytics
-                st.markdown("#### 🌥️ Sentiment Word Clouds")
+                st.markdown(f"#### {ms_icon('cloud')} Sentiment Word Clouds", unsafe_allow_html=True)
                 _wc_sentiments = ["All", "Positive", "Negative", "Neutral"]
                 _wc_tabs = st.tabs(_wc_sentiments)
                 _wc_cache = st.session_state.get("batch_wordclouds", {})
@@ -1924,12 +2300,12 @@ if not is_developer:
                 with ai_col_head:
                     st.markdown(
                         "<h3 style='margin-bottom:2px;font-family:Outfit,sans-serif;'>"
-                        "✨ Recommendations</h3>",
+                        f"{ms_icon('auto_awesome')} Recommendations</h3>",
                         unsafe_allow_html=True,
                     )
                 with ai_col_btn:
                     refresh_insights = st.button(
-                        "↺ Refresh",
+                        "Refresh",
                         key="refresh_insights_btn",
                         help="Regenerate ",
                     )
@@ -1944,7 +2320,7 @@ if not is_developer:
                 )
 
                 if _need_generate:
-                    with st.spinner("✨ Compiling information… "):
+                    with st.spinner("Compiling information..."):
                         try:
                             from src.llm_insights import generate_groq_insights
 
@@ -1995,20 +2371,20 @@ if not is_developer:
                     if _err_type == "no_key":
                         st.markdown(
                             "<div class='ai-insights-panel'>"
-                            "<h3>✨ Recommendations</h3>"
+                            f"<h3>{ms_icon('auto_awesome')} Recommendations</h3>"
                             "<div class='ai-summary-block' style='color:#FCA5A5;'>"
-                            "⚠️ <strong>System unavailable, contact support.</strong><br><br>"
+                            f"{ms_icon('warning')} <strong>System unavailable, contact support.</strong><br><br>"
                             "</div>",
                             unsafe_allow_html=True,
                         )
                     else:
                         st.markdown(
                             "<div class='ai-insights-panel'>"
-                            "<h3>✨Insights</h3>"
+                            f"<h3>{ms_icon('auto_awesome')} Insights</h3>"
                             "<div class='ai-summary-block' style='color:#FCA5A5;'>"
-                            "⚠️ <strong>System currently unavailable.</strong><br>"
+                            f"{ms_icon('warning')} <strong>System currently unavailable.</strong><br>"
                             "Please check your internet connection, then click "
-                            "<em>↺ Refresh</em> to try again."
+                            "<em>Refresh</em> to try again."
                             "</div></div>",
                             unsafe_allow_html=True,
                         )
@@ -2036,7 +2412,7 @@ if not is_developer:
                     # Build reasons tags HTML
                     reasons_html = ""
                     for reason in reasons:
-                        reasons_html += f"    <span class='ai-tag'>🔍 {reason}</span>\n"
+                        reasons_html += f"    <span class='ai-tag'>{ms_icon('search')} {reason}</span>\n"
 
                     # Build recommendations items HTML
                     recs_html = ""
@@ -2052,7 +2428,7 @@ if not is_developer:
                     _total = pos_count + neg_count + neu_count
                     insights_html = (
                         "<div class='ai-insights-panel'>"
-                        f"<h3>✨ Recommendations {_fresh_badge}</h3>"
+                        f"<h3>{ms_icon('auto_awesome')} Recommendations {_fresh_badge}</h3>"
                         f"<div class='ai-meta'>Powered by Groq &nbsp;&bull;&nbsp; Llama 3 &nbsp;&bull;&nbsp; Based on {_total} classified comments</div>"
                         
                         "<div class='ai-section-title'>Overall Interpretation</div>"
@@ -2064,9 +2440,9 @@ if not is_developer:
                         # ── New Sentiment Thematic Breakdown Section ──────────────────────────────────
                         "<div class='ai-section-title'>Thematic Sentiment Breakdown</div>"
                         f"<div class='ai-summary-block' style='padding-top:12px; padding-bottom:12px;'>"
-                        f"  <div style='margin-bottom:10px;'><strong style='color:#10B981;'>🟢 Positive Discussion:</strong> {pos_talk}</div>"
-                        f"  <div style='margin-bottom:10px;'><strong style='color:#F59E0B;'>🟡 Neutral / Indifferent:</strong> {neu_talk}</div>"
-                        f"  <div><strong style='color:#EF4444;'>🔴 Negative Criticism:</strong> {neg_talk}</div>"
+                        f"  <div style='margin-bottom:10px;'><strong style='color:#10B981;'>{ms_icon('thumb_up')} Positive Discussion:</strong> {pos_talk}</div>"
+                        f"  <div style='margin-bottom:10px;'><strong style='color:#F59E0B;'>{ms_icon('radio_button_unchecked')} Neutral / Indifferent:</strong> {neu_talk}</div>"
+                        f"  <div><strong style='color:#EF4444;'>{ms_icon('thumb_down')} Negative Criticism:</strong> {neg_talk}</div>"
                         f"</div>"
                         # ─────────────────────────────────────────────────────────────────────────────
                         
@@ -2106,17 +2482,36 @@ if not is_developer:
             st.session_state.user_scrape_phase = None
             st.session_state.user_cancel_requested = False
             
-        # Chat-like input for URL(s) - supports one or many, separated by comma/newline/whitespace
+        # Top-of-page input for URL(s) - supports one or many, separated by comma/newline/whitespace
         if not st.session_state.user_processing and not st.session_state.get("batch_processing", False):
-            prompt = st.chat_input("Paste one or more Facebook Post URLs (separate with commas)...", accept_file=True, file_type=["csv"], key="user_chat")
-            if prompt:
-                if prompt.text:
-                    import re as _re_user_urls
-                    parsed_urls = [u.strip() for u in _re_user_urls.split(r"[,\n]+|\s+", prompt.text) if u.strip()]
-                    st.session_state.user_active_urls = parsed_urls or None
-                    st.session_state.user_active_file = None
-                if prompt.get("files"):
-                    st.session_state.user_active_file = prompt["files"][0]
+            with st.container(border=True):
+                user_url_text = st.text_area(
+                    "Facebook Post URL(s)",
+                    placeholder="https://www.facebook.com/.../posts/...\nPaste multiple Facebook URLs on separate lines.",
+                    height=92,
+                    key="user_url_text_input",
+                )
+                url_action_col, file_action_col = st.columns([1, 1])
+                with url_action_col:
+                    if st.button("Use Facebook URL(s)", type="primary", use_container_width=True, key="user_use_urls_btn"):
+                        parsed_urls = split_url_input(user_url_text)
+                        bad_urls = invalid_facebook_urls(parsed_urls)
+                        if not parsed_urls:
+                            st.error("Please paste at least one Facebook URL.")
+                        elif bad_urls:
+                            st.error("Only Facebook URLs are allowed. Please check: " + ", ".join(bad_urls[:3]))
+                        else:
+                            st.session_state.user_active_urls = parsed_urls
+                            st.session_state.user_active_file = None
+                with file_action_col:
+                    uploaded_user_csv = st.file_uploader(
+                        "Or upload CSV",
+                        type=["csv"],
+                        key="user_top_csv_uploader",
+                        label_visibility="collapsed",
+                    )
+                if uploaded_user_csv is not None:
+                    st.session_state.user_active_file = uploaded_user_csv
                     st.session_state.user_active_urls = None
                     
         if st.session_state.user_active_urls:
@@ -2140,7 +2535,10 @@ if not is_developer:
                         user_scrape_token = st.text_input("Apify API Token", type="password", placeholder="Required if not pre-configured", help="Enter your Apify API token to enable scraping.", key="user_apify_token")
                         
                 if st.button("Run Scrape & Analyse", type="primary", key="user_scrape_btn"):
-                    if not user_scrape_token and not user_has_token:
+                    bad_urls = invalid_facebook_urls(st.session_state.user_active_urls or [])
+                    if bad_urls:
+                        st.error("Only Facebook URLs can be analysed. Please remove: " + ", ".join(bad_urls[:3]))
+                    elif not user_scrape_token and not user_has_token:
                         st.error("Please enter your Apify API Token to proceed.")
                     else:
                         st.session_state.user_scrape_limit_val = user_scrape_limit
@@ -2491,17 +2889,36 @@ with tab_analysis_scrape:
         st.session_state.dev_scrape_phase = None
         st.session_state.dev_cancel_requested = False
         
-    # Render chat input if not processing
+    # Render top input if not processing
     if not st.session_state.dev_processing and not st.session_state.get("batch_processing", False):
-        prompt = st.chat_input("Paste Facebook Post URL here...", accept_file=True, file_type=["csv"], key="dev_chat")
-        if prompt:
-            if prompt.text:
-                st.session_state.dev_active_url = prompt.text
-                st.session_state.dev_active_file = None
-                st.session_state.batch_df = None
-                st.session_state.dev_scrape_results = None
-            if prompt.get("files"):
-                st.session_state.dev_active_file = prompt["files"][0]
+        with st.container(border=True):
+            dev_url_text = st.text_input(
+                "Facebook Post URL",
+                placeholder="https://www.facebook.com/.../posts/...",
+                key="dev_url_text_input",
+            )
+            dev_url_col, dev_file_col = st.columns([1, 1])
+            with dev_url_col:
+                if st.button("Use Facebook URL", type="primary", use_container_width=True, key="dev_use_url_btn"):
+                    parsed_dev_urls = split_url_input(dev_url_text)
+                    if len(parsed_dev_urls) != 1:
+                        st.error("Please paste one Facebook URL for this scraper run.")
+                    elif not is_facebook_url(parsed_dev_urls[0]):
+                        st.error("Only Facebook URLs are allowed.")
+                    else:
+                        st.session_state.dev_active_url = parsed_dev_urls[0]
+                        st.session_state.dev_active_file = None
+                        st.session_state.batch_df = None
+                        st.session_state.dev_scrape_results = None
+            with dev_file_col:
+                uploaded_dev_csv = st.file_uploader(
+                    "Or upload CSV",
+                    type=["csv"],
+                    key="dev_top_csv_uploader",
+                    label_visibility="collapsed",
+                )
+            if uploaded_dev_csv is not None:
+                st.session_state.dev_active_file = uploaded_dev_csv
                 st.session_state.dev_active_url = None
                 st.session_state.batch_df = None
                 st.session_state.dev_scrape_results = None
@@ -2529,7 +2946,9 @@ with tab_analysis_scrape:
                 scrape_model = st.selectbox("Classification Model", available_options, key="scrape_model_sel") if available_options else None
 
             if st.button("Run Scrape & Predict", type="primary", disabled=(scrape_model is None)):
-                if not scrape_token and not has_token_file:
+                if not is_facebook_url(st.session_state.dev_active_url):
+                    st.error("Only Facebook URLs can be scraped. Please enter a valid Facebook URL.")
+                elif not scrape_token and not has_token_file:
                     st.error("Missing Apify API Token. Please enter one above.")
                 else:
                     st.session_state.dev_scrape_limit_val = scrape_limit
@@ -2541,7 +2960,7 @@ with tab_analysis_scrape:
                     st.rerun()
         else:
             st.info("Scraping and analysis in progress... Please wait.")
-            if st.button("Stop Stop", key="dev_cancel_scrape", type="secondary", use_container_width=True):
+            if st.button("Stop Scrape", key="dev_cancel_scrape", type="secondary", use_container_width=True):
                 st.session_state.dev_cancel_requested = True
                 st.rerun()
 
@@ -2756,7 +3175,7 @@ with tab_analysis_scrape:
             st.markdown("#### Scraped Results")
             render_styled_predictions_df(df_run, "text", "predicted_sentiment", "model_confidence")
             
-            if st.button("Clear Clear Results & Start New Scrape", key="dev_clear_results_btn"):
+            if st.button("Clear Results & Start New Scrape", key="dev_clear_results_btn"):
                 st.session_state.dev_active_url = None
                 st.session_state.dev_scrape_results = None
                 st.rerun()
