@@ -1575,6 +1575,10 @@ def reset_user_scoped_state(clear_widget_keys: bool = True) -> None:
         "cached_insights_key",
         "batch_wordclouds",
         "_hist_wc_session",
+        "history_pdf_bytes",
+        "history_pdf_cache_key",
+        "_force_history_nav",
+        "_force_new_nav",
         "user_scrape_results",
         "user_active_urls",
         "user_active_file",
@@ -1788,6 +1792,7 @@ if "session_id" in st.query_params:
             st.session_state.current_session_id = param_sess_id
             st.session_state.view_mode = "history"
             st.session_state.user_scrape_results = None
+            st.session_state._force_history_nav = True
             st.rerun()
     except ValueError:
         pass
@@ -1815,6 +1820,11 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
+if st.session_state.pop("_force_history_nav", False):
+    st.session_state.sidebar_workspace_nav = "Session History"
+elif st.session_state.pop("_force_new_nav", False):
+    st.session_state.sidebar_workspace_nav = "New Analysis"
+
 workspace_choice = st.sidebar.radio(
     "Workspace",
     ["New Analysis", "Session History"],
@@ -1834,6 +1844,7 @@ if st.sidebar.button("Analyze New URL", type="primary", use_container_width=True
     st.session_state.view_mode = "new"
     st.session_state.current_session_id = None
     st.session_state.user_scrape_results = None
+    st.session_state._force_new_nav = True
     st.query_params.clear()
     st.rerun()
 
@@ -2114,26 +2125,36 @@ if not is_developer:
                 st.markdown(f"**Analyzed on:** `{session['timestamp']}`")
             with col_hdr2:
                 st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-                if st.button("Generate PDF Report", key="hist_pdf_btn", use_container_width=True):
-                    with st.spinner("Preparing your report..."):
-                        try:
-                            from src.report_generator import create_report_pdf
-                            pdf_data = create_report_pdf(
+                try:
+                    from src.report_generator import create_report_pdf
+
+                    pdf_insights_signature = json.dumps(current_insights or {}, sort_keys=True, default=str)
+                    pdf_cache_key = (
+                        "history_report",
+                        session["session_id"],
+                        len(df_user),
+                        pdf_insights_signature,
+                    )
+                    if st.session_state.get("history_pdf_cache_key") != pdf_cache_key:
+                        with st.spinner("Preparing report download..."):
+                            st.session_state.history_pdf_bytes = create_report_pdf(
                                 url=session["url"],
                                 timestamp=session["timestamp"],
                                 df=df_user,
                                 wordclouds=st.session_state.get("batch_wordclouds"),
                                 insights=current_insights,
                             )
-                            st.download_button(
-                                label="Download PDF Report",
-                                data=pdf_data,
-                                file_name="sentiment_report.pdf",
-                                mime="application/pdf",
-                                use_container_width=True,
-                            )
-                        except Exception as pdf_ex:
-                            st.error(f"Could not generate PDF report: {pdf_ex}")
+                            st.session_state.history_pdf_cache_key = pdf_cache_key
+
+                    st.download_button(
+                        label="Generate & Download PDF Report",
+                        data=st.session_state.history_pdf_bytes,
+                        file_name=f"sentiment_report_{session['session_id']}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True,
+                    )
+                except Exception as pdf_ex:
+                    st.error(f"Could not prepare PDF report: {pdf_ex}")
             
             # Tab partition for a clean non-scroll user experience
             tab_overview, tab_analytics, tab_insights = st.tabs(["Overview", "Analysis", "Insights"])
@@ -2632,7 +2653,8 @@ if not is_developer:
                                 )
                                 st.session_state.current_session_id = session["session_id"]
                                 st.session_state.view_mode = "history"
-                                st.session_state.user_active_url = None
+                                st.session_state.user_active_urls = None
+                                st.session_state._force_history_nav = True
                                 st.session_state.sessions_cache_dirty = True
                                 st.session_state.comments_cache_session_id = None
                                 st.success("Analysis saved to database!")
@@ -2688,6 +2710,7 @@ if not is_developer:
                         st.session_state.current_session_id = session["session_id"]
                         st.session_state.view_mode = "history"
                         st.session_state.user_active_file = None
+                        st.session_state._force_history_nav = True
                         st.session_state.sessions_cache_dirty = True
                         st.session_state.comments_cache_session_id = None
                         st.rerun()
