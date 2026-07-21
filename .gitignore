@@ -15,7 +15,7 @@ venv/
 .env
 secrets/
 secret/token.txt
-.streamlit\secrets.toml
+.streamlit/secrets.toml
 
 # Transformer training artifacts
 models/transformer/*

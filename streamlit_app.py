@@ -16,7 +16,7 @@ from streamlit_cookies_controller import CookieController
 
 # Set up page configurations
 st.set_page_config(
-    page_title="Low-Resource Sentiment Classifier",
+    page_title="FaceBook Comment Sentiment Classifier",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -2476,7 +2476,7 @@ if not is_developer:
                     )
                     st.markdown(insights_html, unsafe_allow_html=True)
                 
-        st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='footer'>Facebook Comment Sentiment Classifier Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
         
     else:
@@ -2722,7 +2722,7 @@ if not is_developer:
                 st.rerun()
                 
 
-        st.markdown("<div class='footer'>Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='footer'>Facebook Comment Sentiment Classifier Dashboard. Powered by Streamlit.</div>", unsafe_allow_html=True)
         st.stop()
 
 # Below is only accessible to verified Developers
@@ -3543,7 +3543,7 @@ with tab_db:
 st.markdown(
     """
     <div class='footer'>
-        Low-Resource Facebook Sentiment Classifier Prototype Dashboard. Powered by Streamlit.
+         Facebook Comment Sentiment Classifier Dashboard. Powered by Streamlit.
     </div>
     """,
     unsafe_allow_html=True
